@@ -20,4 +20,5 @@ Dartapp för 301/501/701 med poängräkning, utgångsförslag, uppropare och kam
 ## Utveckling
 - Koden ligger i `src/app.html` (sidan) och `src/head.html` (PWA-huvud). Kör `./build.sh` för att bygga `index.html`.
 - Vid ny version: höj `VERSION` i `sw.js` och `appVer` i `src/app.html`, så får installerade appar uppdateringen.
+- `node tools/calib-bench.js src/app.html` testar autokalibreringen på syntetiska tavelbilder (vinklar, ljus).
 - Bibliotek i `lib/`: PeerJS, qrcode-generator och jsQR (MIT/Apache-2.0).

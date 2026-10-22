@@ -357,7 +357,7 @@ html.tv .bar,html.tv .backdrop{display:none!important}
     <header class="home-head">
       <h1>Treble<span>Eye</span></h1>
       <div class="byline">by T.Henriksson</div>
-      <div class="meta"><span id="appVer">v2.10.0</span></div>
+      <div class="meta"><span id="appVer">v2.11.0</span></div>
     </header>
     <div class="home">
       <button class="pri big" id="btnSettings">Nytt spel</button>
@@ -1911,10 +1911,11 @@ function grab(){
   cam.rgba=d;return g;
 }
 // 1 = red, 2 = green, 0 = other
+// relative to brightness, so dim rooms still count and wood, skin and warm light do not
 function colorOf(d,i){
   const r=d[i*4],g=d[i*4+1],b=d[i*4+2];
-  if(r>70&&r>g+45&&r>b+35)return 1;
-  if(g>55&&g>r+22&&g>=b-5)return 2;
+  if(r>45&&r-Math.max(g,b)>Math.max(28,0.4*r))return 1;
+  if(g>35&&g-r>Math.max(16,0.3*g)&&g>=0.8*b)return 2;
   return 0;
 }
 function setH(H,silent){
@@ -1944,24 +1945,69 @@ function boardScore(H){
       if(colorOf(cam.rgba,yi*cam.W+xi)===(i%2===0?1:2))ok++;}}
   return ok/tot;
 }
-function homographyLS(s,d){
-  // normalised least squares over all point pairs
-  const k=cam.W,M=Array.from({length:8},()=>new Array(8).fill(0)),v=new Array(8).fill(0);
-  for(let i=0;i<s.length;i++){
-    const x=s[i][0]/170,y=s[i][1]/170,u=d[i][0]/k,w=d[i][1]/k;
-    const rows=[[x,y,1,0,0,0,-u*x,-u*y,u],[0,0,0,x,y,1,-w*x,-w*y,w]];
-    for(const r of rows)for(let a=0;a<8;a++){v[a]+=r[a]*r[8];for(let b=0;b<8;b++)M[a][b]+=r[a]*r[b];}
-  }
-  const h=solve(M,v);if(!h)return null;
-  return [k*h[0]/170,k*h[1]/170,k*h[2],k*h[3]/170,k*h[4]/170,k*h[5],h[6]/170,h[7]/170,1];
+// Board points with the colour they should have: 1 red, 2 green, 0 neither (singles and number ring).
+const FIT_PTS=(()=>{const p=[];
+  for(let i=0;i<20;i++)for(const da of [-7,-3.5,0,3.5,7]){const phi=(i*18+da)*Math.PI/180,s=Math.sin(phi),c=Math.cos(phi),k=i%2?2:1;
+    for(const [r,e] of [[60,0],[93,0],[100,k],[103,k],[106,k],[113,0],[140,0],[156,0],[163,k],[166,k],[169,k],[177,0],[190,0]])p.push([r*s,r*c,e]);}
+  for(let a=0;a<360;a+=45){const s=Math.sin(a*Math.PI/180),c=Math.cos(a*Math.PI/180);p.push([3*s,3*c,1],[11*s,11*c,2]);}
+  return p;})();
+// how well the board pattern under H matches a blurred colour map (smooth, so the rings end up centred, not just inside)
+function fitScore(H,m){
+  const W=cam.W,Ht=cam.H;let sum=0;
+  for(const [x,y,e] of FIT_PTS){const w=H[6]*x+H[7]*y+H[8],u=(H[0]*x+H[1]*y+H[2])/w-.5,v=(H[3]*x+H[4]*y+H[5])/w-.5;
+    if(!(u>=0&&v>=0&&u<W-1&&v<Ht-1))continue;
+    const x0=u|0,y0=v|0,fx=u-x0,fy=v-y0,j=y0*W+x0,
+      g=k=>(m[k][j]*(1-fx)+m[k][j+1]*fx)*(1-fy)+(m[k][j+W]*(1-fx)+m[k][j+W+1]*fx)*fy;
+    sum+=e?g(e):1-g(1)-g(2);}
+  return sum/FIT_PTS.length;
 }
-// Finds the board from its red/green rings. Assumes the phone is roughly upright (20 at the top).
+// Fits the board pattern to the colour map: first the turn (colours repeat every 36°, so within ±18° of 20 at the top),
+// then all eight corner coordinates by hill climbing. Handles a tilted phone and a camera far off to the side.
+function fitBoard(H0,col){
+  const W=cam.W,Ht=cam.H,n=W*Ht,B=CAL_BOARD,c0=B.map(([x,y])=>ap(H0,x,y));
+  const span=Math.hypot(c0[0][0]-c0[2][0],c0[0][1]-c0[2][1]),br=Math.max(1,Math.round(span/220));
+  const t=new Float32Array(n);
+  const blur=rad=>{const m=[null,new Float32Array(n),new Float32Array(n)];   // box blur of the red / green masks
+    for(const k of [1,2]){const o=m[k];
+      for(let y=0;y<Ht;y++){let a=0;const r=y*W;
+        for(let x=-rad;x<W;x++){if(x+rad<W)a+=col[r+x+rad]===k;if(x-rad-1>=0)a-=col[r+x-rad-1]===k;if(x>=0)t[r+x]=a;}}
+      for(let x=0;x<W;x++){let a=0;
+        for(let y=-rad;y<Ht;y++){if(y+rad<Ht)a+=t[(y+rad)*W+x];if(y-rad-1>=0)a-=t[(y-rad-1)*W+x];if(y>=0)o[y*W+x]=a/((2*rad+1)*(2*rad+1));}}}
+    return m;};
+  const mk=q=>homography(B,q);
+  const climb=(q,m,step,stop)=>{let bs=fitScore(mk(q),m);
+    while(step>stop){let moved=false;
+      for(let k=0;k<4;k++)for(let j=0;j<2;j++)for(const sg of [1,-1]){
+        const v=q[k][j];q[k][j]=v+sg*step;const H=mk(q),sc=H?fitScore(H,m):-1;
+        if(sc>bs){bs=sc;moved=true;}else q[k][j]=v;}
+      if(!moved)step/=2;}
+    return bs;};
+  // coarse to fine: a heavy blur first so a rough start still finds the rings, then sharper
+  const ms=[blur(4*br),blur(2*br),blur(br)];
+  const cand=[];
+  for(let d=-18;d<18;d+=3){const a=d*Math.PI/180,ca=Math.cos(a),sa=Math.sin(a);
+    const q=B.map(([x,y])=>ap(H0,x*ca+y*sa,-x*sa+y*ca)),H=mk(q);if(H)cand.push({q,sc:fitScore(H,ms[0])});}
+  cand.sort((a,b)=>b.sc-a.sc);
+  let best=null;
+  for(const c of cand.slice(0,4)){
+    climb(c.q,ms[0],0.04*span,0.01*span);climb(c.q,ms[1],0.01*span,0.004*span);c.sc=climb(c.q,ms[2],0.004*span,0.1);
+    if(!best||c.sc>best.sc)best=c;}
+  return best?mk(best.q):null;
+}
+// Finds the board from its red/green rings. Assumes 20 is within about 18° of the top (use Rotera bild otherwise).
 function autoCalibrate(silent){
   if(!cam.src){status("Starta kameran först.","w");return {ok:false};}
   grab();
   const W=cam.W,H=cam.H,d=cam.rgba,n=W*H,col=new Uint8Array(n);
   let sx=0,sy=0,c=0;
-  for(let i=0;i<n;i++){const k=colorOf(d,i);col[i]=k;if(k){sx+=i%W;sy+=(i/W)|0;c++;}}
+  for(let i=0;i<n;i++)col[i]=colorOf(d,i);
+  // red and green alternate all round the board: drop colour with none of the other colour nearby (walls, wood, clothes)
+  const ii=new Int32Array(2*(W+1)*(H+1)),o2=(W+1)*(H+1),rw=Math.max(8,Math.round(W/30));
+  for(let y=0;y<H;y++){let a=0,b=0;for(let x=0;x<W;x++){const k=col[y*W+x];a+=k===1;b+=k===2;
+    const j=(y+1)*(W+1)+x+1;ii[j]=ii[j-W-1]+a;ii[o2+j]=ii[o2+j-W-1]+b;}}
+  const box=(o,x,y)=>{const x0=Math.max(0,x-rw),y0=Math.max(0,y-rw),x1=Math.min(W,x+rw+1),y1=Math.min(H,y+rw+1);
+    return ii[o+y1*(W+1)+x1]-ii[o+y0*(W+1)+x1]-ii[o+y1*(W+1)+x0]+ii[o+y0*(W+1)+x0];};
+  for(let i=0;i<n;i++)if(col[i]){const x=i%W,y=(i/W)|0;if(box(col[i]===1?o2:0,x,y)<3)col[i]=0;else{sx+=x;sy+=y;c++;}}
   const fail=m=>{if(!silent)status(m,"w");return {ok:false};};
   if(c<250)return fail("Hittar inte tavlans röda och gröna fält. Se till att hela tavlan syns och är väl belyst, eller kalibrera manuellt.");
   let cx=sx/c,cy=sy/c,med=0;
@@ -1971,38 +2017,17 @@ function autoCalibrate(silent){
     for(let i=0;i<n;i++)if(col[i]){const x=i%W,y=(i/W)|0;if(Math.hypot(x-cx,y-cy)<lim){ax+=x;ay+=y;m++;}}
     if(m)cx=ax/m,cy=ay/m;
   }
-  const maxR=Math.hypot(W,H)/2,rad=new Float32Array(360);
-  for(let a=0;a<360;a++){
-    const t=a*Math.PI/180,dx=Math.sin(t),dy=-Math.cos(t);let last=0;
-    for(let s=2;s<maxR;s++){const x=Math.round(cx+dx*s),y=Math.round(cy+dy*s);
-      if(x<0||y<0||x>=W||y>=H)break;
-      if(s>2.5*med)break;
-      // the bull-to-treble gap is large, so only apply the gap rule once past the bull
-      if(col[y*W+x])last=s;else if(last>0.3*med&&s-last>Math.max(10,0.6*last))break;}
-    rad[a]=last;
-  }
-  const sm=new Float32Array(360);
-  for(let a=0;a<360;a++){const w=[];for(let k=-7;k<=7;k++)w.push(rad[(a+k+360)%360]);w.sort((p,q)=>p-q);sm[a]=w[7];}
-  const pt=a=>{const t=a*Math.PI/180,r=sm[a];return [cx+Math.sin(t)*r,cy-Math.cos(t)*r];};
-  let Hm=homography(CAL_BOARD,[pt(0),pt(90),pt(180),pt(270)]);
+  // start from the ellipse the coloured rings make: their spread matches the board's (rms 141 mm across both axes)
+  let sxx=0,sxy=0,syy=0,m=0;const lim=1.8*med;
+  for(let i=0;i<n;i++)if(col[i]){const x=i%W-cx,y=((i/W)|0)-cy;if(x*x+y*y<lim*lim){sxx+=x*x;sxy+=x*y;syy+=y*y;m++;}}
+  sxx/=m;sxy/=m;syy/=m;
+  // symmetric square root of the covariance = the board-to-picture stretch with the least turn
+  const sq=Math.sqrt(sxx*syy-sxy*sxy),tr=Math.sqrt(sxx+syy+2*sq),k=1/(99.8*tr);
+  const a11=(sxx+sq)*k,a12=sxy*k,a22=(syy+sq)*k;
+  // board y is up, picture y is down
+  let Hm=[a11,-a12,cx,a12,-a22,cy,0,0,1];
+  Hm=fitBoard(Hm,col);
   if(!Hm)return fail("Autokalibreringen misslyckades. Kalibrera manuellt.");
-  for(let it=0;it<3;it++){
-    const S=[],D=[],c0=ap(Hm,0,0);let Ls=0;
-    for(let k=0;k<60;k++){
-      const phi=k*6*Math.PI/180,bp=[170*Math.sin(phi),170*Math.cos(phi)],p=ap(Hm,bp[0],bp[1]);
-      const vx=p[0]-c0[0],vy=p[1]-c0[1],L=Math.hypot(vx,vy);if(L<15)continue;
-      const ux=vx/L,uy=vy/L;let last=0;
-      for(let s=L*0.8;s<L*1.2;s+=0.5){const x=Math.round(c0[0]+ux*s),y=Math.round(c0[1]+uy*s);
-        if(x<0||y<0||x>=W||y>=H)break;if(col[y*W+x])last=s;}
-      if(last>L*0.85){S.push(bp);D.push([c0[0]+ux*last,c0[1]+uy*last]);Ls+=L;}
-    }
-    if(S.length<12)break;
-    const rb=0.09*Ls/S.length;let bx=0,by=0,bm=0;
-    for(let y=Math.max(0,Math.floor(c0[1]-rb));y<Math.min(H,c0[1]+rb);y++)for(let x=Math.max(0,Math.floor(c0[0]-rb));x<Math.min(W,c0[0]+rb);x++)
-      if(col[y*W+x]&&Math.hypot(x-c0[0],y-c0[1])<rb){bx+=x;by+=y;bm++;}
-    if(bm>4){for(let r=0;r<4;r++){S.push([0,0]);D.push([bx/bm,by/bm]);}}
-    const h=homographyLS(S,D);if(h)Hm=h;
-  }
   const score=boardScore(Hm);
   if(score<0.5)return fail("Autokalibreringen blev osäker ("+Math.round(score*100)+" %). Justera kameran eller kalibrera manuellt.");
   const edge=[[0,180],[180,0],[0,-180],[-180,0]].map(([x,y])=>ap(Hm,x,y));
