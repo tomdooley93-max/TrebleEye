@@ -160,9 +160,10 @@ html.tv .crt td{font-size:clamp(24px,3vw,52px)}
 .bar button{white-space:nowrap}
 @media (max-width:480px){.bar{gap:6px}.bar button{padding:8px 10px;font-size:13px}#scrCup .bar .gmeta{visibility:hidden}}
 /* home */
-.home-head{display:flex;flex-direction:column;align-items:center;gap:6px;margin:7vh 0 34px;text-align:center}
+.home-head{display:flex;flex-direction:column;align-items:center;gap:6px;margin:4vh 0 28px;text-align:center}
 .home-head h1{font-size:clamp(56px,16vw,96px);line-height:.9;letter-spacing:-.01em}
-.home-head::after{content:"";width:56px;height:4px;background:var(--acc);margin-top:6px;transform:skewX(-20deg)}
+.home-head h1.logo{line-height:0}
+.home-head h1.logo img{display:block;width:min(92vw,460px);height:auto}
 .byline{font-size:13px;color:var(--mut);letter-spacing:.04em}
 .home-head .meta{order:3;margin-top:4px}
 .privacy{font-size:12px;color:var(--dim);text-align:center;margin:18px 0 0;line-height:1.5}
@@ -329,6 +330,7 @@ html.tv .bar,html.tv .backdrop{display:none!important}
   #scrHome.active{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,460px);gap:64px;align-items:center;min-height:calc(100dvh - 120px);max-width:1040px;margin:0 auto}
   .home-head{align-items:flex-start;text-align:left;margin:0}
   .home-head h1{font-size:clamp(96px,10vw,140px)}
+  .home-head h1.logo img{width:min(100%,560px)}
 }
 /* Landscape phones (e.g. on a selfie stick next to the board): everything on one screen, no page scrolling */
 @media (orientation:landscape) and (max-height:540px){
@@ -339,6 +341,7 @@ html.tv .bar,html.tv .backdrop{display:none!important}
   #scrHome.active{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:20px;align-items:center;min-height:calc(100dvh - 12px)}
   .home-head{margin:0}
   .home-head h1{font-size:clamp(40px,10vh,68px)}
+  .home-head h1.logo img{width:auto;height:min(38vh,200px)}
   .home{gap:8px}
   .home .big{padding:10px;font-size:20px}
   .tiles{gap:6px}.tiles button{padding:9px 10px;font-size:14px}
@@ -387,7 +390,8 @@ html.tv .bar,html.tv .backdrop{display:none!important}
 .stage{--gap:clamp(8px,1.1vmin,18px);position:relative;display:grid;grid-template-rows:auto minmax(0,1fr);gap:var(--gap);
   aspect-ratio:16/9;width:100%;box-sizing:border-box;padding:var(--gap);background:var(--bg);border:1px solid var(--line);border-radius:var(--r-lg);overflow:hidden;container-type:inline-size}
 .sthead{display:flex;align-items:center;justify-content:space-between;gap:16px;min-width:0;padding-bottom:var(--gap);border-bottom:2px solid var(--line)}
-.sthead>div:first-child{border-left:.5cqw solid var(--acc);padding-left:1.2cqw}
+.sthead>div:first-of-type{border-left:.5cqw solid var(--acc);padding-left:1.2cqw}
+.stlogo{display:block;height:7cqw;width:auto;flex:none;margin:-.6cqw -.4cqw -.6cqw 0}
 .stname{font-family:var(--f-num);font-weight:800;font-size:3.6cqw;line-height:.95;color:var(--fg);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-transform:uppercase;font-style:italic;letter-spacing:.005em}
 .stsub{font-size:1.2cqw;color:var(--mut);letter-spacing:.1em;text-transform:uppercase;margin-top:.35em;font-weight:600;font-variant-numeric:tabular-nums}
 .stlive{display:flex;align-items:center;gap:1cqw;text-align:right;font-size:1.05cqw;color:var(--mut);line-height:1.35}
@@ -398,6 +402,7 @@ html.tv .bar,html.tv .backdrop{display:none!important}
 .stlive .lq{background:#fff;border-radius:var(--r-sm);padding:.3cqw;width:6.2cqw;aspect-ratio:1;box-sizing:border-box}
 .stlive .lq svg{display:block;width:100%;height:100%}
 /* audience view on phones */
+#scrLive .lvlogo{display:block;width:min(64vw,240px);height:auto;margin:2px auto 10px}
 #scrLive .lvhead{margin:4px 0 14px;border-left:4px solid var(--acc);padding-left:12px}
 #scrLive .lvhead .stname{font-size:34px}
 #liveBody .bcard{height:160px;cursor:pointer;margin-bottom:10px}
@@ -479,6 +484,7 @@ html.tv .bar,html.tv .backdrop{display:none!important}
 .bm .tag.plan{background:var(--panel2);color:var(--mut)}
 .bcard .nextm{margin:0 -2px;padding:.2em .6em;border-radius:4px;background:var(--bg2);color:var(--mut);font-size:clamp(10px,7cqh,28px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .champov{position:absolute;inset:0;z-index:5;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1cqw;background:rgba(16,20,17,.94);cursor:pointer;text-align:center}
+.champov .cl{display:block;width:26cqw;height:auto;margin-bottom:.5cqw}
 .champov .t{font-size:8cqw;line-height:1}
 .champov .n{font-family:var(--f-num);font-weight:800;font-style:italic;text-transform:uppercase;font-size:8cqw;line-height:.95;color:var(--acc)}
 .champov .s{font-size:2cqw;color:var(--fg);font-weight:600;text-transform:uppercase;letter-spacing:.08em}
@@ -517,9 +523,10 @@ html.cupbig .queue{font-size:min(1.15cqw,2.05cqh)}
   body *{visibility:hidden!important}
   #cupPrintBox,#cupPrintBox *{visibility:visible!important}
   #cupPrintBox{display:block;position:absolute;left:0;top:0;width:100%;color:#000;background:#fff}
-  .ppage{height:96vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4vh;text-align:center;font-family:var(--f-body);break-after:page;page-break-after:always}
+  .ppage{height:96vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3vh;text-align:center;font-family:var(--f-body);break-after:page;page-break-after:always}
+  .ppage .plogo{background:#101411;border-radius:12pt;padding:8pt 18pt;-webkit-print-color-adjust:exact;print-color-adjust:exact}.ppage .plogo img{display:block;width:7cm;height:auto}
   .ppage h2{font-family:var(--f-num);font-size:110pt;margin:0;line-height:1;text-transform:uppercase}
-  .ppage .pq{width:11cm;height:11cm}.ppage .pq svg{width:100%;height:100%}
+  .ppage .pq{width:10cm;height:10cm}.ppage .pq svg{width:100%;height:100%}
   .ppage p{font-size:16pt;margin:0;max-width:15cm}
   .ppage small{font-size:11pt;color:#555}
 }
@@ -531,7 +538,8 @@ html.cupbig .queue{font-size:min(1.15cqw,2.05cqh)}
   html:not(.cupbig) .stlive b{font-size:20px;justify-content:flex-start}
   html:not(.cupbig) .stlive .lq{width:72px;padding:3px}
   html:not(.cupbig) .sthead{flex-direction:column;align-items:flex-start;padding-bottom:12px}
-  html:not(.cupbig) .sthead>div:first-child{border-left-width:4px;padding-left:12px}
+  html:not(.cupbig) .sthead>div:first-of-type{border-left-width:4px;padding-left:12px}
+  html:not(.cupbig) .stlogo{height:auto;width:min(70vw,280px);margin:0}
   html:not(.cupbig) .stmain,html:not(.cupbig) .stright{display:flex;flex-direction:column;gap:12px}
   html:not(.cupbig) .queue{grid-template-columns:1fr;gap:8px}
   html:not(.cupbig) .cupboards{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));grid-template-rows:none;gap:10px}
@@ -542,7 +550,7 @@ html.cupbig .queue{font-size:min(1.15cqw,2.05cqh)}
   html:not(.cupbig) .stbr{overflow-x:auto}
   html:not(.cupbig) .bracket{position:static;transform:none!important}
   html:not(.cupbig) .champov{position:static;padding:16px;border-radius:var(--r);border:1px solid var(--acc)}
-  html:not(.cupbig) .champov .t{font-size:40px}html:not(.cupbig) .champov .n{font-size:44px}html:not(.cupbig) .champov .s{font-size:14px}html:not(.cupbig) .champov .h{font-size:12px}
+  html:not(.cupbig) .champov .cl{width:min(60vw,220px)}html:not(.cupbig) .champov .t{font-size:40px}html:not(.cupbig) .champov .n{font-size:44px}html:not(.cupbig) .champov .s{font-size:14px}html:not(.cupbig) .champov .h{font-size:12px}
 }
 .cupst td{font-size:20px}.cupst td.n{font-family:var(--f-body);font-size:15px;font-weight:600;color:var(--fg)}
 .cupst tr[data-n]{cursor:pointer}.cupst tr[data-n]:hover td{background:var(--panel2)}
@@ -579,9 +587,9 @@ html.cupbig .queue{font-size:min(1.15cqw,2.05cqh)}
 <div class="wrap">
   <div class="screen active" id="scrHome">
     <header class="home-head">
-      <h1>Treble<span>Eye</span></h1>
+      <h1 class="logo"><img src="icons/wordmark.webp" alt="TrebleEye" width="980" height="556"></h1>
       <div class="byline">by T.Henriksson</div>
-      <div class="meta"><span id="appVer">v2.14.1</span></div>
+      <div class="meta"><span id="appVer">v2.14.2</span></div>
     </header>
     <div class="home">
       <button class="pri big" id="btnSettings">Nytt spel</button>
@@ -1007,7 +1015,8 @@ html.cupbig .queue{font-size:min(1.15cqw,2.05cqh)}
         <div class="wrapc">
           <div class="stage" id="cupStage">
             <header class="sthead">
-              <div style="min-width:0"><div class="stname" id="cupStName"></div><div class="stsub" id="cupProg"></div></div>
+              <img class="stlogo" src="icons/wordmark.webp" alt="TrebleEye" width="980" height="556">
+              <div style="min-width:0;flex:1"><div class="stname" id="cupStName"></div><div class="stsub" id="cupProg"></div></div>
               <div class="stlive"><div><b>Följ live</b><span>Skanna med mobilen</span><span class="cc">Klubbkod <i id="cupCode"></i></span></div><div class="lq" id="cupLiveQR"></div></div>
             </header>
             <div class="stmain">
@@ -1039,6 +1048,7 @@ html.cupbig .queue{font-size:min(1.15cqw,2.05cqh)}
   </div>
   <div class="screen" id="scrLive">
     <div class="bar"><button id="liveBack">‹ Meny</button><span class="gmeta" id="liveTitle">Live</span><button class="dng" id="liveStop">Sluta följa</button></div>
+    <img class="lvlogo" src="icons/wordmark.webp" alt="TrebleEye" width="980" height="556">
     <div class="lvhead"><div class="stname" id="liveName">Ansluter…</div><div class="help" style="margin-top:4px" id="liveProg"></div></div>
     <div class="tabs" role="tablist"><button role="tab" id="lvTabM" aria-selected="true">Matcher</button><button role="tab" id="lvTabB" aria-selected="false">Träd</button><button role="tab" id="lvTabS" aria-selected="false">Statistik</button></div>
     <div id="liveBody"></div>
@@ -2062,7 +2072,7 @@ const guide=(function(){
   };
   const homeScr=(label)=>scr('<rect x="11" y="11" width="138" height="258" rx="15" fill="#2b4a6b"/>'+
     Array.from({length:12},(_,i)=>{const x=24+(i%4)*30,y=34+Math.floor(i/4)*40;return i===9?'':'<rect x="'+x+'" y="'+y+'" width="22" height="22" rx="6" fill="#ffffff" opacity=".35"/>';}).join("")+
-    '<rect x="24" y="114" width="22" height="22" rx="6" fill="#3f9160"/>'+T(35,129,9,' fill="#fff" font-weight="700" text-anchor="middle"')+'TE</text>'+
+    '<image href="icons/icon-192.png" x="24" y="114" width="22" height="22" clip-path="inset(0 round 6px)"/>'+
     T(35,146,7,' fill="#fff" text-anchor="middle"')+label+'</text>'+tap(35,125));
   const safariOld=scr(page+'<rect x="11" y="214" width="138" height="55" fill="#f7f7f7"/><rect x="22" y="219" width="116" height="18" rx="9" fill="#e4e4e4"/>'+
     T(80,231,8,' fill="#555" text-anchor="middle"')+'tomdooley93-max.github.io</text>'+
@@ -2087,8 +2097,8 @@ const guide=(function(){
   const addDlg=(webapp)=>scr('<rect x="11" y="11" width="138" height="258" rx="15" fill="#f2f2f7"/>'+
     T(20,40,8.5,' fill="#1a73e8"')+'Avbryt</text>'+T(80,40,8,' fill="#222" font-weight="700" text-anchor="middle"')+'Lägg till</text>'+
     T(140,40,9,' fill="#1a73e8" font-weight="700" text-anchor="end"')+'Lägg till</text>'+
-    '<rect x="20" y="58" width="120" height="50" rx="10" fill="#fff"/><rect x="28" y="66" width="34" height="34" rx="8" fill="#3f9160"/>'+
-    T(45,88,12,' fill="#fff" font-weight="700" text-anchor="middle"')+'TE</text>'+T(70,82,10,' fill="#222"')+'TrebleEye</text>'+
+    '<rect x="20" y="58" width="120" height="50" rx="10" fill="#fff"/><image href="icons/icon-192.png" x="28" y="66" width="34" height="34" clip-path="inset(0 round 8px)"/>'+
+    T(70,82,10,' fill="#222"')+'TrebleEye</text>'+
     (webapp?'<rect x="20" y="118" width="120" height="26" rx="8" fill="#fff"/>'+T(28,135,8,' fill="#222"')+'Öppna som webbapp</text>'+
       '<rect x="112" y="124" width="22" height="13" rx="6.5" fill="#34c759"/><circle cx="127.5" cy="130.5" r="5.3" fill="#fff"/>':'')+tap(126,36));
   const chrome=scr('<rect x="11" y="11" width="138" height="40" rx="15" fill="#f1f3f4"/><rect x="20" y="24" width="98" height="20" rx="10" fill="#fff"/>'+
@@ -2100,7 +2110,7 @@ const guide=(function(){
       T(54,60+i*24,8.5,' fill="#222"'+(r[2]?' font-weight="700"':''))+r[0]+(r[1]&&r[1].length>1?'<tspan x="54" dy="10">'+r[1]+'</tspan>':'')+'</text>').join("")+tap(128,160));
   const chromeDlg=scr('<rect x="11" y="11" width="138" height="258" rx="15" fill="#000" opacity=".35"/>'+
     '<rect x="22" y="96" width="116" height="92" rx="12" fill="#fff"/>'+T(32,116,9,' fill="#222" font-weight="700"')+'Installera appen</text>'+
-    '<rect x="32" y="126" width="22" height="22" rx="6" fill="#3f9160"/>'+T(43,141,8,' fill="#fff" font-weight="700" text-anchor="middle"')+'TE</text>'+T(60,141,9,' fill="#222"')+'TrebleEye</text>'+
+    '<image href="icons/icon-192.png" x="32" y="126" width="22" height="22" clip-path="inset(0 round 6px)"/>'+T(60,141,9,' fill="#222"')+'TrebleEye</text>'+
     T(64,176,9,' fill="#1a73e8" text-anchor="end"')+'Avbryt</text>'+T(124,176,9,' fill="#1a73e8" font-weight="700" text-anchor="end"')+'Installera</text>'+tap(108,172));
   const safariVer=+((ua.match(/Version\/(\d+)/)||[])[1]||0);
   const isIPad=/iPad/.test(ua)||(/Macintosh/.test(ua)&&"ontouchend" in document);
@@ -2119,18 +2129,18 @@ const guide=(function(){
       }
       s.push(step(shareSheet,"Lägg till på hemskärmen",'<p>Dra listan <b>uppåt</b> med fingret tills du ser <b>Lägg till på hemskärmen</b> '+ICON.plus+'. Tryck på den.</p><p class="gsmall">Syns den inte? Tryck på <b>Visa fler</b> eller <b>Redigera åtgärder</b> längst ner i listan.</p>'));
       s.push(step(addDlg(safariVer>=26),"Tryck på Lägg till",'<p>Tryck på <b>Lägg till</b> uppe till höger.</p>'+(safariVer>=26?'<p class="gsmall">Låt <b>Öppna som webbapp</b> vara påslagen (grön).</p>':'')));
-      s.push(step(homeScr("TrebleEye"),"Öppna från hemskärmen",'<p>Klart! Gå till hemskärmen och tryck på den gröna ikonen <b>TrebleEye</b>.</p><p class="gsmall">Starta alltid appen därifrån. Du kan stänga Safari.</p>'));
+      s.push(step(homeScr("TrebleEye"),"Öppna från hemskärmen",'<p>Klart! Gå till hemskärmen och tryck på den svartgröna TE-ikonen <b>TrebleEye</b>.</p><p class="gsmall">Starta alltid appen därifrån. Du kan stänga Safari.</p>'));
       s.forEach((x,i)=>x.title=(i+1)+". "+x.title);
       return s;
     }
     if(isAndroid){
       const s=[];
-      if(installEvt)s.push({art:phone('<rect x="38" y="60" width="44" height="44" rx="10" fill="#3f9160"/><text x="60" y="90" text-anchor="middle" font-size="22" font-weight="700" fill="#fff" font-family="sans-serif">TE</text>'),
+      if(installEvt)s.push({art:phone('<image href="icons/icon-192.png" x="38" y="60" width="44" height="44" clip-path="inset(0 round 10px)"/>'),
         title:"Installera appen",body:'<p>Då startar TrebleEye som en vanlig app, i helskärm och med egen ikon.</p><p><button class="pri gbig" id="gInstall">Installera appen nu</button></p><p class="gsmall">Fungerar inte knappen? Tryck <b>Nästa</b> så visar vi hur du gör själv.</p>'});
       s.push(step(chrome,"1. Tryck på menyn",'<p>Tryck på de <b>tre prickarna</b> '+ICON.dots+' uppe till höger i Chrome.</p>'));
       s.push(step(chromeMenu,"2. Lägg till på startskärmen",'<p>Tryck på <b>Lägg till på startskärmen</b> eller <b>Installera app</b>.</p><p class="gsmall">Dra menyn uppåt om du inte ser den.</p>'));
       s.push(step(chromeDlg,"3. Tryck på Installera",'<p>Tryck på <b>Installera</b>. Får du frågan om genväg eller app, välj <b>Installera</b>.</p>'));
-      s.push(step(homeScr("TrebleEye"),"4. Öppna från startskärmen",'<p>Klart! Tryck på den gröna ikonen <b>TrebleEye</b> på startskärmen.</p><p class="gsmall">Starta alltid appen därifrån.</p>'));
+      s.push(step(homeScr("TrebleEye"),"4. Öppna från startskärmen",'<p>Klart! Tryck på den svartgröna TE-ikonen <b>TrebleEye</b> på startskärmen.</p><p class="gsmall">Starta alltid appen därifrån.</p>'));
       return s;
     }
     return [{title:"Använd appen på mobilen",body:'<p>TrebleEye fungerar bäst på mobil eller surfplatta. Öppna adressen i telefonens webbläsare, så visar guiden hur du lägger appen på hemskärmen:</p><p class="glink">'+esc(APP_URL)+'</p>'}];
@@ -3703,7 +3713,7 @@ const cup=(function(){
     fitBracket();
     const ch=$("cupChamp");ch.hidden=!C.champ||champHidden;
     if(watchers.length&&!snapT)snapT=setTimeout(()=>{snapT=null;if(!C)return;const s=liveSnap();watchers=watchers.filter(w=>w.open);watchers.forEach(w=>{try{w.send(s);}catch(_){}});},400);
-    if(C.champ)ch.innerHTML='<div class="t">🏆</div><div class="n">'+esc(C.champ)+'</div><div class="s">vinner '+esc(C.name)+'</div><div class="h">Tryck för att visa trädet</div>';
+    if(C.champ)ch.innerHTML='<img class="cl" src="icons/wordmark.webp" alt="TrebleEye"><div class="t">🏆</div><div class="n">'+esc(C.champ)+'</div><div class="s">vinner '+esc(C.name)+'</div><div class="h">Tryck för att visa trädet</div>';
     renderCupStats();renderLog();
   }
   // scale the bracket so the whole tree is always visible in its box
@@ -3956,7 +3966,7 @@ const cup=(function(){
   function printCodes(){
     const code=C?C.code:clubCode(),nb=C?C.nBoards:+$("cupBoardsN").value,name=C?C.name:($("cupName").value||"");
     let h="";
-    for(let n=1;n<=nb;n++)h+='<section class="ppage"><h2>Bana '+n+'</h2><div class="pq">'+qrSvg(joinUrl(code,n))+'</div><p>Skanna med telefonen som räknar matcherna på den här banan. Den kopplas till Bana '+n+' på storskärmen.</p><small>TrebleEye'+(name?" · "+esc(name):"")+' · klubbkod '+code+' · bana '+n+'</small></section>';
+    for(let n=1;n<=nb;n++)h+='<section class="ppage"><div class="plogo"><img src="icons/wordmark.webp" alt="TrebleEye"></div><h2>Bana '+n+'</h2><div class="pq">'+qrSvg(joinUrl(code,n))+'</div><p>Skanna med telefonen som räknar matcherna på den här banan. Den kopplas till Bana '+n+' på storskärmen.</p><small>TrebleEye'+(name?" · "+esc(name):"")+' · klubbkod '+code+' · bana '+n+'</small></section>';
     $("cupPrintBox").innerHTML=h;setTimeout(()=>window.print(),100);
   }
   $("cupPrint1").addEventListener("click",printCodes);
