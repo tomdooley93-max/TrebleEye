@@ -497,6 +497,16 @@ html.tv .bar,html.tv .backdrop{display:none!important}
 .champov .s{font-size:2cqw;color:var(--fg);font-weight:600;text-transform:uppercase;letter-spacing:.08em}
 .champov .h{font-size:1.1cqw;color:var(--mut)}
 .cupctl{gap:10px}
+.atdiag{margin:6px 0 0;padding:10px;border-radius:8px;background:var(--bg2);font-size:12px;line-height:1.45;white-space:pre-wrap;word-break:break-word;max-height:40vh;overflow:auto}
+.callov{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:6;min-width:46cqw;padding:2.4cqw 3.6cqw;border-radius:1.2cqw;background:var(--acc);color:var(--bg);text-align:center;box-shadow:0 1cqw 4cqw rgba(0,0,0,.55);animation:callin .35s ease-out}
+.callov .k{font-size:1.6cqw;font-weight:700;text-transform:uppercase;letter-spacing:.14em}
+.callov .b{font-family:var(--f-num);font-weight:800;font-style:italic;text-transform:uppercase;font-size:7cqw;line-height:1}
+.callov .p{font-size:3cqw;font-weight:700;margin-top:.6cqw}
+.callov .r{font-size:1.4cqw;opacity:.8;margin-top:.4cqw}
+@keyframes callin{from{opacity:0;transform:translate(-50%,-50%) scale(.85)}to{opacity:1;transform:translate(-50%,-50%) scale(1)}}
+.cuplog{list-style:none;margin:8px 0 0;padding:0;display:flex;flex-direction:column;gap:4px;font-size:14px}
+.cuplog li{display:flex;gap:10px}.cuplog time{color:var(--mut);font-variant-numeric:tabular-nums;flex:none}
+.lvcall{margin:0 16px 10px;padding:10px 14px;border-radius:10px;background:var(--acc);color:var(--bg);font-weight:700}
 .cupexit{position:fixed;right:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:60;opacity:0;transition:opacity .4s}
 html.cupbig .cupexit.show,.cupexit:hover,.cupexit:focus-visible{opacity:.85}
 /* big-screen mode: only the stage, filling the display */
@@ -584,7 +594,7 @@ html.cupbig .queue{font-size:min(1.15cqw,2.05cqh)}
     <header class="home-head">
       <h1>Treble<span>Eye</span></h1>
       <div class="byline">by T.Henriksson</div>
-      <div class="meta"><span id="appVer">v2.13.1</span></div>
+      <div class="meta"><span id="appVer">v2.14.1</span></div>
     </header>
     <div class="home">
       <button class="pri big" id="btnSettings">Nytt spel</button>
@@ -599,6 +609,7 @@ html.cupbig .queue{font-size:min(1.15cqw,2.05cqh)}
         <button id="btnShareApp">Dela appen</button>
         <button class="help-tile" id="btnGuide">Så funkar appen</button>
         <a class="tilelink help-tile" id="lnkVisits" href="https://trebleeye.goatcounter.com" target="_blank" rel="noopener" hidden>Besöksstatistik (admin)</a>
+        <button class="help-tile" id="btnAdminTools" hidden>Adminverktyg</button>
       </div>
       <label class="label voice">Uppropare
         <select id="selVoice" aria-label="Uppropare">
@@ -628,6 +639,32 @@ html.cupbig .queue{font-size:min(1.15cqw,2.05cqh)}
       <button class="pri" id="editSave">Spara</button>
       <button id="editCancel">Avbryt</button>
     </div>
+  </section>
+
+  <section id="adminTools" class="panel sheet" hidden>
+    <div class="row" style="justify-content:space-between">
+      <div class="label">Adminverktyg</div>
+      <button id="atClose">Stäng</button>
+    </div>
+    <div class="admsec">
+      <div class="label">Uppdatering</div>
+      <p class="help" style="margin:4px 0 8px">Rensar appens cache på den här enheten och laddar senaste versionen. Spel, statistik och inställningar ligger kvar.</p>
+      <button class="pri" id="atUpdate">Tvinga uppdatering</button>
+    </div>
+    <div class="admsec">
+      <div class="row" style="justify-content:space-between"><div class="label">Diagnos</div><div class="row"><button id="atDiagRefresh">Uppdatera</button><button id="atDiagCopy">Kopiera</button><button id="atErrClear">Rensa fel</button></div></div>
+      <pre class="atdiag" id="atDiag"></pre>
+    </div>
+    <div class="admsec">
+      <div class="label">Säkerhetskopia</div>
+      <p class="help" style="margin:4px 0 8px">Sparar historik, spelare, klubbkod och inställningar i en fil som kan läsas in på en annan telefon. GitHub-nyckeln tas inte med.</p>
+      <div class="row"><button id="atExport">Spara säkerhetskopia</button><span class="filebtn"><button tabindex="-1">Läs in säkerhetskopia</button><input type="file" id="atImport" accept="application/json,.json" aria-label="Läs in säkerhetskopia"></span></div>
+    </div>
+    <div class="admsec">
+      <div class="label">Betafunktioner</div>
+      <div id="atBeta"></div>
+    </div>
+    <div class="status" id="atMsg" hidden></div>
   </section>
 
   <section id="voiceAdmin" class="panel sheet" hidden>
@@ -745,6 +782,7 @@ html.cupbig .queue{font-size:min(1.15cqw,2.05cqh)}
     <div class="admsec" id="admBoardBox">
       <div class="label">Bana</div>
       <div class="row"><select id="admBoard" aria-label="Bana"></select><button id="admMove">Flytta matchen</button></div>
+      <div class="row" id="admRunBtns"><button id="admCall">Ropa upp igen</button><button class="dng" id="admKick">Koppla bort banans telefon</button></div>
     </div>
     <div class="admsec" id="admScoreBox">
       <div class="label">Rätta ställningen på banan</div>
@@ -958,6 +996,8 @@ html.cupbig .queue{font-size:min(1.15cqw,2.05cqh)}
           <label class="label">Banor <select id="cupBoardsN"><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option selected>6</option><option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option></select></label>
           <label class="label">Spel <select id="cupStart"><option value="301">301</option><option value="501" selected>501</option><option value="701">701</option></select></label>
           <label class="label">Format <select id="cupLegs"><option value="1">1 leg</option><option value="3" selected>Bäst av 3 legs</option><option value="5">Bäst av 5 legs</option><option value="7">Bäst av 7 legs</option></select></label>
+          <label class="label">Semifinal <select id="cupLegsSF"><option value="0" selected>Samma</option><option value="3">Bäst av 3</option><option value="5">Bäst av 5</option><option value="7">Bäst av 7</option></select></label>
+          <label class="label">Final <select id="cupLegsF"><option value="0" selected>Samma</option><option value="3">Bäst av 3</option><option value="5">Bäst av 5</option><option value="7">Bäst av 7</option></select></label>
         </div>
         <div class="set">
           <label class="ck"><input type="checkbox" id="cupDbl" checked> Dubbel ut</label>
@@ -991,8 +1031,13 @@ html.cupbig .queue{font-size:min(1.15cqw,2.05cqh)}
               </div>
             </div>
             <div class="champov" id="cupChamp" hidden></div>
+            <div class="callov" id="cupCall" hidden></div>
           </div>
-          <div class="row cupctl"><span class="help" style="margin:0;flex:1;min-width:220px">Spelledare: tryck på en match i trädet eller på en bana för att flytta bana, ändra spelare, rätta poäng eller sätta resultat.</span><button id="cupPrint2">Skriv ut bankoder</button><button class="dng" id="cupEnd">Avsluta turneringen</button></div>
+          <div class="row cupctl"><span class="help" style="margin:0;flex:1;min-width:220px">Spelledare: tryck på en match i trädet eller på en bana för att flytta bana, ändra spelare, rätta poäng eller sätta resultat.</span><button id="cupLate">Sen anmälan</button><label class="ck"><input type="checkbox" id="cupSpeak"> Läs upp matcher</label><button id="cupPrint2">Skriv ut bankoder</button><button class="dng" id="cupEnd">Avsluta turneringen</button></div>
+          <section class="panel" id="cupLogBox" hidden>
+            <div class="row" style="justify-content:space-between"><div class="label">Spelledarlogg</div><button id="cupUndo">Ångra senaste</button></div>
+            <ol class="cuplog" id="cupLog"></ol>
+          </section>
           <section class="panel" id="cupStatsBox" hidden>
             <div class="row" style="justify-content:space-between"><div class="label">Statistik</div><button id="cupCsv">Ladda ner allt (CSV)</button></div>
             <div id="cupStats" style="overflow-x:auto;margin-top:8px"></div>
@@ -1130,6 +1175,13 @@ const usage={
   evOnce(name){if(this.once[name])return;this.once[name]=1;this.ev(name);}
 };
 const store={get(k){try{return JSON.parse(localStorage.getItem(k));}catch(e){return null;}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}};
+// the last errors on this device, shown in the admin diagnosis (kept over reloads)
+function errLog(t){const l=store.get("dk_errlog")||[];l.unshift(new Date().toISOString().slice(5,19).replace("T"," ")+" "+String(t).slice(0,300));store.set("dk_errlog",l.slice(0,25));}
+window.addEventListener("error",e=>errLog((e.message||"Fel")+(e.filename?" ("+String(e.filename).split("/").pop()+":"+e.lineno+")":"")));
+window.addEventListener("unhandledrejection",e=>errLog("Promise: "+(e.reason&&e.reason.message||e.reason)));
+// beta features: off for everyone, switched on per device from the admin tools
+const BETA=[];
+const beta=k=>!!(store.get("dk_beta")||{})[k];
 
 // match statistics kept per player for the whole match
 function newStats(){return {pts:0,darts:0,f9pts:0,f9darts:0,c180:0,c140:0,c100:0,hiTurn:0,hiCo:0,coTry:0,coHit:0,best:0,legsWon:0};}
@@ -2161,7 +2213,7 @@ function endGame(){
   G.ended=true;
   undo=[];save();showScreen("home");
 }
-function closeSheets(){["editPl","voiceAdmin","sessPanel","statsPanel","sharePanel","cupPanel","cupCard","cupAdmin"].forEach(id=>{$(id).hidden=true;});}
+function closeSheets(){["editPl","voiceAdmin","adminTools","sessPanel","statsPanel","sharePanel","cupPanel","cupCard","cupAdmin"].forEach(id=>{$(id).hidden=true;});}
 
 /* ---------- Render ---------- */
 function render(){
@@ -3170,7 +3222,26 @@ const cup=(function(){
   function persist(){store.set("dk_cuphost",C);}
   function sendTo(dev,m){const c=conns[dev];if(c&&c.open){try{c.send(m);}catch(e){}}}
   function sendAll(m){Object.keys(conns).forEach(d=>sendTo(d,m));}
-  function assignMsg(m,n){return {t:"assign",id:m.id,board:n,cup:C.name,round:roundName(pos(m)[0]),cfg:C.cfg,names:[m.a,m.b]};}
+  // semifinals and the final can be played over more legs than the earlier rounds
+  function legsFor(ri){const left=C.rounds.length-ri,v=left===1?C.cfg.legsF:left===2?C.cfg.legsSF:0;return v||C.cfg.legs||1;}
+  function assignMsg(m,n){const ri=pos(m)[0];return {t:"assign",id:m.id,board:n,cup:C.name,round:roundName(ri),cfg:Object.assign({},C.cfg,{legs:legsFor(ri)}),names:[m.a,m.b]};}
+  /* ----- calling up matches: a big banner on the stage, optionally read out loud ----- */
+  let calls=[],callT=null,lastCall=null;
+  function callUp(m,n){
+    if(!m||!m.a||!m.b)return;
+    lastCall={n,a:m.a,b:m.b,r:roundName(pos(m)[0]),t:Date.now()};
+    calls.push(lastCall);if(!callT)nextCall();
+  }
+  function nextCall(){
+    const el=$("cupCall"),c=calls.shift();
+    if(!c){el.hidden=true;callT=null;return;}
+    el.innerHTML='<div class="k">Till bana</div><div class="b">Bana '+c.n+'</div><div class="p">'+esc(c.a)+' – '+esc(c.b)+'</div><div class="r">'+esc(c.r)+'</div>';
+    el.hidden=false;
+    if(store.get("dk_cupspeak")!==false&&window.speechSynthesis){
+      try{const u=new SpeechSynthesisUtterance(c.a+" mot "+c.b+". Bana "+c.n+".");u.lang="sv-SE";speechSynthesis.speak(u);}catch(e){}
+    }
+    callT=setTimeout(nextCall,calls.length?5000:8000);
+  }
   // every match that is ready to play gets its board straight away, so players know where to go
   function plan(){
     const ready=[];C.rounds.forEach(r=>r.forEach(m=>{if(m.a&&m.b&&!m.w&&m.board==null)ready.push(m);else m.plan=null;}));
@@ -3187,7 +3258,7 @@ const cup=(function(){
       // its own next match first; otherwise take one waiting for a busy or missing board
       const m=ready.find(x=>x.plan===n)||ready.find(x=>C.cur[x.plan]!=null||!online(devOf(x.plan)))||null;
       if(!m){const nx=ready.find(x=>x.plan===n);sendTo(dev,{t:"wait",board:n,cup:C.name,champ:C.champ||null,next:nx?nx.a+" – "+nx.b:null});return;}
-      m.board=n;m.plan=null;C.cur[n]=m.id;sendTo(dev,assignMsg(m,n));
+      m.board=n;m.plan=null;m.dev=dev;C.cur[n]=m.id;sendTo(dev,assignMsg(m,n));callUp(m,n);
     });
     persist();renderHost();
   }
@@ -3281,7 +3352,12 @@ const cup=(function(){
       if(!n){try{c.send({t:"taken",n:m.n|0});}catch(_){}return;}
       conns[dev]=c;
       const cur=C.cur[n]!=null&&M(C.cur[n]);
-      if(cur)sendTo(dev,assignMsg(cur,n));
+      if(cur){
+        // a new phone took over the board: it continues from the last score the old phone sent
+        const L=cur.live&&cur.live.p&&cur.live.p.length===2&&cur.dev&&cur.dev!==dev?cur.live.p:null;
+        cur.dev=dev;sendTo(dev,assignMsg(cur,n));
+        if(L&&!cur.w)sendTo(dev,{t:"fix",id:cur.id,p:L.map(x=>({s:x.s,l:x.l}))});
+      }
       assignFree();return;
     }
     const dev=c.dev;if(!dev||conns[dev]!==c)return;
@@ -3314,6 +3390,7 @@ const cup=(function(){
     sel.value=String(run?m.board:m.plan||0);
     $("admBoardBox").hidden=!!m.w||!(m.a&&m.b);
     $("admScoreBox").hidden=!run||!!m.w;
+    $("admRunBtns").hidden=!run||!!m.w;
     $("admSA").value=L?L[0].s:C.cfg.start;$("admSB").value=L?L[1].s:C.cfg.start;
     $("admLA").value=L?L[0].l:0;$("admLB").value=L?L[1].l:0;
     $("admNA").textContent=$("admNA2").textContent=m.a||"–";$("admNB").textContent=$("admNB2").textContent=m.b||"–";
@@ -3325,6 +3402,60 @@ const cup=(function(){
     closeSheets();$("cupAdmin").hidden=false;
   }
   function admSay(t){const e=$("admMsg");e.textContent=t;e.hidden=!t;}
+  /* ----- game leader log with undo ----- */
+  // the bracket state that an undo restores; live scores are kept from the boards
+  const cap=()=>JSON.stringify({players:C.players,rounds:C.rounds,cur:C.cur,champ:C.champ});
+  const sig=()=>JSON.stringify([C.players,C.rounds.map(r=>r.map(m=>[m.a,m.b,m.w,m.board])),C.cur,C.champ]);
+  function logA(txt,before){
+    C.log=C.log||[];
+    C.log.unshift({t:Date.now(),txt,u:before||null,sig:before?sig():null});
+    C.log=C.log.slice(0,30);C.log.forEach((e,i)=>{if(i>=5)e.u=null;});
+    persist();renderLog();
+  }
+  function undo(){
+    const e=C&&C.log&&C.log[0];
+    if(!e||!e.u){alertMsg("Det finns inget att ångra.");return;}
+    if(sig()!==e.sig){alertMsg("Kan inte ångras: turneringen har ändrats efter det (en match har startat eller avgjorts). Rätta i stället via matchen.");return;}
+    if(!confirm("Ångra: "+e.txt+"?"))return;
+    const prev=Object.assign({},C.cur),old={};C.rounds.forEach(r=>r.forEach(m=>{old[m.id]=m;}));
+    const st=JSON.parse(e.u);
+    C.players=st.players;C.rounds=st.rounds;C.cur=st.cur;C.champ=st.champ;
+    C.rounds.forEach(r=>r.forEach(m=>{const o=old[m.id];if(o&&running(m)&&o.live&&!m.w){m.live=o.live;m.dev=o.dev;}}));
+    for(let n=1;n<=C.nBoards;n++){
+      const d=devOf(n);if(!online(d))continue;
+      if(prev[n]!==C.cur[n]){if(prev[n]!=null)sendTo(d,{t:"cancel",id:prev[n]});if(C.cur[n]!=null)sendTo(d,assignMsg(M(C.cur[n]),n));}
+      else if(C.cur[n]!=null){const m=M(C.cur[n]);sendTo(d,{t:"rename",id:m.id,names:[m.a,m.b]});}
+    }
+    C.log.shift();logA("Ångrade: "+e.txt);
+    assignFree();$("cupAdmin").hidden=true;
+  }
+  function renderLog(){
+    const L=C&&C.log||[];$("cupLogBox").hidden=!L.length;
+    const tm=t=>new Date(t).toTimeString().slice(0,5);
+    $("cupLog").innerHTML=L.slice(0,12).map(e=>'<li><time>'+tm(e.t)+'</time><span>'+esc(e.txt)+'</span></li>').join("");
+    $("cupUndo").disabled=!(L[0]&&L[0].u);
+  }
+  // a phone that hangs or belongs to someone else can be removed; the board's match stays and
+  // continues from its last score on the next phone that connects to the board
+  function kick(n){
+    const d=devOf(n);if(!d)return;
+    if(!confirm("Koppla bort telefonen från Bana "+n+"? En annan telefon kan sedan skanna banans QR-kod och ta över."))return;
+    sendTo(d,{t:"kicked",board:n});
+    const c=conns[d];setTimeout(()=>{try{c&&c.close();}catch(_){}},400);
+    delete conns[d];delete C.boards[d];
+    logA("Kopplade bort telefonen från Bana "+n);renderHost();
+  }
+  function late(){
+    if(!C)return;
+    const slot=C.rounds[0].find(m=>m.a&&!m.b&&canClear(m));
+    if(!slot){alertMsg("Ingen ledig plats: sen anmälan går bara till en walkover vars nästa match inte har startat.");return;}
+    let nm=prompt("Namn på spelaren som anmäler sig sent:");nm=String(nm||"").trim().slice(0,24);if(!nm)return;
+    if(C.players.some(x=>x.toLowerCase()===nm.toLowerCase())){alertMsg(nm+" finns redan i turneringen.");return;}
+    const before=cap();
+    clearWinner(slot);slot.b=nm;C.players.push(nm);
+    assignFree();logA("Sen anmälan: "+nm+" möter "+slot.a,before);
+    alertMsg(nm+" är inlagd och möter "+slot.a+".");
+  }
   function admRename(){
     const m=admM;if(!m)return;
     const fix=(old,nw)=>{
@@ -3334,46 +3465,52 @@ const cup=(function(){
       C.rounds.forEach(r=>r.forEach(x=>{if(x.a===old)x.a=nw;if(x.b===old)x.b=nw;if(x.w===old)x.w=nw;}));
       if(C.champ===old)C.champ=nw;return true;
     };
+    const before=cap(),names=[m.a,m.b];
     if(!fix(m.a,$("admA").value)||!fix(m.b,$("admB").value))return;
     if(running(m)){const d=devOf(m.board);if(d)sendTo(d,{t:"rename",id:m.id,names:[m.a,m.b]});}
+    if(names[0]!==m.a||names[1]!==m.b)logA("Namnbyte: "+names.filter(Boolean).join(" – ")+" → "+[m.a,m.b].filter(Boolean).join(" – "),before);
     persist();renderHost();openAdmin(m);admSay("Namnen är ändrade i hela turneringen.");
   }
   function admMove(){
     const m=admM;if(!m||m.w)return;const n=+$("admBoard").value;
     if(running(m)&&m.board===n)return;
     if(n&&C.cur[n]!=null){admSay("Bana "+n+" har redan en match. Flytta eller avsluta den först.");return;}
-    const wasRunning=running(m);
+    const wasRunning=running(m),before=cap();
     release(m);m.live=null;m.plan=n||null;
-    if(n&&online(devOf(n))){m.board=n;m.plan=null;C.cur[n]=m.id;sendTo(devOf(n),assignMsg(m,n));}
+    if(n&&online(devOf(n))){m.board=n;m.plan=null;m.dev=devOf(n);C.cur[n]=m.id;sendTo(devOf(n),assignMsg(m,n));callUp(m,n);}
     else if(!n&&wasRunning){m.plan=null;}
-    assignFree();openAdmin(m);admSay(!n?"Matchen ligger i kön och får första lediga bana.":running(m)?"Matchen spelas nu på Bana "+n+".":"Matchen spelas på Bana "+n+" när banan är ledig och ansluten.");
+    assignFree();logA(m.a+" – "+m.b+(n?" flyttad till Bana "+n:" lagd i kön"),before);openAdmin(m);admSay(!n?"Matchen ligger i kön och får första lediga bana.":running(m)?"Matchen spelas nu på Bana "+n+".":"Matchen spelas på Bana "+n+" när banan är ledig och ansluten.");
   }
   function admScore(){
     const m=admM;if(!running(m))return;
     const sc=[+$("admSA").value,+$("admSB").value],lg=[+$("admLA").value,+$("admLB").value];
     if(sc.some(v=>!(v>=0&&v<=1001))||lg.some(v=>!(v>=0&&v<=20))){admSay("Kontrollera siffrorna.");return;}
     sendTo(devOf(m.board),{t:"fix",id:m.id,p:sc.map((v,k)=>({s:v,l:lg[k]}))});
+    logA("Rättade ställningen på Bana "+m.board+" ("+m.a+" "+sc[0]+"/"+lg[0]+", "+m.b+" "+sc[1]+"/"+lg[1]+")");
     admSay("Rättelsen är skickad till Bana "+m.board+".");
   }
   function admRestart(){
     const m=admM;if(!running(m))return;if(!confirm("Starta om "+m.a+" – "+m.b+" från början på Bana "+m.board+"?"))return;
     const n=m.board,d=devOf(n);m.live=null;m.stats=null;
     if(d){sendTo(d,{t:"cancel",id:m.id});sendTo(d,assignMsg(m,n));}
+    logA("Startade om "+m.a+" – "+m.b+" på Bana "+n);
     persist();renderHost();admSay("Matchen startar om på Bana "+n+".");
   }
   function admResult(k){
     const m=admM;if(!m||m.w||!m.a||!m.b)return;
     const name=[m.a,m.b][k],la=Math.max(0,+$("admRA").value|0),lb=Math.max(0,+$("admRB").value|0);
+    const before=cap();
     release(m);m.plan=null;
     const prev=m.live&&m.live.p&&m.live.p.length===2?m.live.p:[{},{}];
     m.live={cur:0,p:[Object.assign({},prev[0],{l:la}),Object.assign({},prev[1],{l:lb})]};
-    setWinner(m,name);assignFree();openAdmin(m);admSay(name+" går vidare.");
+    setWinner(m,name);assignFree();logA("Resultat: "+name+" vann mot "+(k?m.a:m.b)+" ("+la+"–"+lb+")",before);openAdmin(m);admSay(name+" går vidare.");
   }
   function admClear(){
     const m=admM;if(!m||!m.w)return;
     if(!canClear(m)){admSay("Nästa match har redan börjat. Ta bort det resultatet först.");return;}
     if(!confirm("Ta bort resultatet? Matchen läggs i kön igen."))return;
-    release(m);clearWinner(m);m.live=null;m.stats=null;assignFree();openAdmin(m);admSay("Resultatet är borttaget.");
+    const before=cap(),w=m.w;
+    release(m);clearWinner(m);m.live=null;m.stats=null;assignFree();logA("Tog bort resultatet "+w+" vann ("+m.a+" – "+m.b+")",before);openAdmin(m);admSay("Resultatet är borttaget.");
   }
   function alertMsg(t){setMsg(t);setTimeout(()=>{if(msg===t)setMsg("");},5000);}
   function end(){
@@ -3441,6 +3578,10 @@ const cup=(function(){
     }
     else if(m.t==="done"){B.champ=String(m.champ||"");}
     else if(m.t==="ended"){leave(true);setPMsg("Turneringen är avslutad. Skanna banans QR-kod nästa gång.");}
+    else if(m.t==="kicked"){
+      if(G&&G.cup&&G.cup.code===code){G.cup=null;G.ended=true;save();}
+      leave(true);showScreen("home");closeSheets();$("cupPanel").hidden=false;setPMsg("Spelledaren kopplade bort telefonen från Bana "+(m.board|0)+".");
+    }
     chip();boardUi();
   }
   function send(){
@@ -3528,7 +3669,7 @@ const cup=(function(){
       const on=online(devOf(n)),m=C.cur[n]!=null?M(C.cur[n]):null;
       const state=!on&&!m?"off":m&&m.w?"done":m?"live":"idle";
       const right=m?(m.live&&m.live.sd&&!m.w?'<span class="sd">Sudden death</span>':esc(roundName(pos(m)[0]))):on?"Ledig":"Ej ansluten";
-      h+='<div class="bcard '+state+'"'+(m?' data-m="'+m.id+'" style="cursor:pointer"':'')+'><div class="hd"><b>Bana '+n+'</b>'+(m&&!on?'<span class="sd">Telefonen tappade anslutningen</span>':'<span>'+right+'</span>')+'</div>';
+      h+='<div class="bcard '+state+'" data-n="'+n+'"'+(m?' data-m="'+m.id+'" style="cursor:pointer"':'')+'><div class="hd"><b>Bana '+n+'</b>'+(m&&!on?'<span class="sd">Telefonen tappade anslutningen</span>':'<span>'+right+'</span>')+'</div>';
       if(m){
         const L=m.live||{cur:0,p:[]};
         [m.a,m.b].forEach((nm,k)=>{const p=L.p[k]||{s:C.cfg.start,l:0};
@@ -3541,7 +3682,10 @@ const cup=(function(){
       h+='</div>';
     }
     bx.innerHTML=h;
-    if(!document.documentElement.classList.contains("cupbig"))bx.querySelectorAll(".bcard[data-m]").forEach(el=>el.addEventListener("click",()=>openAdmin(M(el.dataset.m))));
+    if(!document.documentElement.classList.contains("cupbig")){
+      bx.querySelectorAll(".bcard[data-m]").forEach(el=>el.addEventListener("click",()=>openAdmin(M(el.dataset.m))));
+      bx.querySelectorAll(".bcard.idle").forEach((el,i)=>{el.style.cursor="pointer";el.addEventListener("click",()=>kick(+el.dataset.n));});
+    }
     // queue: matches ready to start but without a board, then matches waiting for a winner
     const q=[];
     ready.forEach(m=>q.push('<li><b>'+esc(m.a)+' – '+esc(m.b)+'</b><span>Bana '+m.plan+' · '+esc(roundName(pos(m)[0]))+'</span></li>'));
@@ -3551,7 +3695,8 @@ const cup=(function(){
     const cupbig=document.documentElement.classList.contains("cupbig");
     C.rounds.forEach((r,ri)=>{
       const col=document.createElement("div");col.className="bcol";
-      col.innerHTML='<div class="label">'+esc(roundName(ri))+'</div><div class="ms"></div>';
+      const lg=legsFor(ri);
+      col.innerHTML='<div class="label">'+esc(roundName(ri))+(lg>1&&lg!==C.cfg.legs?" · bäst av "+lg:"")+'</div><div class="ms"></div>';
       r.forEach(m=>{
         const el=document.createElement("div");const live=m.board!=null&&C.cur[m.board]===m.id&&!m.w,bye=ri===0&&!m.b;
         el.className="bm"+(live?" live":"")+(bye?" bye":"");
@@ -3572,7 +3717,7 @@ const cup=(function(){
     const ch=$("cupChamp");ch.hidden=!C.champ||champHidden;
     if(watchers.length&&!snapT)snapT=setTimeout(()=>{snapT=null;if(!C)return;const s=liveSnap();watchers=watchers.filter(w=>w.open);watchers.forEach(w=>{try{w.send(s);}catch(_){}});},400);
     if(C.champ)ch.innerHTML='<div class="t">🏆</div><div class="n">'+esc(C.champ)+'</div><div class="s">vinner '+esc(C.name)+'</div><div class="h">Tryck för att visa trädet</div>';
-    renderCupStats();
+    renderCupStats();renderLog();
   }
   // scale the bracket so the whole tree is always visible in its box
   function fitBracket(){
@@ -3674,7 +3819,7 @@ const cup=(function(){
     for(let n=1;n<=C.nBoards;n++){const m=C.cur[n]!=null?M(C.cur[n]):null;
       boards.push({n,on:online(devOf(n)),m:m?{id:m.id,r:roundName(pos(m)[0]),a:m.a,b:m.b,w:m.w,live:m.live||null}:null});}
     const q=plan().map(m=>[m.a,m.b,roundName(pos(m)[0]),m.plan]);
-    return {t:"snap",name:C.name,prog:$("cupProg").textContent,cfg:C.cfg,champ:C.champ||null,boards,queue:q.slice(0,8),
+    return {t:"snap",call:lastCall&&Date.now()-lastCall.t<90000?lastCall:null,name:C.name,prog:$("cupProg").textContent,cfg:C.cfg,champ:C.champ||null,boards,queue:q.slice(0,8),
       rounds:C.rounds.map((r,ri)=>({n:roundName(ri),m:r.filter(m=>!(ri===0&&!m.b)).map(m=>{const L=m.live&&m.live.p&&m.live.p.length===2?m.live.p:null;
         return [m.a,m.b,m.w,L?L[0].l:null,L?L[1].l:null,m.board!=null&&C.cur[m.board]===m.id&&!m.w?m.board:0];})})),
       stats:playerStats().filter(x=>x.m).map(summary)};
@@ -3709,7 +3854,7 @@ const cup=(function(){
     $("liveTitle").textContent=live?"Live":"Återansluter…";
     $("liveProg").textContent=S?(S.champ?"🏆 "+S.champ+" vann":S.prog)+" · "+S.cfg.start+(S.cfg.legs>1?" · bäst av "+S.cfg.legs+" legs":"")+(S.cfg.sdAt?" · sudden death efter "+S.cfg.sdAt+" pilar":""):"Söker turnering "+code+"…";
     const body=$("liveBody");if(!S){body.innerHTML="";return;}
-    let h="";
+    let h=S.call&&!lvSel?'<div class="lvcall">Uppropat: '+esc(S.call.a)+' – '+esc(S.call.b)+' till Bana '+(S.call.n|0)+'</div>':"";
     if(lvTab==="m"&&lvSel){
       const b=S.boards.find(x=>x.n===lvSel),m=b&&b.m;
       if(!m){lvSel=0;return renderLive();}
@@ -3773,7 +3918,7 @@ const cup=(function(){
   },{passive:true}));
   function go(){
     const names=$("cupPlayers").value.split(/\n|,/);
-    create($("cupName").value.trim().slice(0,40),{start:+$("cupStart").value,dbl:$("cupDbl").checked,legs:+$("cupLegs").value,sdAt:$("cupSd").checked?30:0},names,+$("cupBoardsN").value,$("cupSeed").checked);
+    create($("cupName").value.trim().slice(0,40),{start:+$("cupStart").value,dbl:$("cupDbl").checked,legs:+$("cupLegs").value,legsSF:+$("cupLegsSF").value,legsF:+$("cupLegsF").value,sdAt:$("cupSd").checked?30:0},names,+$("cupBoardsN").value,$("cupSeed").checked);
   }
   function boot(){
     const cs=location.hash.match(/^#cs-([A-Za-z0-9_-]+)$/);
@@ -3809,6 +3954,12 @@ const cup=(function(){
   $("admWinA").addEventListener("click",()=>admResult(0));
   $("admWinB").addEventListener("click",()=>admResult(1));
   $("admClear").addEventListener("click",admClear);
+  $("admCall").addEventListener("click",()=>{if(admM&&running(admM)){callUp(admM,admM.board);admSay("Uppropet visas på storskärmen.");}});
+  $("admKick").addEventListener("click",()=>{if(admM&&running(admM)){kick(admM.board);openAdmin(admM);}});
+  $("cupUndo").addEventListener("click",undo);
+  $("cupLate").addEventListener("click",late);
+  $("cupSpeak").checked=store.get("dk_cupspeak")!==false;
+  $("cupSpeak").addEventListener("change",()=>store.set("dk_cupspeak",$("cupSpeak").checked));
   $("cupAddBoard").addEventListener("click",()=>{if(C&&C.nBoards<16){C.nBoards++;store.set("dk_cupnb",C.nBoards);persist();renderHost();}});
   $("cupDelBoard").addEventListener("click",()=>{
     if(!C||C.nBoards<=1)return;const n=C.nBoards;
@@ -3836,7 +3987,12 @@ const cup=(function(){
   $("cupExitBig").addEventListener("click",bigOff);
   $("cupCsv").addEventListener("click",csv);
   $("cupCardClose").addEventListener("click",()=>{$("cupCard").hidden=true;});
-  return {boot,join,watch,onSave,ready,get role(){return role;},get inMatch(){return role==="board"&&!!(G&&G.cup&&G.cup.code===code);}};
+  function diag(){
+    return {roll:role||"ingen",kod:code||"–",peer:peer?(peer.open?"ansluten":peer.disconnected?"frånkopplad":"ansluter")+(peer.id?" ("+peer.id+")":""):"–",
+      banor:role==="host"&&C?Object.keys(conns).filter(online).length+" av "+C.nBoards+" anslutna":"–",
+      värd:role==="board"||role==="watch"?(hostConn&&hostConn.open?"ansluten":"ej ansluten"):"–",publik:role==="host"?watchers.length:"–"};
+  }
+  return {boot,join,watch,onSave,ready,diag,get role(){return role;},get inMatch(){return role==="board"&&!!(G&&G.cup&&G.cup.code===code);}};
 })();
 
 /* ---------- Caller voices (voices.json in the repo decides what users can pick) ---------- */
@@ -3859,9 +4015,80 @@ const admin={
   get on(){return !!store.get("dk_admin");},
   toggle(){store.set("dk_admin",!this.on);fillVoiceSelect();if(!this.on)$("voiceAdmin").hidden=true;fx.flash(this.on?"ADMIN PÅ":"ADMIN AV");}
 };
+const adminTools=(function(){
+  const say=(t,cls)=>{const e=$("atMsg");e.textContent=t;e.className="status"+(cls?" "+cls:"");e.hidden=!t;};
+  async function diagText(){
+    const L=[];
+    L.push("Version: "+$("appVer").textContent+"  ("+new Date().toLocaleString("sv-SE")+")");
+    L.push("Adress: "+location.href.split("#")[0]);
+    L.push("Webbläsare: "+navigator.userAgent);
+    L.push("Skärm: "+screen.width+"×"+screen.height+" @"+(window.devicePixelRatio||1)+"  fönster "+innerWidth+"×"+innerHeight);
+    L.push("Installerad: "+(matchMedia("(display-mode: standalone)").matches||navigator.standalone?"ja":"nej")+"  online: "+(navigator.onLine?"ja":"nej"));
+    try{
+      const regs=navigator.serviceWorker?await navigator.serviceWorker.getRegistrations():[];
+      L.push("Service worker: "+(regs.length?regs.map(r=>(r.active?"aktiv":"")+(r.waiting?" + väntande uppdatering":"")).join(", "):"ingen"));
+      L.push("Cache: "+(window.caches?(await caches.keys()).join(", ")||"tom":"–"));
+    }catch(e){L.push("Service worker: "+e.message);}
+    let n=0,b=0;try{for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k.startsWith("dk_")){n++;b+=(localStorage.getItem(k)||"").length;}}}catch(e){}
+    L.push("Lagrat: "+n+" poster, "+Math.round(b/1024)+" kB");
+    const d=cup.diag();L.push("Turnering: "+Object.entries(d).map(([k,v])=>k+" "+v).join(" · "));
+    L.push("Kamera: "+(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia?"stöds":"stöds inte"));
+    const errs=store.get("dk_errlog")||[];
+    L.push("");L.push("Senaste fel ("+errs.length+"):");L.push(errs.length?errs.join("\n"):"inga");
+    return L.join("\n");
+  }
+  async function diag(){$("atDiag").textContent="Läser…";$("atDiag").textContent=await diagText();}
+  async function forceUpdate(){
+    if(!confirm("Rensa cachen och ladda om appen?"))return;
+    say("Uppdaterar…");
+    try{
+      if(navigator.serviceWorker)for(const r of await navigator.serviceWorker.getRegistrations())await r.unregister();
+      if(window.caches)for(const k of await caches.keys())await caches.delete(k);
+    }catch(e){}
+    location.replace(location.pathname+"?u="+Date.now());
+  }
+  const SKIP=["dk_ghtoken","dk_admin","dk_errlog","dk_cupdev"];
+  function exportData(){
+    const data={};
+    for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k.startsWith("dk_")&&!SKIP.includes(k))data[k]=localStorage.getItem(k);}
+    const txt=JSON.stringify({app:"TrebleEye",version:$("appVer").textContent,date:new Date().toISOString(),data});
+    const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([txt],{type:"application/json"}));
+    a.download="TrebleEye-backup-"+new Date().toISOString().slice(0,10)+".json";document.body.appendChild(a);a.click();
+    setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1000);
+    say("Säkerhetskopian är sparad ("+Object.keys(data).length+" poster).");
+  }
+  function importData(f){
+    if(!f)return;const r=new FileReader();
+    r.onload=()=>{
+      let o;try{o=JSON.parse(r.result);}catch(e){say("Filen kunde inte läsas.","e");return;}
+      if(!o||o.app!=="TrebleEye"||!o.data||typeof o.data!=="object"){say("Det här är ingen säkerhetskopia från TrebleEye.","e");return;}
+      const keys=Object.keys(o.data).filter(k=>k.startsWith("dk_")&&!SKIP.includes(k)&&typeof o.data[k]==="string");
+      if(!confirm("Läsa in "+keys.length+" poster från "+String(o.date||"").slice(0,10)+"? Det som finns på den här enheten skrivs över."))return;
+      try{keys.forEach(k=>localStorage.setItem(k,o.data[k]));}catch(e){say("Det gick inte att spara: "+e.message,"e");return;}
+      say("Inläst. Appen laddas om…");setTimeout(()=>location.reload(),800);
+    };
+    r.readAsText(f);
+  }
+  function renderBeta(){
+    const box=$("atBeta"),on=store.get("dk_beta")||{};
+    if(!BETA.length){box.innerHTML='<p class="help" style="margin:4px 0 0">Inga betafunktioner just nu. Nya funktioner kan läggas här först och slås på per telefon innan alla får dem.</p>';return;}
+    box.innerHTML=BETA.map(b=>'<label class="ck"><input type="checkbox" data-k="'+b.id+'"'+(on[b.id]?" checked":"")+'> '+esc(b.name)+'</label>').join("");
+    box.querySelectorAll("input").forEach(i=>i.addEventListener("change",()=>{const o=store.get("dk_beta")||{};o[i.dataset.k]=i.checked;store.set("dk_beta",o);say("Ändringen gäller efter omladdning.");}));
+  }
+  function open(){closeSheets();say("");renderBeta();diag();$("adminTools").hidden=false;}
+  $("btnAdminTools").addEventListener("click",open);
+  $("atClose").addEventListener("click",()=>{$("adminTools").hidden=true;});
+  $("atUpdate").addEventListener("click",forceUpdate);
+  $("atDiagRefresh").addEventListener("click",diag);
+  $("atDiagCopy").addEventListener("click",async()=>{const t=await diagText();try{await navigator.clipboard.writeText(t);say("Diagnosen är kopierad.");}catch(e){say("Kunde inte kopiera. Markera texten och kopiera själv.","e");}});
+  $("atErrClear").addEventListener("click",()=>{store.set("dk_errlog",[]);diag();});
+  $("atExport").addEventListener("click",exportData);
+  $("atImport").addEventListener("change",e=>{importData(e.target.files[0]);e.target.value="";});
+  return {open};
+})();
 (function(){let n=0,t=0;$("appVer").addEventListener("click",()=>{const now=Date.now();n=now-t<1500?n+1:1;t=now;if(n>=7){n=0;admin.toggle();}});})();
 function fillVoiceSelect(){
-  $("lnkVisits").hidden=!admin.on;
+  $("lnkVisits").hidden=!admin.on;$("btnAdminTools").hidden=!admin.on;
   const sel=$("selVoice"),cur=caller.lang==="pro"?"pro:"+audio.voice:caller.lang;
   sel.querySelectorAll("option[data-voice],option[value=admin]").forEach(o=>o.remove());
   const first=sel.firstChild;
