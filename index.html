@@ -341,8 +341,33 @@ html.tv .bar,html.tv .backdrop{display:none!important}
 .sthead{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;min-width:0}
 .stname{font-family:var(--f-num);font-weight:700;font-size:3.2cqw;line-height:1;color:var(--chalk);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .stsub{font-size:1.25cqw;color:var(--mut);letter-spacing:.06em;text-transform:uppercase;margin-top:.3em}
-.stjoin{text-align:right;font-size:1.15cqw;color:var(--mut);line-height:1.3}
-.stjoin b{font-family:var(--f-num);font-size:2.6cqw;letter-spacing:.14em;color:var(--chalk);display:block}
+.stlive{display:flex;align-items:center;gap:1cqw;text-align:right;font-size:1.05cqw;color:var(--mut);line-height:1.35}
+.stlive b{display:block;font-family:var(--f-num);font-size:2cqw;color:var(--chalk);letter-spacing:.02em}
+.stlive span{display:block}
+.stlive .cc{font-size:.85em;opacity:.8}.stlive .cc i{font-style:normal;letter-spacing:.12em}
+.stlive .lq{background:#fff;border-radius:6px;padding:.3cqw;width:6.2cqw;aspect-ratio:1;box-sizing:border-box}
+.stlive .lq svg{display:block;width:100%;height:100%}
+/* audience view on phones */
+#scrLive .lvhead{margin:4px 0 12px}
+#scrLive .lvhead .stname{font-size:30px}
+#liveBody .bcard{height:150px;cursor:pointer;margin-bottom:10px}
+#liveBody .lvidle{color:var(--mut);font-size:14px;padding:6px 2px}
+.lvd{display:flex;flex-direction:column;gap:10px}
+.lvd .back{align-self:flex-start}
+.lvp{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 12px;align-items:center}
+.lvp.on{border-color:var(--grn);box-shadow:inset 4px 0 0 var(--grn)}
+.lvp.w{border-color:var(--warn)}
+.lvp .nm{font-weight:600;font-size:20px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lvp .sc{grid-row:1/3;grid-column:2;font-family:var(--f-num);font-weight:700;font-size:64px;line-height:1;color:var(--chalk);font-variant-numeric:tabular-nums}
+.lvp .st{font-size:13px;color:var(--mut);display:flex;gap:12px;flex-wrap:wrap}
+.lvturn{display:flex;gap:6px;align-items:center;flex-wrap:wrap;min-height:30px}
+.lvlog{list-style:none;margin:0;padding:0;font-size:14px;color:var(--mut);display:flex;flex-direction:column;gap:4px}
+.lvbr h4{margin:14px 0 6px;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--mut);font-weight:600}
+.lvbr .lm{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:8px;padding:7px 10px;background:var(--panel);border:1px solid var(--line);border-radius:8px;margin-bottom:6px;font-size:15px}
+.lvbr .lm span:last-child{text-align:right}
+.lvbr .lm .w{color:var(--warn);font-weight:700}
+.lvbr .lm .x{font-family:var(--f-num);font-weight:700;color:var(--mut)}
+.lvbr .lm.live{border-color:var(--grn)}
 .stmain{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:var(--gap);min-height:0}
 .stright{display:grid;grid-template-rows:auto minmax(0,1fr);gap:var(--gap);min-height:0}
 .cupboards{display:grid;gap:var(--gap);grid-template-columns:repeat(var(--cols,2),minmax(0,1fr));grid-template-rows:repeat(var(--rows,1),minmax(0,1fr));min-height:0}
@@ -392,8 +417,10 @@ html.tv .bar,html.tv .backdrop{display:none!important}
 .bm .r.w span:last-child{color:var(--warn)}
 .bm .r.l{opacity:.45}
 .bm .r.tbd{color:var(--mut)}
-.bm .r.pick{cursor:pointer}
-.bm .r.pick:hover{background:var(--panel2)}
+.bm.pick{cursor:pointer}
+.bm.pick:hover{border-color:var(--mut)}
+.bm .tag.plan{background:var(--panel2);color:var(--fg)}
+.bcard .nextm{margin:0 -2px;padding:.15em .6em;border-radius:6px;background:var(--panel2);color:var(--mut);font-size:clamp(10px,7cqh,28px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .bm .tag{font-size:10px;letter-spacing:.08em;text-transform:uppercase;background:var(--grn);color:#fff;padding:1px 10px;font-weight:600}
 .champov{position:absolute;inset:0;z-index:5;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1cqw;background:rgba(17,23,20,.9);cursor:pointer;text-align:center}
 .champov .t{font-size:8cqw;line-height:1}
@@ -407,10 +434,18 @@ html.cupbig .cupexit.show,.cupexit:hover,.cupexit:focus-visible{opacity:.85}
 html.cupbig body{overflow:hidden}
 html.cupbig #scrCup .stage{position:fixed;inset:0;z-index:50;width:100vw;height:100vh;height:100dvh;aspect-ratio:auto;border:none;border-radius:0;container-type:size}
 html.cupbig .stname{font-size:min(3.2cqw,6cqh)}
-html.cupbig .stsub,html.cupbig .stjoin{font-size:min(1.25cqw,2.3cqh)}
-html.cupbig .stjoin b{font-size:min(2.6cqw,4.8cqh)}
+html.cupbig .stsub{font-size:min(1.25cqw,2.3cqh)}
+html.cupbig .stlive{font-size:min(1.05cqw,1.9cqh)}
+html.cupbig .stlive b{font-size:min(2cqw,3.6cqh)}
+html.cupbig .stlive .lq{width:min(6.2cqw,11cqh)}
 html.cupbig .queue{font-size:min(1.1cqw,2cqh)}
 #cupPrintBox{display:none}
+.admsec{display:flex;flex-direction:column;gap:8px;padding:12px 0;border-top:1px solid var(--line);margin-top:12px}
+.admsec input[type=text]{flex:1;min-width:120px}
+.admgrid{display:grid;grid-template-columns:minmax(0,1fr) 90px 70px;gap:6px 10px;align-items:center}
+.admgrid.r2{grid-template-columns:minmax(0,1fr) 70px}
+.admgrid b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
+.admgrid input{width:100%;box-sizing:border-box}
 @media print{
   body *{visibility:hidden!important}
   #cupPrintBox,#cupPrintBox *{visibility:visible!important}
@@ -425,8 +460,9 @@ html.cupbig .queue{font-size:min(1.1cqw,2cqh)}
 @media (max-width:760px){
   html:not(.cupbig) .stage{aspect-ratio:auto;display:flex;flex-direction:column;container-type:normal;border:none;padding:0;background:none}
   html:not(.cupbig) .stname{font-size:28px}
-  html:not(.cupbig) .stsub,html:not(.cupbig) .stjoin{font-size:13px;text-align:left}
-  html:not(.cupbig) .stjoin b{font-size:24px}
+  html:not(.cupbig) .stsub,html:not(.cupbig) .stlive{font-size:13px;text-align:left}
+  html:not(.cupbig) .stlive b{font-size:20px}
+  html:not(.cupbig) .stlive .lq{width:72px;padding:3px}
   html:not(.cupbig) .sthead{flex-direction:column;align-items:flex-start}
   html:not(.cupbig) .stmain,html:not(.cupbig) .stright{display:flex;flex-direction:column}
   html:not(.cupbig) .queue{grid-template-columns:1fr}
@@ -613,7 +649,8 @@ html.cupbig .queue{font-size:min(1.1cqw,2cqh)}
       <div class="row" style="margin-top:6px">
         <input type="text" id="cupCodeIn" maxlength="4" placeholder="KOD" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-label="Turneringskod">
         <select id="cupBoardIn" aria-label="Bana"><option value="0">Bana …</option><option value="1">Bana 1</option><option value="2">Bana 2</option><option value="3">Bana 3</option><option value="4">Bana 4</option><option value="5">Bana 5</option><option value="6">Bana 6</option><option value="7">Bana 7</option><option value="8">Bana 8</option><option value="9">Bana 9</option><option value="10">Bana 10</option><option value="11">Bana 11</option><option value="12">Bana 12</option></select>
-        <button id="cupJoin">Anslut</button>
+        <button id="cupJoin">Anslut som bana</button>
+        <button id="cupWatch">Följ live</button>
         <button id="cupScan">Skanna QR</button>
       </div>
       <p class="help">Enklast: skanna banans QR-kod på storskärmen med telefonens kamera, så blir telefonen rätt bana direkt. Annars skriver du koden och väljer bana.</p>
@@ -623,6 +660,34 @@ html.cupbig .queue{font-size:min(1.1cqw,2cqh)}
       <div class="row"><button id="cupResync">Hämta matchen igen</button><button class="dng" id="cupLeave">Lämna turneringen</button></div>
     </div>
     <div class="status" id="cupPMsg" hidden></div>
+  </section>
+
+  <section id="cupAdmin" class="panel sheet" hidden>
+    <div class="row" style="justify-content:space-between">
+      <div><div class="label">Spelledare</div><div style="font-weight:600;margin-top:2px" id="admTitle"></div></div>
+      <button id="admClose">Stäng</button>
+    </div>
+    <div class="admsec">
+      <div class="label">Spelare</div>
+      <div class="row"><input type="text" id="admA" maxlength="24" aria-label="Spelare 1"><input type="text" id="admB" maxlength="24" aria-label="Spelare 2"><button id="admRen">Spara namn</button></div>
+    </div>
+    <div class="admsec" id="admBoardBox">
+      <div class="label">Bana</div>
+      <div class="row"><select id="admBoard" aria-label="Bana"></select><button id="admMove">Flytta matchen</button></div>
+    </div>
+    <div class="admsec" id="admScoreBox">
+      <div class="label">Rätta ställningen på banan</div>
+      <div class="admgrid"><span></span><span class="label">Kvar</span><span class="label">Legs</span>
+        <b id="admNA"></b><input type="number" id="admSA" min="0" max="1001"><input type="number" id="admLA" min="0" max="20">
+        <b id="admNB"></b><input type="number" id="admSB" min="0" max="1001"><input type="number" id="admLB" min="0" max="20"></div>
+      <div class="row"><button id="admFix">Skicka till banan</button><button id="admRestart">Starta om matchen</button></div>
+    </div>
+    <div class="admsec" id="admResBox">
+      <div class="label">Resultat</div>
+      <div class="admgrid r2"><b id="admNA2"></b><input type="number" id="admRA" min="0" max="20" aria-label="Legs spelare 1"><b id="admNB2"></b><input type="number" id="admRB" min="0" max="20" aria-label="Legs spelare 2"></div>
+      <div class="row"><button class="pri" id="admWinA"></button><button class="pri" id="admWinB"></button><button class="dng" id="admClear">Ta bort resultatet</button></div>
+    </div>
+    <div class="status" id="admMsg" hidden></div>
   </section>
 
   <section id="cupCard" class="panel sheet" hidden>
@@ -843,7 +908,7 @@ html.cupbig .queue{font-size:min(1.1cqw,2cqh)}
           <div class="stage" id="cupStage">
             <header class="sthead">
               <div style="min-width:0"><div class="stname" id="cupStName"></div><div class="stsub" id="cupProg"></div></div>
-              <div class="stjoin">Anslut bana<b id="cupCode"></b>Skanna banans QR-kod</div>
+              <div class="stlive"><div><b>Följ live</b><span>Skanna med mobilen</span><span class="cc">Klubbkod <i id="cupCode"></i></span></div><div class="lq" id="cupLiveQR"></div></div>
             </header>
             <div class="stmain">
               <div class="cupboards" id="cupBoards"></div>
@@ -854,7 +919,7 @@ html.cupbig .queue{font-size:min(1.1cqw,2cqh)}
             </div>
             <div class="champov" id="cupChamp" hidden></div>
           </div>
-          <div class="row cupctl"><span class="help" style="margin:0;flex:1;min-width:220px">Spelledare: tryck på ett namn i trädet för att sätta eller ta bort ett resultat.</span><button id="cupPrint2">Skriv ut bankoder</button><button class="dng" id="cupEnd">Avsluta turneringen</button></div>
+          <div class="row cupctl"><span class="help" style="margin:0;flex:1;min-width:220px">Spelledare: tryck på en match i trädet eller på en bana för att flytta bana, ändra spelare, rätta poäng eller sätta resultat.</span><button id="cupPrint2">Skriv ut bankoder</button><button class="dng" id="cupEnd">Avsluta turneringen</button></div>
           <section class="panel" id="cupStatsBox" hidden>
             <div class="row" style="justify-content:space-between"><div class="label">Statistik</div><button id="cupCsv">Ladda ner allt (CSV)</button></div>
             <div id="cupStats" style="overflow-x:auto;margin-top:8px"></div>
@@ -866,6 +931,12 @@ html.cupbig .queue{font-size:min(1.1cqw,2cqh)}
     </div>
     <button class="cupexit" id="cupExitBig" hidden>Lämna storskärm</button>
     <div id="cupPrintBox" aria-hidden="true"></div>
+  </div>
+  <div class="screen" id="scrLive">
+    <div class="bar"><button id="liveBack">‹ Meny</button><span class="gmeta" id="liveTitle">Live</span><button class="dng" id="liveStop">Sluta följa</button></div>
+    <div class="lvhead"><div class="stname" id="liveName">Ansluter…</div><div class="help" style="margin-top:4px" id="liveProg"></div></div>
+    <div class="tabs" role="tablist"><button role="tab" id="lvTabM" aria-selected="true">Matcher</button><button role="tab" id="lvTabB" aria-selected="false">Träd</button><button role="tab" id="lvTabS" aria-selected="false">Statistik</button></div>
+    <div id="liveBody"></div>
   </div>
 </div>
 
@@ -1954,8 +2025,8 @@ const guide=(function(){
 /* ---------- Screens: home -> new game -> game ---------- */
 let curScreen="home";
 function showScreen(name){
-  const order={home:0,setup:1,cup:1,game:2},dir=order[name]>=order[curScreen]?"fwd":"back";
-  ["home","setup","game","cup"].forEach(n=>{
+  const order={home:0,setup:1,cup:1,live:1,game:2},dir=order[name]>=order[curScreen]?"fwd":"back";
+  ["home","setup","game","cup","live"].forEach(n=>{
     const el=$("scr"+n[0].toUpperCase()+n.slice(1)),on=n===name;
     el.classList.toggle("active",on);el.classList.remove("fwd","back");
     if(on&&n!==curScreen){void el.offsetWidth;el.classList.add(dir);}
@@ -1975,7 +2046,7 @@ function endGame(){
   G.ended=true;
   undo=[];save();showScreen("home");
 }
-function closeSheets(){["editPl","voiceAdmin","sessPanel","statsPanel","sharePanel","cupPanel","cupCard"].forEach(id=>{$(id).hidden=true;});}
+function closeSheets(){["editPl","voiceAdmin","sessPanel","statsPanel","sharePanel","cupPanel","cupCard","cupAdmin"].forEach(id=>{$(id).hidden=true;});}
 
 /* ---------- Render ---------- */
 function render(){
@@ -2892,7 +2963,7 @@ const sess=(function(){
       scanTimer=setInterval(()=>{
         if(!v.videoWidth)return;const w=480,h=Math.round(480*v.videoHeight/v.videoWidth);c.width=w;c.height=h;x.drawImage(v,0,0,w,h);
         const r=jsQR(x.getImageData(0,0,w,h).data,w,h);
-        if(r&&r.data){const cm=r.data.match(/#cup-([A-Za-z0-9]{4})(?:-(\d{1,2}))?/);if(cm){stopScan();$("sessPanel").hidden=true;cup.join(cm[1],+cm[2]||0);$("cupPanel").hidden=false;return;}const m=r.data.match(/#join-([A-Za-z0-9]{4})/)||r.data.trim().match(/^([A-Za-z0-9]{4})$/);if(m){stopScan();join(m[1]);}}
+        if(r&&r.data){const lm=r.data.match(/#live-([A-Za-z0-9]{4})/);if(lm){stopScan();$("sessPanel").hidden=true;cup.watch(lm[1]);return;}const cm=r.data.match(/#cup-([A-Za-z0-9]{4})(?:-(\d{1,2}))?/);if(cm){stopScan();$("sessPanel").hidden=true;cup.join(cm[1],+cm[2]||0);$("cupPanel").hidden=false;return;}const m=r.data.match(/#join-([A-Za-z0-9]{4})/)||r.data.trim().match(/^([A-Za-z0-9]{4})$/);if(m){stopScan();join(m[1]);}}
       },250);
     }catch(e){stopScan();setMsg("Kunde inte starta kameran för skanning. Skriv in koden i stället.");}
   }
@@ -2920,9 +2991,10 @@ const sess=(function(){
 // normal game and streams the score back. A result moves the winner on; the next ready match goes to a free board.
 const cup=(function(){
   const PFX="trebleeye-cup-",ALPHA="ABCDEFGHJKMNPQRSTUVWXYZ23456789";
-  let role=null,peer=null,code=null,C=null,conns={},hostConn=null,retryT=null,B={},msg="";
+  let watchers=[],snapT=null,role=null,peer=null,code=null,C=null,conns={},hostConn=null,retryT=null,B={},msg="";
   const ok=()=>typeof Peer!=="undefined";
   function mkCode(){let s="";for(let i=0;i<4;i++)s+=ALPHA[Math.floor(Math.random()*ALPHA.length)];return s;}
+  const liveUrl=c=>location.origin+location.pathname+"#live-"+c;
   function joinUrl(c,n){return location.origin+location.pathname+"#cup-"+c+(n?"-"+n:"");}
   function devId(){let d=store.get("dk_cupdev");if(!d){d=Math.random().toString(36).slice(2,10);store.set("dk_cupdev",d);}return d;}
   function wake(){try{navigator.wakeLock&&navigator.wakeLock.request("screen").catch(()=>{});}catch(e){}}
@@ -2977,13 +3049,23 @@ const cup=(function(){
   function sendTo(dev,m){const c=conns[dev];if(c&&c.open){try{c.send(m);}catch(e){}}}
   function sendAll(m){Object.keys(conns).forEach(d=>sendTo(d,m));}
   function assignMsg(m,n){return {t:"assign",id:m.id,board:n,cup:C.name,round:roundName(pos(m)[0]),cfg:C.cfg,names:[m.a,m.b]};}
+  // every match that is ready to play gets its board straight away, so players know where to go
+  function plan(){
+    const ready=[];C.rounds.forEach(r=>r.forEach(m=>{if(m.a&&m.b&&!m.w&&m.board==null)ready.push(m);else m.plan=null;}));
+    const load={};for(let n=1;n<=C.nBoards;n++)load[n]=C.cur[n]!=null?1:0;
+    ready.forEach(m=>{if(m.plan&&m.plan<=C.nBoards)load[m.plan]++;else m.plan=null;});
+    ready.forEach(m=>{if(m.plan)return;let best=1;for(let n=2;n<=C.nBoards;n++)if(load[n]<load[best])best=n;m.plan=best;load[best]++;});
+    return ready;
+  }
   function assignFree(){
     Object.keys(conns).forEach(dev=>{
       if(!conns[dev].open)return;const n=C.boards[dev];if(!n)return;
       if(C.cur[n]!=null)return;
-      const m=readyMatch();
-      if(!m){sendTo(dev,{t:"wait",board:n,cup:C.name,champ:C.champ||null});return;}
-      m.board=n;C.cur[n]=m.id;sendTo(dev,assignMsg(m,n));
+      const ready=plan();
+      // its own next match first; otherwise take one waiting for a busy or missing board
+      const m=ready.find(x=>x.plan===n)||ready.find(x=>C.cur[x.plan]!=null||!online(devOf(x.plan)))||null;
+      if(!m){const nx=ready.find(x=>x.plan===n);sendTo(dev,{t:"wait",board:n,cup:C.name,champ:C.champ||null,next:nx?nx.a+" – "+nx.b:null});return;}
+      m.board=n;m.plan=null;C.cur[n]=m.id;sendTo(dev,assignMsg(m,n));
     });
     persist();renderHost();
   }
@@ -3030,6 +3112,7 @@ const cup=(function(){
   }
   function onBoardMsg(m,c){
     if(!m||typeof m!=="object"||!C)return;
+    if(m.t==="watch"){if(!watchers.includes(c))watchers.push(c);c.on("close",()=>{watchers=watchers.filter(x=>x!==c);});try{c.send(liveSnap());}catch(_){}return;}
     if(m.t==="hello"&&typeof m.dev==="string"){
       const dev=m.dev.slice(0,16);c.dev=dev;
       if(conns[dev]&&conns[dev]!==c){try{conns[dev].close();}catch(_){}}
@@ -3043,7 +3126,8 @@ const cup=(function(){
     const dev=c.dev;if(!dev||conns[dev]!==c)return;
     const n=C.boards[dev],mt=M(m.id);
     if(m.t==="live"&&mt&&mt.board===n&&C.cur[n]===mt.id&&Array.isArray(m.p)){
-      mt.live={cur:m.cur|0,sd:!!m.sd,p:m.p.slice(0,2).map(x=>({s:+x.s||0,l:+x.l||0,a:String(x.a||"").slice(0,6)}))};
+      const str=(a,n,l)=>Array.isArray(a)?a.slice(0,n).map(x=>String(x).slice(0,l)):[];
+      mt.live={cur:m.cur|0,sd:!!m.sd,p:m.p.slice(0,2).map(x=>({s:+x.s||0,l:+x.l||0,d:+x.d||0,c:+x.c||0,a:String(x.a||"").slice(0,6)})),turn:str(m.turn,3,6),log:str(m.log,8,90)};
       if(Array.isArray(m.st))mt.stats=m.st.slice(0,2).map(cleanSt);
       const w=typeof m.w==="string"&&(m.w===mt.a||m.w===mt.b)?m.w:null;
       if(w&&!mt.w)setWinner(mt,w);
@@ -3054,19 +3138,81 @@ const cup=(function(){
       if(cur&&cur.w){C.cur[n]=null;assignFree();}
     }
   }
-  function manual(m,name){
-    if(!C||C.champ&&!m.w)return;
-    if(m.w){
-      if(!canClear(m)){alertMsg("Nästa match har redan börjat, resultatet kan inte ändras.");return;}
-      if(!confirm("Ta bort resultatet i "+m.a+" – "+m.b+"? Matchen spelas om.") )return;
-      clearWinner(m);m.board=null;m.live=null;m.stats=null;
-    }else{
-      if(!m.a||!m.b)return;
-      if(!confirm(name+" vinner "+m.a+" – "+m.b+"?"))return;
-      if(m.board!=null&&C.cur[m.board]===m.id){const d=devOf(m.board);C.cur[m.board]=null;if(d)sendTo(d,{t:"cancel",id:m.id});}
-      setWinner(m,name);
-    }
-    assignFree();
+  /* ----- game leader: full control over one match (board, players, score, result) ----- */
+  let admM=null;
+  const running=m=>m&&m.board!=null&&C.cur[m.board]===m.id;
+  function release(m){if(running(m)){const d=devOf(m.board);C.cur[m.board]=null;if(d)sendTo(d,{t:"cancel",id:m.id});}m.board=null;}
+  function openAdmin(m){
+    if(!C||!m||document.documentElement.classList.contains("cupbig"))return;
+    admM=m;const run=running(m),L=m.live&&m.live.p&&m.live.p.length===2?m.live.p:null,[ri]=pos(m);
+    $("admTitle").textContent=roundName(ri)+(run?" · pågår på Bana "+m.board:m.w?" · klar":m.a&&m.b?" · i kö"+(m.plan?" till Bana "+m.plan:""):" · väntar på spelare");
+    $("admA").value=m.a||"";$("admB").value=m.b||"";
+    $("admA").disabled=!m.a;$("admB").disabled=!m.b;
+    const sel=$("admBoard");sel.innerHTML='<option value="0">Ingen bana (kö)</option>';
+    for(let n=1;n<=C.nBoards;n++)sel.innerHTML+='<option value="'+n+'">Bana '+n+(C.cur[n]!=null&&C.cur[n]!==m.id?" (upptagen)":online(devOf(n))?"":" (ej ansluten)")+'</option>';
+    sel.value=String(run?m.board:m.plan||0);
+    $("admBoardBox").hidden=!!m.w||!(m.a&&m.b);
+    $("admScoreBox").hidden=!run||!!m.w;
+    $("admSA").value=L?L[0].s:C.cfg.start;$("admSB").value=L?L[1].s:C.cfg.start;
+    $("admLA").value=L?L[0].l:0;$("admLB").value=L?L[1].l:0;
+    $("admNA").textContent=$("admNA2").textContent=m.a||"–";$("admNB").textContent=$("admNB2").textContent=m.b||"–";
+    $("admRA").value=L?L[0].l:0;$("admRB").value=L?L[1].l:0;
+    $("admResBox").hidden=!(m.a&&m.b);
+    $("admWinA").textContent=(m.a||"")+" vinner";$("admWinB").textContent=(m.b||"")+" vinner";
+    $("admClear").hidden=!m.w;$("admWinA").hidden=$("admWinB").hidden=!!m.w;
+    $("admMsg").hidden=true;
+    closeSheets();$("cupAdmin").hidden=false;
+  }
+  function admSay(t){const e=$("admMsg");e.textContent=t;e.hidden=!t;}
+  function admRename(){
+    const m=admM;if(!m)return;
+    const fix=(old,nw)=>{
+      nw=String(nw||"").trim().slice(0,24);if(!old||!nw||nw===old)return true;
+      if(C.players.includes(nw)){admSay(nw+" finns redan i turneringen.");return false;}
+      C.players=C.players.map(x=>x===old?nw:x);
+      C.rounds.forEach(r=>r.forEach(x=>{if(x.a===old)x.a=nw;if(x.b===old)x.b=nw;if(x.w===old)x.w=nw;}));
+      if(C.champ===old)C.champ=nw;return true;
+    };
+    if(!fix(m.a,$("admA").value)||!fix(m.b,$("admB").value))return;
+    if(running(m)){const d=devOf(m.board);if(d)sendTo(d,{t:"rename",id:m.id,names:[m.a,m.b]});}
+    persist();renderHost();openAdmin(m);admSay("Namnen är ändrade i hela turneringen.");
+  }
+  function admMove(){
+    const m=admM;if(!m||m.w)return;const n=+$("admBoard").value;
+    if(running(m)&&m.board===n)return;
+    if(n&&C.cur[n]!=null){admSay("Bana "+n+" har redan en match. Flytta eller avsluta den först.");return;}
+    const wasRunning=running(m);
+    release(m);m.live=null;m.plan=n||null;
+    if(n&&online(devOf(n))){m.board=n;m.plan=null;C.cur[n]=m.id;sendTo(devOf(n),assignMsg(m,n));}
+    else if(!n&&wasRunning){m.plan=null;}
+    assignFree();openAdmin(m);admSay(!n?"Matchen ligger i kön och får första lediga bana.":running(m)?"Matchen spelas nu på Bana "+n+".":"Matchen spelas på Bana "+n+" när banan är ledig och ansluten.");
+  }
+  function admScore(){
+    const m=admM;if(!running(m))return;
+    const sc=[+$("admSA").value,+$("admSB").value],lg=[+$("admLA").value,+$("admLB").value];
+    if(sc.some(v=>!(v>=0&&v<=1001))||lg.some(v=>!(v>=0&&v<=20))){admSay("Kontrollera siffrorna.");return;}
+    sendTo(devOf(m.board),{t:"fix",id:m.id,p:sc.map((v,k)=>({s:v,l:lg[k]}))});
+    admSay("Rättelsen är skickad till Bana "+m.board+".");
+  }
+  function admRestart(){
+    const m=admM;if(!running(m))return;if(!confirm("Starta om "+m.a+" – "+m.b+" från början på Bana "+m.board+"?"))return;
+    const n=m.board,d=devOf(n);m.live=null;m.stats=null;
+    if(d){sendTo(d,{t:"cancel",id:m.id});sendTo(d,assignMsg(m,n));}
+    persist();renderHost();admSay("Matchen startar om på Bana "+n+".");
+  }
+  function admResult(k){
+    const m=admM;if(!m||m.w||!m.a||!m.b)return;
+    const name=[m.a,m.b][k],la=Math.max(0,+$("admRA").value|0),lb=Math.max(0,+$("admRB").value|0);
+    release(m);m.plan=null;
+    const prev=m.live&&m.live.p&&m.live.p.length===2?m.live.p:[{},{}];
+    m.live={cur:0,p:[Object.assign({},prev[0],{l:la}),Object.assign({},prev[1],{l:lb})]};
+    setWinner(m,name);assignFree();openAdmin(m);admSay(name+" går vidare.");
+  }
+  function admClear(){
+    const m=admM;if(!m||!m.w)return;
+    if(!canClear(m)){admSay("Nästa match har redan börjat. Ta bort det resultatet först.");return;}
+    if(!confirm("Ta bort resultatet? Matchen läggs i kön igen."))return;
+    release(m);clearWinner(m);m.live=null;m.stats=null;assignFree();openAdmin(m);admSay("Resultatet är borttaget.");
   }
   function alertMsg(t){setMsg(t);setTimeout(()=>{if(msg===t)setMsg("");},5000);}
   function end(){
@@ -3122,17 +3268,26 @@ const cup=(function(){
       }else send();
       $("cupPanel").hidden=true;
       if(curScreen!=="game")showScreen("game");
-    }else if(m.t==="wait"){B.wait=true;B.champ=m.champ||null;}
+    }else if(m.t==="wait"){B.wait=true;B.champ=m.champ||null;B.next=m.next?String(m.next).slice(0,60):null;}
     else if(m.t==="cancel"){if(G&&G.cup&&G.cup.id===m.id){G.cup=null;G.ended=true;save();showScreen("home");}B.note="Storskärmen avgjorde matchen.";}
+    else if(m.t==="rename"&&G&&G.cup&&G.cup.id===m.id&&Array.isArray(m.names)){m.names.slice(0,2).forEach((n,k)=>{if(G.players[k])G.players[k].name=String(n).slice(0,24);});save();render();}
+    else if(m.t==="fix"&&G&&G.cup&&G.cup.id===m.id&&Array.isArray(m.p)&&G.mode==="x01"){
+      // the game leader corrected the score: apply it as a fresh visit for the current player
+      snap();clearTimeout(advanceT);
+      m.p.slice(0,2).forEach((x,k)=>{const p=G.players[k];if(!p)return;const sc=Math.max(0,Math.min(1001,+x.s|0));if(sc>0)p.score=sc;p.legs=Math.max(0,Math.min(20,+x.l|0));});
+      G.winner=null;G.matchWinner=null;G.sd=null;G.turn=newTurn(G.players[G.cur].score,G.players[G.cur].legDarts);
+      G.log.unshift("Spelledaren rättade ställningen");save();render();
+    }
     else if(m.t==="done"){B.champ=String(m.champ||"");}
     else if(m.t==="ended"){leave(true);setPMsg("Turneringen är avslutad. Skanna banans QR-kod nästa gång.");}
     chip();boardUi();
   }
   function send(){
     if(role!=="board"||!G||!G.cup||G.cup.code!==code||!(hostConn&&hostConn.open))return;
-    const p=G.players.map(p=>({s:p.score,l:p.legs,a:p.st&&p.st.darts?(p.st.pts/p.st.darts*3).toFixed(1):"–"}));
+    const p=G.players.map(p=>({s:p.score,l:p.legs,d:p.legDarts||0,a:p.st&&p.st.darts?(p.st.pts/p.st.darts*3).toFixed(1):"–",c:p.st?p.st.c180:0}));
     const w=G.matchWinner!=null?G.players[G.matchWinner].name:null;
-    hostConn.send({t:"live",id:G.cup.id,p,cur:G.cur,sd:!!G.sd,w,st:w?G.players.map(p=>p.st):null});
+    hostConn.send({t:"live",id:G.cup.id,p,cur:G.cur,sd:!!G.sd,w,st:w?G.players.map(p=>p.st):null,
+      turn:G.turn.darts.map(d=>d.label),log:G.log.slice(0,8)});
   }
   function onSave(){if(role==="board")send();}
   function ready(){
@@ -3154,6 +3309,7 @@ const cup=(function(){
       const live=hostConn&&hostConn.open;c.hidden=false;c.className="chipbtn"+(live?" live":"");
       c.textContent=(B.cup||"Turnering")+(B.board?" · Bana "+B.board:"")+" · "+(live?(B.wait?"väntar på match":"ansluten"):"ansluter…");return;
     }
+    if(role==="watch"){c.hidden=false;c.className="chipbtn"+(hostConn&&hostConn.open?" live":"");c.textContent="Följer "+(S?S.name:code)+" live";return;}
     c.hidden=true;
   }
   function boardUi(){
@@ -3162,12 +3318,13 @@ const cup=(function(){
     const live=hostConn&&hostConn.open;
     let t=live?"Ansluten till "+(B.cup||"turneringen")+(B.board?" som Bana "+B.board:"")+".":"Ansluter till turnering "+code+"…";
     if(B.champ)t+=" "+B.champ+" vann turneringen!";
-    else if(live&&B.wait)t+=" Väntar på nästa match, den startar automatiskt.";
+    else if(live&&B.wait)t+=B.next?" Nästa match här: "+B.next+". Den startar automatiskt.":" Väntar på nästa match, den startar automatiskt.";
     if(B.note)t+=" "+B.note;
     $("cupBoardTxt").textContent=t;
   }
   function open(){
     if(role==="host"&&C){showScreen("cup");renderHost();return;}
+    if(role==="watch"){showScreen("live");renderLive();return;}
     closeSheets();$("cupPanel").hidden=false;boardUi();
   }
   function startSetup(){
@@ -3190,15 +3347,17 @@ const cup=(function(){
     $("cupTitle").textContent=C?C.name:"Ny turnering";
     if(!C)return;
     if(!C.nBoards)C.nBoards=Math.max(4,...Object.values(C.boards));
+    const ready=plan();
     $("cupStName").textContent=C.name;$("cupCode").textContent=C.code;
     // progress line: the earliest round that is still being played
     let prog="";
     for(let ri=0;ri<C.rounds.length;ri++){
       const real=C.rounds[ri].filter(m=>!(ri===0&&!m.b)),done=real.filter(m=>m.w).length;
-      if(done<real.length||ri===C.rounds.length-1){prog=roundName(ri)+" · "+done+" av "+real.length+" matcher klara";break;}
+      if(done<real.length||ri===C.rounds.length-1){prog=roundName(ri)+" · "+done+" av "+real.length+" klara";break;}
     }
     if(C.champ)prog="Turneringen är avgjord";
-    $("cupProg").textContent=prog+" · "+C.players.length+" spelare · "+C.cfg.start+(C.cfg.legs>1?" bäst av "+C.cfg.legs:"")+(C.cfg.sdAt?" · sudden death efter "+C.cfg.sdAt+" pilar":"");
+    $("cupProg").textContent=prog;
+    const lq=$("cupLiveQR");if(lq.dataset.code!==C.code){lq.innerHTML=qrSvg(liveUrl(C.code));lq.dataset.code=C.code;}
     // boards
     const [cols,rows]=grid(C.nBoards),bx=$("cupBoards");
     bx.style.setProperty("--cols",cols);bx.style.setProperty("--rows",rows);
@@ -3207,20 +3366,23 @@ const cup=(function(){
       const on=online(devOf(n)),m=C.cur[n]!=null?M(C.cur[n]):null;
       const state=!on&&!m?"off":m&&m.w?"done":m?"live":"idle";
       const right=m?(m.live&&m.live.sd&&!m.w?'<span class="sd">Sudden death</span>':esc(roundName(pos(m)[0]))):on?"Ledig":"Ej ansluten";
-      h+='<div class="bcard '+state+'"><div class="hd"><b>Bana '+n+'</b>'+(m&&!on?'<span class="sd">Telefonen tappade anslutningen</span>':'<span>'+right+'</span>')+'</div>';
+      h+='<div class="bcard '+state+'"'+(m?' data-m="'+m.id+'" style="cursor:pointer"':'')+'><div class="hd"><b>Bana '+n+'</b>'+(m&&!on?'<span class="sd">Telefonen tappade anslutningen</span>':'<span>'+right+'</span>')+'</div>';
       if(m){
         const L=m.live||{cur:0,p:[]};
         [m.a,m.b].forEach((nm,k)=>{const p=L.p[k]||{s:C.cfg.start,l:0};
           const cls=m.w?(m.w===nm?" w":" l"):L.cur===k?" on":"";
           h+='<div class="bpr'+cls+'"><span class="nm">'+esc(nm)+'</span><span class="lg" title="Vunna legs">'+p.l+'</span><span class="sc">'+(m.w?(m.w===nm?"VANN":""):p.s)+'</span></div>';});
       }else if(state==="off")h+='<div class="msgc"><div class="bqr">'+qrSvg(joinUrl(C.code,n))+'</div><div><strong>Skanna för Bana '+n+'</strong><br>med telefonen som ska räkna på banan</div></div>';
-      else h+='<div class="msgc"><strong>Ledig</strong>'+(C.champ?"Turneringen är klar":"Väntar på nästa match")+'</div>';
+      else{const nx=ready.find(x=>x.plan===n);h+='<div class="msgc">'+(nx?'<strong>Nästa: '+esc(nx.a)+' – '+esc(nx.b)+'</strong>Startar när banans telefon är redo':'<strong>Ledig</strong>'+(C.champ?"Turneringen är klar":"Väntar på nästa match"))+'</div>';}
+      const nx=ready.find(x=>x.plan===n);
+      if(nx&&m)h+='<div class="nextm">Nästa: '+esc(nx.a)+' – '+esc(nx.b)+'</div>';
       h+='</div>';
     }
     bx.innerHTML=h;
+    if(!document.documentElement.classList.contains("cupbig"))bx.querySelectorAll(".bcard[data-m]").forEach(el=>el.addEventListener("click",()=>openAdmin(M(el.dataset.m))));
     // queue: matches ready to start but without a board, then matches waiting for a winner
     const q=[];
-    C.rounds.forEach((r,ri)=>r.forEach(m=>{if(m.a&&m.b&&!m.w&&m.board==null)q.push('<li><b>'+esc(m.a)+' – '+esc(m.b)+'</b><span>'+esc(roundName(ri))+' · väntar på ledig bana</span></li>');}));
+    ready.forEach(m=>q.push('<li><b>'+esc(m.a)+' – '+esc(m.b)+'</b><span>Bana '+m.plan+' · '+esc(roundName(pos(m)[0]))+'</span></li>'));
     $("cupQueue").innerHTML=q.slice(0,6).join("")||'<li class="empty">'+(C.champ?"Alla matcher är spelade.":"Inga matcher väntar just nu.")+'</li>';
     // bracket
     const br=$("cupBracket");br.innerHTML="";
@@ -3231,21 +3393,21 @@ const cup=(function(){
       r.forEach(m=>{
         const el=document.createElement("div");const live=m.board!=null&&C.cur[m.board]===m.id&&!m.w,bye=ri===0&&!m.b;
         el.className="bm"+(live?" live":"")+(bye?" bye":"");
-        let x=live?'<div class="tag">Bana '+m.board+'</div>':"";
+        let x=live?'<div class="tag">Bana '+m.board+' · pågår</div>':m.plan&&!m.w?'<div class="tag plan">Bana '+m.plan+' · nästa</div>':"";
         [m.a,m.b].forEach((nm,k)=>{
           const cls=!nm?"tbd":m.w&&!bye?(m.w===nm?"w":"l"):"";
           const legs=m.live&&m.live.p[k]&&(m.w||live)?m.live.p[k].l:"";
-          const pick=!cupbig&&!bye&&nm&&(m.a&&m.b&&!m.w&&!C.champ||m.w===nm);
-          x+='<div class="r '+cls+(pick?" pick":"")+'" data-k="'+k+'"><span>'+(nm?esc(nm):bye?"walkover":"–")+'</span><span>'+legs+'</span></div>';
+          x+='<div class="r '+cls+'" data-k="'+k+'"><span>'+(nm?esc(nm):bye?"walkover":"–")+'</span><span>'+legs+'</span></div>';
         });
         el.innerHTML=x;
-        el.querySelectorAll(".r.pick").forEach(rw=>rw.addEventListener("click",()=>manual(m,[m.a,m.b][+rw.dataset.k])));
+        if(!cupbig&&!bye&&(m.a||m.b)){el.classList.add("pick");el.addEventListener("click",()=>openAdmin(m));}
         col.querySelector(".ms").appendChild(el);
       });
       br.appendChild(col);
     });
     fitBracket();
     const ch=$("cupChamp");ch.hidden=!C.champ||champHidden;
+    if(watchers.length&&!snapT)snapT=setTimeout(()=>{snapT=null;if(!C)return;const s=liveSnap();watchers=watchers.filter(w=>w.open);watchers.forEach(w=>{try{w.send(s);}catch(_){}});},400);
     if(C.champ)ch.innerHTML='<div class="t">🏆</div><div class="n">'+esc(C.champ)+'</div><div class="s">vinner '+esc(C.name)+'</div><div class="h">Tryck för att visa trädet</div>';
     renderCupStats();
   }
@@ -3342,6 +3504,91 @@ const cup=(function(){
       t+=[roundName(ri),m.a,m.b,L&&m.w?L[0].l+"–"+L[1].l:"",m.w||""].map(q).join(";")+"\n";}));
     download(C.name.replace(/[^\wåäöÅÄÖ -]/g,"")+" statistik.csv",t,"text/csv");
   }
+
+  /* ----- audience view: phones follow the cup live (#live-CODE) ----- */
+  function liveSnap(){
+    const boards=[];
+    for(let n=1;n<=C.nBoards;n++){const m=C.cur[n]!=null?M(C.cur[n]):null;
+      boards.push({n,on:online(devOf(n)),m:m?{id:m.id,r:roundName(pos(m)[0]),a:m.a,b:m.b,w:m.w,live:m.live||null}:null});}
+    const q=plan().map(m=>[m.a,m.b,roundName(pos(m)[0]),m.plan]);
+    return {t:"snap",name:C.name,prog:$("cupProg").textContent,cfg:C.cfg,champ:C.champ||null,boards,queue:q.slice(0,8),
+      rounds:C.rounds.map((r,ri)=>({n:roundName(ri),m:r.filter(m=>!(ri===0&&!m.b)).map(m=>{const L=m.live&&m.live.p&&m.live.p.length===2?m.live.p:null;
+        return [m.a,m.b,m.w,L?L[0].l:null,L?L[1].l:null,m.board!=null&&C.cur[m.board]===m.id&&!m.w?m.board:0];})})),
+      stats:playerStats().filter(x=>x.m).map(summary)};
+  }
+  let S=null,lvTab="m",lvSel=0;
+  function watch(c){
+    if(!ok())return;
+    c=String(c||"").toUpperCase().replace(/[^A-Z0-9]/g,"");
+    if(c.length!==4){setPMsg("Koden består av fyra tecken.");return;}
+    if(role==="host"){setPMsg("Den här enheten är storskärm.");return;}
+    stop();role="watch";code=c;S=null;store.set("dk_cupw",{code});usage.ev("turnering/publik");
+    closeSheets();showScreen("live");renderLive();
+    peer=new Peer();
+    peer.on("open",wconnect);
+    peer.on("error",e=>{if(e.type==="peer-unavailable"||e.type==="network"||e.type==="server-error"||e.type==="socket-error")wretry();});
+    peer.on("disconnected",()=>{if(role==="watch")setTimeout(()=>{try{peer.reconnect();}catch(_){}},1500);});
+  }
+  function wconnect(){
+    if(role!=="watch"||!peer||peer.destroyed)return;
+    hostConn=peer.connect(PFX+code,{reliable:true});
+    hostConn.on("open",()=>{hostConn.send({t:"watch"});renderLive();});
+    hostConn.on("data",m=>{if(m&&m.t==="snap"){S=m;renderLive();}else if(m&&m.t==="ended"){S=null;stopWatch();setPMsg("Turneringen är avslutad.");}});
+    hostConn.on("close",()=>{renderLive();wretry();});
+  }
+  function wretry(){clearTimeout(retryT);retryT=setTimeout(()=>{if(role!=="watch")return;if(peer&&peer.disconnected){try{peer.reconnect();}catch(_){}}if(!(hostConn&&hostConn.open))wconnect();},3000);}
+  function stopWatch(){stop();store.set("dk_cupw",null);chip();showScreen("home");}
+  function lvTabs(t){lvTab=t;lvSel=0;["m","b","s"].forEach(k=>$("lvTab"+k.toUpperCase()).setAttribute("aria-selected",String(k===t)));renderLive();}
+  function renderLive(){
+    chip();
+    const live=hostConn&&hostConn.open;
+    $("liveName").textContent=S?S.name:"Ansluter…";
+    $("liveTitle").textContent=live?"Live":"Återansluter…";
+    $("liveProg").textContent=S?(S.champ?"🏆 "+S.champ+" vann":S.prog)+" · "+S.cfg.start+(S.cfg.legs>1?" · bäst av "+S.cfg.legs+" legs":"")+(S.cfg.sdAt?" · sudden death efter "+S.cfg.sdAt+" pilar":""):"Söker turnering "+code+"…";
+    const body=$("liveBody");if(!S){body.innerHTML="";return;}
+    let h="";
+    if(lvTab==="m"&&lvSel){
+      const b=S.boards.find(x=>x.n===lvSel),m=b&&b.m;
+      if(!m){lvSel=0;return renderLive();}
+      const L=m.live||{cur:0,p:[],turn:[],log:[]};
+      h+='<div class="lvd"><button class="back" id="lvBack">‹ Alla matcher</button><div class="label">Bana '+b.n+' · '+esc(m.r)+(L.sd&&!m.w?' · <span style="color:var(--warn)">Sudden death</span>':"")+'</div>';
+      [m.a,m.b].forEach((nm,k)=>{const p=L.p[k]||{s:S.cfg.start,l:0,a:"–",d:0,c:0};
+        const cls=m.w?(m.w===nm?" w":""):L.cur===k?" on":"";
+        h+='<div class="lvp'+cls+'"><div class="nm">'+esc(nm)+(m.w===nm?" 🏆":"")+'</div><div class="sc">'+(m.w?(m.w===nm?"VANN":""):p.s)+'</div><div class="st"><span>Legs '+p.l+'</span><span>Snitt '+esc(p.a)+'</span>'+(p.c?'<span>180 ×'+p.c+'</span>':'')+'</div></div>';});
+      if(!m.w){
+        const cp=L.p[L.cur],who=[m.a,m.b][L.cur]||"";
+        h+='<div class="label">Kastar nu: '+esc(who)+'</div><div class="lvturn">'+(L.turn&&L.turn.length?L.turn.map(t=>'<span class="chip">'+esc(t)+'</span>').join(""):'<span class="help" style="margin:0">Inga pilar än i besöket</span>')+'</div>';
+        if(cp&&!L.sd){const co=checkout(cp.s,3-(L.turn?L.turn.length:0),S.cfg.dbl);if(co)h+='<div class="msg co"><span class="label">Utgång '+cp.s+'</span>'+co.map((d,i)=>'<span class="chip'+(i===0?" nx":"")+(d.m===2?" d":"")+'">'+d.label+'</span>').join("")+'</div>';}
+      }
+      if(L.log&&L.log.length)h+='<div class="label">Senaste kast</div><ul class="lvlog">'+L.log.map(l=>'<li>'+esc(l)+'</li>').join("")+'</ul>';
+      body.innerHTML=h+'</div>';$("lvBack").onclick=()=>{lvSel=0;renderLive();};return;
+    }
+    if(lvTab==="m"){
+      S.boards.filter(b=>b.m).forEach(b=>{const m=b.m,L=m.live||{cur:0,p:[]};
+        h+='<div class="bcard '+(m.w?"done":"live")+'" data-n="'+b.n+'"><div class="hd"><b>Bana '+b.n+'</b><span>'+(L.sd&&!m.w?'<span class="sd">Sudden death</span>':esc(m.r))+'</span></div>';
+        [m.a,m.b].forEach((nm,k)=>{const p=L.p[k]||{s:S.cfg.start,l:0};const cls=m.w?(m.w===nm?" w":" l"):L.cur===k?" on":"";
+          h+='<div class="bpr'+cls+'"><span class="nm">'+esc(nm)+'</span><span class="lg">'+p.l+'</span><span class="sc">'+(m.w?(m.w===nm?"VANN":""):p.s)+'</span></div>';});
+        h+='</div>';});
+      if(!S.boards.some(b=>b.m))h+='<p class="lvidle">'+(S.champ?"Alla matcher är spelade.":"Inga matcher pågår just nu.")+'</p>';
+      if(S.queue.length)h+='<div class="label" style="margin-top:14px">Nästa på tur</div><ul class="lvlog">'+S.queue.map(q=>'<li><b style="color:var(--fg)">'+esc(q[0])+' – '+esc(q[1])+'</b> · Bana '+(q[3]|0)+' · '+esc(q[2])+'</li>').join("")+'</ul>';
+      if(S.boards.some(b=>b.m))h+='<p class="help">Tryck på en match för att följa den i detalj.</p>';
+      body.innerHTML=h;
+      body.querySelectorAll(".bcard[data-n]").forEach(el=>el.onclick=()=>{lvSel=+el.dataset.n;renderLive();window.scrollTo(0,0);});
+      return;
+    }
+    if(lvTab==="b"){
+      h='<div class="lvbr">';
+      S.rounds.forEach(r=>{h+='<h4>'+esc(r.n)+'</h4>';r.m.forEach(m=>{
+        const nm=(x,i)=>x?'<span class="'+(m[2]&&m[2]===x?"w":"")+'">'+esc(x)+'</span>':'<span class="help" style="margin:0">–</span>';
+        h+='<div class="lm'+(m[5]?" live":"")+'">'+nm(m[0])+'<span class="x">'+(m[3]!=null&&(m[2]||m[5])?m[3]+"–"+m[4]:m[5]?"Bana "+m[5]:"")+'</span>'+nm(m[1])+'</div>';});});
+      body.innerHTML=h+'</div>';return;
+    }
+    if(!S.stats.length){body.innerHTML='<p class="lvidle">Statistiken fylls på när matcherna är klara.</p>';return;}
+    h='<div style="overflow-x:auto"><table class="crt cupst"><tr><th>Spelare</th><th>V–F</th><th>Snitt</th><th>180</th><th>Högsta utg.</th></tr>';
+    S.stats.forEach((o,i)=>{h+='<tr data-i="'+i+'"><td class="n">'+esc(o.n)+'<br><small style="color:var(--mut)">'+esc(o.pl)+'</small></td><td>'+o.s[1]+'–'+(o.s[0]-o.s[1])+'</td><td>'+esc(o.s[4])+'</td><td>'+(o.s[6]||"–")+'</td><td>'+(o.s[9]||"–")+'</td></tr>';});
+    body.innerHTML=h+'</table></div><p class="help">Tryck på en spelare för hela statistiken.</p>';
+    body.querySelectorAll("tr[data-i]").forEach(tr=>tr.onclick=()=>showCard(S.stats[+tr.dataset.i],false));
+  }
   let exitT=null;
   function bigOn(){
     document.documentElement.classList.add("cupbig");$("cupExitBig").hidden=false;
@@ -3368,12 +3615,16 @@ const cup=(function(){
   function boot(){
     const cs=location.hash.match(/^#cs-([A-Za-z0-9_-]+)$/);
     if(cs){history.replaceState(null,"",location.pathname);setTimeout(()=>showCard(dec(cs[1]),false),300);}
+    const lv=location.hash.match(/^#live-([A-Za-z0-9]{4})$/);
+    if(lv){history.replaceState(null,"",location.pathname);watch(lv[1]);return;}
     const h=location.hash.match(/^#cup-([A-Za-z0-9]{4})(?:-(\d{1,2}))?$/);
     if(h){history.replaceState(null,"",location.pathname);join(h[1],+h[2]||0);return;}
     const c=store.get("dk_cuphost");
     if(c&&c.rounds&&c.code){C=c;host();renderHost();return;}
     const b=store.get("dk_cupb");
-    if(b&&b.code)join(b.code,b.n);
+    if(b&&b.code){join(b.code,b.n);return;}
+    const w=store.get("dk_cupw");
+    if(w&&w.code)watch(w.code);
   }
   $("btnCup").addEventListener("click",open);
   $("cupChip").addEventListener("click",open);
@@ -3381,6 +3632,20 @@ const cup=(function(){
   $("cupNew").addEventListener("click",startSetup);
   $("cupJoin").addEventListener("click",()=>join($("cupCodeIn").value,+$("cupBoardIn").value));
   $("cupCodeIn").addEventListener("keydown",e=>{if(e.key==="Enter")join($("cupCodeIn").value,+$("cupBoardIn").value);});
+  $("cupWatch").addEventListener("click",()=>watch($("cupCodeIn").value));
+  $("liveBack").addEventListener("click",()=>showScreen("home"));
+  $("liveStop").addEventListener("click",stopWatch);
+  $("lvTabM").addEventListener("click",()=>lvTabs("m"));
+  $("lvTabB").addEventListener("click",()=>lvTabs("b"));
+  $("lvTabS").addEventListener("click",()=>lvTabs("s"));
+  $("admClose").addEventListener("click",()=>{$("cupAdmin").hidden=true;});
+  $("admRen").addEventListener("click",admRename);
+  $("admMove").addEventListener("click",admMove);
+  $("admFix").addEventListener("click",admScore);
+  $("admRestart").addEventListener("click",admRestart);
+  $("admWinA").addEventListener("click",()=>admResult(0));
+  $("admWinB").addEventListener("click",()=>admResult(1));
+  $("admClear").addEventListener("click",admClear);
   $("cupAddBoard").addEventListener("click",()=>{if(C&&C.nBoards<16){C.nBoards++;store.set("dk_cupnb",C.nBoards);persist();renderHost();}});
   $("cupDelBoard").addEventListener("click",()=>{
     if(!C||C.nBoards<=1)return;const n=C.nBoards;
@@ -3406,7 +3671,7 @@ const cup=(function(){
   $("cupExitBig").addEventListener("click",bigOff);
   $("cupCsv").addEventListener("click",csv);
   $("cupCardClose").addEventListener("click",()=>{$("cupCard").hidden=true;});
-  return {boot,join,onSave,ready,get role(){return role;},get inMatch(){return role==="board"&&!!(G&&G.cup&&G.cup.code===code);}};
+  return {boot,join,watch,onSave,ready,get role(){return role;},get inMatch(){return role==="board"&&!!(G&&G.cup&&G.cup.code===code);}};
 })();
 
 /* ---------- Caller voices (voices.json in the repo decides what users can pick) ---------- */
