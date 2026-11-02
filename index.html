@@ -986,6 +986,33 @@ const CO={};
 function parseDart(l){if(l==="Bull")return dart(2,25);if(l==="25")return dart(1,25);const m=l[0]==="T"?3:l[0]==="D"?2:1;return dart(m,+(m>1?l.slice(1):l));}
 CO_TXT.split("|").forEach(e=>{const [k,v]=e.split(":");CO[k]=v.split(" ").map(parseDart);});
 for(let n=2;n<=40;n+=2)CO[n]=[dart(2,n/2)];
+// When no finish is possible with the darts left (odd number with one dart, bogey numbers 159-169),
+// suggest the next dart that leaves the best finish: a favourite double, else a two-dart finish.
+function setupShot(s,left,dbl){
+  if(!dbl||left<1||s<3||s>170||checkout(s,left,true))return null;
+  const fin=r=>{const c=checkout(r,3,true);return c?c.length:9;};
+  let best=null,bq=-1e9;
+  if(s>100){
+    // still far out: score with the trebles, aiming for a rest that is a short finish (never a bogey number)
+    [dart(3,20),dart(3,19),dart(3,18),dart(3,17)].forEach(d=>{const r=s-d.v,v=-fin(r)*100-r;if(v>bq){bq=v;best=d;}});
+  }else{
+    // close: leave a favourite double (or bull), and prefer a single over a treble or double to get there
+    const hard=d=>d.m===1?(d.n===25?2:0):d.m===3?8:15;
+    const q=r=>{if(r<2)return -1e9;if(r<=40&&r%2===0)return 100-PREF.indexOf(r);if(r===50)return 80;const n=fin(r);return n<=2?60:n<=3?40:-1e9;};
+    ALL.concat([dart(1,25)]).forEach(d=>{if(d.v>s-2)return;const v=q(s-d.v)-hard(d);if(v>bq||(v===bq&&d.v>best.v)){bq=v;best=d;}});
+    if(bq<0)best=null;
+  }
+  if(!best)return null;
+  const rest=s-best.v;return {d:best,rest,co:checkout(rest,3,true)};
+}
+// the finish line shown for the player at the board and in the audience view
+function coHtml(score,left,dbl){
+  const co=checkout(score,left,dbl);
+  if(co)return '<span class="label">'+(dbl?"Utgång ":"Kvar ")+score+'</span>'+co.map((d,k)=>'<span class="chip'+(k===0?" nx":"")+(d.m===2?" d":"")+'">'+d.label+'</span>').join("");
+  const su=setupShot(score,left,dbl);
+  if(su)return '<span class="label">Kvar '+score+' · ställ upp</span><span class="chip nx">'+su.d.label+'</span><span class="label">→ '+su.rest+(su.co?" ("+su.co.map(d=>d.label).join(" ")+")":"")+'</span>';
+  return "";
+}
 function checkout(s,left,dbl){
   if(left<1||s<1||s>180)return null;
   if(dbl&&(s>170||s<2))return null;
@@ -2086,8 +2113,8 @@ function render(){
   else if(G.sd){m.className="msg win";m.textContent="Sudden death"+(G.sd.r>1?" (runda "+G.sd.r+")":"")+": högst på 3 pilar vinner leget. "+G.players.map((x,i)=>x.name+" "+(G.sd.s[i]==null?"–":G.sd.s[i])).join(" · ");}
   else if(t.bust){m.className="msg bust";m.textContent="Bust – poängen återställs till "+t.start+".";}
   else{
-    const co=checkout(p.score,3-t.darts.length,G.dbl);
-    if(co&&!t.done){m.className="msg co";m.innerHTML='<span class="label">'+(G.dbl?"Utgång ":"Kvar ")+p.score+'</span>'+co.map((d,k)=>'<span class="chip'+(k===0?" nx":"")+(d.m===2?" d":"")+'">'+d.label+'</span>').join("");}
+    const h=t.done?"":coHtml(p.score,3-t.darts.length,G.dbl);
+    if(h){m.className="msg co";m.innerHTML=h;}
   }
   $("btnNext").textContent=G.matchWinner!==null?(G.cup&&cup.inMatch?"Klar – nästa match":"Revansch"):G.winner!==null?(G.setWon?"Nästa set":"Nästa leg"):"Nästa spelare";
   if($("statsPanel")&&!$("statsPanel").hidden)renderStats();
@@ -3609,7 +3636,7 @@ const cup=(function(){
       if(!m.w){
         const cp=L.p[L.cur],who=[m.a,m.b][L.cur]||"";
         h+='<div class="label">Kastar nu: '+esc(who)+'</div><div class="lvturn">'+(L.turn&&L.turn.length?L.turn.map(t=>'<span class="chip">'+esc(t)+'</span>').join(""):'<span class="help" style="margin:0">Inga pilar än i besöket</span>')+'</div>';
-        if(cp&&!L.sd){const co=checkout(cp.s,3-(L.turn?L.turn.length:0),S.cfg.dbl);if(co)h+='<div class="msg co"><span class="label">Utgång '+cp.s+'</span>'+co.map((d,i)=>'<span class="chip'+(i===0?" nx":"")+(d.m===2?" d":"")+'">'+d.label+'</span>').join("")+'</div>';}
+        if(cp&&!L.sd){const ch=coHtml(cp.s,3-(L.turn?L.turn.length:0),S.cfg.dbl);if(ch)h+='<div class="msg co">'+ch+'</div>';}
       }
       if(L.log&&L.log.length)h+='<div class="label">Senaste kast</div><ul class="lvlog">'+L.log.map(l=>'<li>'+esc(l)+'</li>').join("")+'</ul>';
       body.innerHTML=h+'</div>';$("lvBack").onclick=()=>{lvSel=0;renderLive();};return;
