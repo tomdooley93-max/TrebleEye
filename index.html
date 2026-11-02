@@ -986,22 +986,37 @@ const CO={};
 function parseDart(l){if(l==="Bull")return dart(2,25);if(l==="25")return dart(1,25);const m=l[0]==="T"?3:l[0]==="D"?2:1;return dart(m,+(m>1?l.slice(1):l));}
 CO_TXT.split("|").forEach(e=>{const [k,v]=e.split(":");CO[k]=v.split(" ").map(parseDart);});
 for(let n=2;n<=40;n+=2)CO[n]=[dart(2,n/2)];
+// Where a dart lands when it misses: a treble usually drops into the single, a double into the single
+// (inside) or off the board (outside), and any dart can stray into the neighbouring numbers.
+const RING=[20,1,18,4,13,6,10,15,2,17,3,19,7,16,8,11,14,9,12,5];
+function spread(d){
+  if(d.n===25)return d.m===2?[[50,.3],[25,.45],[5,.25]]:[[25,.6],[50,.1],[5,.3]];
+  const i=RING.indexOf(d.n),l=RING[(i+19)%20],r=RING[(i+1)%20],n=d.n;
+  if(d.m===3)return [[3*n,.35],[n,.45],[3*l,.025],[3*r,.025],[l,.075],[r,.075]];
+  if(d.m===2)return [[2*n,.35],[n,.25],[0,.25],[2*l,.075],[2*r,.075]];
+  return [[n,.8],[l,.08],[r,.08],[3*n,.02],[2*n,.02]];
+}
+// how good a score is to be left on: a favourite double, then the bull, then a two- or three-dart finish
+function leaveQ(r){
+  if(r<2)return -50;
+  if(r<=40&&r%2===0)return 100-PREF.indexOf(r);
+  if(r===50)return 70;
+  const c=checkout(r,3,true);if(!c)return r>170?-10:0;
+  return c.length<=2?60-r/10:40-r/20;
+}
 // When no finish is possible with the darts left (odd number with one dart, bogey numbers 159-169),
-// suggest the next dart that leaves the best finish: a favourite double, else a two-dart finish.
+// suggest the next dart that leaves the best finish, also when it misses: each dart is weighted by
+// where it lands, so a near miss still leaves a finish (the "miss in the right place" rule).
 function setupShot(s,left,dbl){
   if(!dbl||left<1||s<3||s>170||checkout(s,left,true))return null;
-  const fin=r=>{const c=checkout(r,3,true);return c?c.length:9;};
   let best=null,bq=-1e9;
-  if(s>100){
-    // still far out: score with the trebles, aiming for a rest that is a short finish (never a bogey number)
-    [dart(3,20),dart(3,19),dart(3,18),dart(3,17)].forEach(d=>{const r=s-d.v,v=-fin(r)*100-r;if(v>bq){bq=v;best=d;}});
-  }else{
-    // close: leave a favourite double (or bull), and prefer a single over a treble or double to get there
-    const hard=d=>d.m===1?(d.n===25?2:0):d.m===3?8:15;
-    const q=r=>{if(r<2)return -1e9;if(r<=40&&r%2===0)return 100-PREF.indexOf(r);if(r===50)return 80;const n=fin(r);return n<=2?60:n<=3?40:-1e9;};
-    ALL.concat([dart(1,25)]).forEach(d=>{if(d.v>s-2)return;const v=q(s-d.v)-hard(d);if(v>bq||(v===bq&&d.v>best.v)){bq=v;best=d;}});
-    if(bq<0)best=null;
-  }
+  // far out: score with the big trebles; close: any single, treble or the 25 (never the bull as a setup)
+  const cand=s>100?[dart(3,20),dart(3,19),dart(3,18),dart(3,17)]:ALL.filter(d=>d.m!==2).concat([dart(1,25)]);
+  cand.forEach(d=>{
+    if(d.v>s-2)return;
+    const v=spread(d).reduce((a,[x,p])=>a+p*(s-x<2?-50:leaveQ(s-x)),0);
+    if(v>bq+1e-9||(Math.abs(v-bq)<1e-9&&d.v>best.v)){bq=v;best=d;}
+  });
   if(!best)return null;
   const rest=s-best.v;return {d:best,rest,co:checkout(rest,3,true)};
 }
