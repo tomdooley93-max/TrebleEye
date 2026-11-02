@@ -11,6 +11,7 @@ Dartapp för 301/501/701 med poängräkning, utgångsförslag, uppropare och kam
 - Förinspelade uppropare (röster i `audio/<id>/`, listan styrs av `voices.json`).
 - Delad session mellan enheter med QR-kod och livebild från kameran (PeerJS/WebRTC).
 - Spelarprofiler med namn och bild (sparas på enheten).
+- Turneringsläge (Turnering på startskärmen): en enhet är storskärm (Visa på storskärm = helskärm som skalar till skärmen) och håller i utslagsträdet. Varje bana har en egen QR-kod med en fast klubbkod, så utskrivna koder vid banorna fungerar varje vecka; telefonen som skannar blir den banan. 6 banor som standard, justerbart. Seedning efter spelarnas snitt (statistiken samlas in från banornas telefoner när de ansluter). Varje match i kön tilldelas en bana direkt. Spelledaren trycker på en match för att flytta bana, ändra spelare, rätta poäng/legs, starta om eller sätta resultat. Publiken skannar Följ live-koden och följer matcherna, trädet och statistiken i mobilen. Valfri sudden death efter 30 pilar per spelare (högst poäng på 3 pilar). Statistik per spelare med QR-kod till spelarens egen telefon, delning och CSV-export.
 
 ## Admin
 - Adminläge: tryck 7 gånger på versionsnumret i appen.
