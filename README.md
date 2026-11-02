@@ -11,6 +11,7 @@ Dartapp för 301/501/701 med poängräkning, utgångsförslag, uppropare och kam
 - Förinspelade uppropare (röster i `audio/<id>/`, listan styrs av `voices.json`).
 - Delad session mellan enheter med QR-kod och livebild från kameran (PeerJS/WebRTC).
 - Spelarprofiler med namn och bild (sparas på enheten).
+- Turneringsläge (Turnering på startskärmen): en enhet är storskärm och håller i utslagsträdet, varje bana ansluter en telefon via QR/kod och räknar sin match. Vinnaren går vidare automatiskt, spelledaren kan rätta resultat genom att trycka i trädet. Valfri sudden death efter 30 pilar per spelare (högst poäng på 3 pilar). Statistik per spelare med QR-kod till spelarens egen telefon, delning och CSV-export.
 
 ## Admin
 - Adminläge: tryck 7 gånger på versionsnumret i appen.

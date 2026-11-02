@@ -317,6 +317,67 @@ html.tv .bar,html.tv .backdrop{display:none!important}
   .gcard{padding:12px 16px 14px;gap:8px}.gcard h2{font-size:24px}.gbody{font-size:16px}
   .gnav{bottom:-14px;margin:0 -16px -14px;padding:8px 16px 14px}.gnav button{padding:10px}
 }
+/* Tournament (cup): host/big screen + one phone per board */
+#scrCup .wrapc{display:flex;flex-direction:column;gap:16px}
+.cupform{display:flex;flex-direction:column;gap:12px}
+.cupform .set{display:flex;flex-wrap:wrap;gap:10px}
+.cupform textarea{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:8px 10px;color:var(--fg);font:inherit;width:100%;box-sizing:border-box;min-height:180px}
+.cuptop{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:16px;align-items:start}
+@media (max-width:700px){.cuptop{grid-template-columns:minmax(0,1fr)}}
+.cupjoin{display:flex;gap:12px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px 14px}
+#cupQR{background:#fff;border-radius:8px;padding:4px;width:120px}
+#cupQR svg{display:block;width:100%;height:auto}
+.cupjoin .code{font-family:var(--f-num);font-weight:700;font-size:40px;letter-spacing:.14em;line-height:1;color:var(--chalk)}
+.cupboards{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px}
+.bcard{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:6px}
+.bcard.live{border-color:var(--grn)}
+.bcard.off{opacity:.55}
+.bcard .hd{display:flex;justify-content:space-between;gap:8px;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--mut)}
+.bcard .hd b{color:var(--fg)}
+.bcard .idle{color:var(--mut);font-size:15px;padding:8px 0}
+.bpr{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:10px;align-items:center}
+.bpr .nm{font-weight:600;font-size:18px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bpr.on .nm::before{content:"";display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--grn);margin-right:8px;vertical-align:middle}
+.bpr.w .nm{color:var(--warn)}
+.bpr .lg{font-family:var(--f-num);font-weight:700;font-size:20px;color:var(--mut);font-variant-numeric:tabular-nums}
+.bpr .sc{font-family:var(--f-num);font-weight:700;font-size:44px;line-height:1;color:var(--chalk);font-variant-numeric:tabular-nums;min-width:2.2em;text-align:right}
+.champ{text-align:center;font-family:var(--f-num);font-weight:700;font-size:clamp(28px,5vw,64px);color:var(--warn);background:var(--panel);border:1px solid var(--warn);border-radius:12px;padding:12px}
+.bracket{display:flex;gap:14px;overflow-x:auto;padding-bottom:6px;align-items:stretch}
+.bcol{display:flex;flex-direction:column;min-width:170px;flex:1}
+.bcol .label{text-align:center;margin-bottom:6px}
+.bcol .ms{display:flex;flex-direction:column;justify-content:space-around;gap:10px;flex:1}
+.bm{background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.bm.live{border-color:var(--grn)}
+.bm .r{display:flex;justify-content:space-between;gap:8px;padding:6px 10px;font-size:15px}
+.bm .r+.r{border-top:1px solid var(--line)}
+.bm .r span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bm .r.w{color:var(--warn);font-weight:700}
+.bm .r.l{opacity:.45}
+.bm .r.tbd{color:var(--mut);font-style:italic}
+.bm .r.pick{cursor:pointer}
+.bm .r.pick:hover{background:var(--panel2)}
+.bm .tag{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#7fe0a0;padding:3px 10px 0}
+.cupexit{position:fixed;right:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:25;opacity:.35}
+.cupexit:hover{opacity:1}
+html.cupbig body{overflow:auto}
+html.cupbig .wrap{max-width:none;padding-inline:clamp(16px,2vw,40px)}
+html.cupbig #scrCup .bar,html.cupbig .cupctl,html.cupbig .tvbar{display:none!important}
+html.cupbig .bpr .nm{font-size:clamp(18px,1.8vw,34px)}
+html.cupbig .bpr .sc{font-size:clamp(44px,5vw,96px)}
+html.cupbig .bpr .lg{font-size:clamp(20px,2vw,36px)}
+html.cupbig .bm .r{font-size:clamp(15px,1.2vw,22px)}
+html.cupbig .cupboards{grid-template-columns:repeat(auto-fit,minmax(clamp(250px,24vw,480px),1fr))}
+.cupst td{font-size:18px}.cupst td.n{font-family:var(--f-body);font-size:15px;color:var(--fg)}
+.cupst tr[data-n]{cursor:pointer}.cupst tr[data-n]:hover td{background:var(--panel2)}
+#cupCardQR{background:#fff;border-radius:10px;padding:6px;width:220px;max-width:100%}
+#cupCardQR svg{display:block;width:100%;height:auto}
+.pcard h2{font-family:var(--f-num);font-size:40px;margin:2px 0 0;line-height:1.1}
+.pcard .plc{color:var(--warn);font-weight:600;margin-bottom:10px}
+.pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px}
+.pgrid div{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:6px 10px;display:flex;flex-direction:column}
+.pgrid span{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--mut)}
+.pgrid b{font-family:var(--f-num);font-size:26px;color:var(--chalk)}
+#cupCodeIn{width:96px;text-transform:uppercase;font-family:var(--f-num);font-size:22px;letter-spacing:.18em;text-align:center}
 </style>
 
 <div class="flash" id="flash" aria-live="polite"></div>
@@ -344,7 +405,7 @@ html.tv .bar,html.tv .backdrop{display:none!important}
     <header class="home-head">
       <h1>Treble<span>Eye</span></h1>
       <div class="byline">by T.Henriksson</div>
-      <div class="meta"><span id="appVer">v2.11.0</span></div>
+      <div class="meta"><span id="appVer">v2.12.0</span></div>
     </header>
     <div class="home">
       <button class="pri big" id="btnSettings">Nytt spel</button>
@@ -353,6 +414,8 @@ html.tv .bar,html.tv .backdrop{display:none!important}
         <button id="btnSess">Starta session</button>
         <button id="btnJoin">Anslut till session</button>
         <button class="chipbtn" id="sessChip" hidden></button>
+        <button id="btnCup">Turnering</button>
+        <button class="chipbtn" id="cupChip" hidden></button>
         <button id="btnStats">Statistik</button>
         <button id="btnShareApp">Dela appen</button>
         <button class="help-tile" id="btnGuide">Så funkar appen</button>
@@ -464,6 +527,42 @@ html.tv .bar,html.tv .backdrop{display:none!important}
       <div class="row"><button id="tvHere2">TV-läge på den här enheten</button><button class="dng" id="sessLeave">Lämna session</button></div>
     </div>
     <div class="status" id="sessMsg" hidden></div>
+  </section>
+
+  <section id="cupPanel" class="panel sheet" hidden>
+    <div class="row" style="justify-content:space-between">
+      <div class="label">Turnering</div>
+      <button id="cupClose">Stäng</button>
+    </div>
+    <div id="cupIdle">
+      <p class="help">En enhet (dator, padda eller telefon kopplad till TV) håller i lottningen och visar alla matcher på storskärmen. Varje bana har en egen telefon som räknar sin match.</p>
+      <button class="pri" id="cupNew" style="width:100%">Starta turnering på den här enheten</button>
+      <div class="label" style="margin-top:16px">Anslut den här telefonen som bana</div>
+      <div class="row" style="margin-top:6px">
+        <input type="text" id="cupCodeIn" maxlength="4" placeholder="KOD" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-label="Turneringskod">
+        <button id="cupJoin">Anslut</button>
+        <button id="cupScan">Skanna QR</button>
+      </div>
+      <p class="help">Koden och QR-koden står på storskärmen. Du kan också skanna QR-koden med telefonens vanliga kamera.</p>
+    </div>
+    <div id="cupBoardBox" hidden>
+      <p id="cupBoardTxt"></p>
+      <div class="row"><button id="cupResync">Hämta matchen igen</button><button class="dng" id="cupLeave">Lämna turneringen</button></div>
+    </div>
+    <div class="status" id="cupPMsg" hidden></div>
+  </section>
+
+  <section id="cupCard" class="panel sheet" hidden>
+    <div class="row" style="justify-content:space-between">
+      <div class="label">Spelarstatistik</div>
+      <button id="cupCardClose">Stäng</button>
+    </div>
+    <div class="sessgrid" style="align-items:flex-start">
+      <div id="cupCardBody" style="flex:1;min-width:260px"></div>
+      <div id="cupCardQR" aria-label="QR-kod till spelarens statistik"></div>
+    </div>
+    <p class="help" id="cupCardHint"></p>
+    <div class="row"><button class="pri" id="cupCardShare">Dela…</button><button id="cupCardDl">Ladda ner</button></div>
   </section>
 
   <section id="sharePanel" class="panel sheet" hidden>
@@ -639,6 +738,45 @@ html.tv .bar,html.tv .backdrop{display:none!important}
     </div>
   </div>
   </div>
+  <div class="screen" id="scrCup">
+    <div class="bar"><button id="cupBack">‹ Meny</button><span class="gmeta" id="cupTitle">Turnering</span><button id="cupBig" hidden>Storskärm</button></div>
+    <div class="wrapc">
+      <section id="cupSetup" class="panel cupform">
+        <label class="label" style="display:flex;flex-direction:column;gap:4px">Namn på turneringen
+          <input type="text" id="cupName" maxlength="40" value="Fredagscupen" autocomplete="off">
+        </label>
+        <div class="set">
+          <label class="label">Spel <select id="cupStart"><option value="301">301</option><option value="501" selected>501</option><option value="701">701</option></select></label>
+          <label class="label">Format <select id="cupLegs"><option value="1">1 leg</option><option value="3" selected>Bäst av 3 legs</option><option value="5">Bäst av 5 legs</option><option value="7">Bäst av 7 legs</option></select></label>
+          <label class="ck"><input type="checkbox" id="cupDbl" checked> Dubbel ut</label>
+          <label class="ck"><input type="checkbox" id="cupSd" checked> Sudden death efter 30 pilar</label>
+        </div>
+        <label class="label" style="display:flex;flex-direction:column;gap:4px">Spelare, en per rad
+          <textarea id="cupPlayers" placeholder="Anna&#10;Bosse&#10;Cissi&#10;…"></textarea>
+        </label>
+        <p class="help" style="margin:0">Lottningen slumpas. Går antalet inte jämnt upp får några spelare walkover i första omgången. Vinnaren går vidare. Sudden death: har ingen gått ut när båda kastat 30 pilar i leget kastar båda 3 pilar och högst poäng vinner leget (lika ger ny runda).</p>
+        <button class="pri" id="cupGo">Lotta och starta</button>
+      </section>
+      <div id="cupRun" hidden>
+        <div class="wrapc">
+          <div id="cupChamp" class="champ" hidden></div>
+          <div class="cuptop">
+            <div class="cupboards" id="cupBoards"></div>
+            <div class="cupjoin"><div id="cupQR" aria-label="QR-kod för att ansluta en bana"></div><div><div class="label">Anslut bana</div><div class="code" id="cupCode"></div><div class="help" style="margin-top:4px">Turnering → kod</div></div></div>
+          </div>
+          <div class="bracket" id="cupBracket"></div>
+          <section class="panel" id="cupStatsBox" hidden>
+            <div class="row" style="justify-content:space-between"><div class="label">Statistik</div><button id="cupCsv" class="cupctl">Ladda ner allt (CSV)</button></div>
+            <div id="cupStats" style="overflow-x:auto;margin-top:8px"></div>
+            <p class="help cupctl" style="margin-bottom:0">Tryck på en spelare för att visa hens statistik och en QR-kod som spelaren kan skanna.</p>
+          </section>
+          <div class="row cupctl"><span class="help" style="margin:0;flex:1">Tryck på ett namn i trädet för att sätta vinnare för hand (t.ex. om en bana saknar telefon).</span><button class="dng" id="cupEnd">Avsluta turneringen</button></div>
+        </div>
+      </div>
+      <div class="status" id="cupMsg" hidden></div>
+    </div>
+    <button class="cupexit" id="cupExitBig" hidden>Lämna storskärm</button>
+  </div>
 </div>
 
 <script>
@@ -725,13 +863,13 @@ function newGame(cfg){
   if(sess.role!=="client"&&!cfg.silent)usage.ev("spel/"+(cfg.mode||"x01"));
   if(cfg.mode&&cfg.mode!=="x01"){newModeGame(cfg);return;}
   const fmt={legs:cfg.fmt&&cfg.fmt.legs||1,sets:cfg.fmt&&cfg.fmt.sets||0};
-  G={mode:"x01",id:Date.now().toString(36),date:new Date().toISOString(),start:cfg.start,dbl:cfg.dbl,fmt,
+  G={mode:"x01",id:Date.now().toString(36),date:new Date().toISOString(),start:cfg.start,dbl:cfg.dbl,fmt,sdAt:cfg.sdAt||0,sd:null,
      legStarter:0,setStarter:0,cur:0,winner:null,matchWinner:null,setWon:false,log:[],
      players:cfg.names.map(n=>({name:n,score:cfg.start,pts:0,darts:0,legs:0,sets:0,legDarts:0,st:newStats()}))};
   G.turn=newTurn(cfg.start,0);undo=[];save();render();
 }
 function snap(){undo.push(JSON.stringify(G));if(undo.length>300)undo.shift();}
-function save(){if(sess.role==="client")return;store.set("dk_game",G);sess.changed();}
+function save(){if(sess.role==="client")return;store.set("dk_game",G);sess.changed();cup.onSave();}
 // darts thrown with a one-dart double finish on (the usual checkout % definition)
 const onDouble=s=>s===50||(s>=2&&s<=40&&s%2===0);
 
@@ -741,6 +879,7 @@ function addDart(d,pos,fromCam){
   if(G&&G.mode!=="x01"){modeDart(d,pos);if(!fromCam)cam.afterManual();return;}
   if(!G||G.winner!==null)return;
   if(G.turn.done)nextPlayer();
+  if(G.sd){sdDart(d,pos);if(!fromCam)cam.afterManual();return;}
   snap();
   const p=G.players[G.cur],t=G.turn,st=p.st;
   d=Object.assign({},d,{pos:pos||null});
@@ -758,6 +897,27 @@ function addDart(d,pos,fromCam){
   if(t.done){logTurn();caller.turnDone(t,p);if(G.winner===null)autoAdvance(t.darts.reduce((s,x)=>s+x.v,0)===180&&!t.bust?2600:1600);}else caller.dart();
   save();render();
   if(!fromCam)cam.afterManual();
+}
+// sudden death darts: scores do not count down, each player throws one visit and the highest total wins
+function sdDart(d,pos){
+  snap();
+  const t=G.turn;d=Object.assign({},d,{pos:pos||null});
+  t.darts.push(d);
+  if(t.darts.length===3){t.done=true;sdTurnDone();if(G.winner===null)autoAdvance(1600);}else caller.dart();
+  save();render();
+}
+function sdTurnDone(){
+  const p=G.players[G.cur],t=G.turn,sum=t.darts.reduce((s,x)=>s+x.v,0);
+  G.sd.s[G.cur]=sum;
+  G.log.unshift(p.name+" (sudden death): "+(t.darts.map(x=>x.label).join(", ")||"–")+" = "+sum);
+  caller.turnDone(t,p);
+  if(G.players.some((x,i)=>G.sd.s[i]==null))return;
+  const top=Math.max(...G.sd.s),lead=G.sd.s.map((v,i)=>v===top?i:-1).filter(i=>i>=0);
+  if(lead.length>1){G.log.unshift("Lika – ny sudden death-runda");G.sd={r:G.sd.r+1,s:[]};return;}
+  G.cur=lead[0];const w=G.players[G.cur];
+  G.winner=G.cur;w.legs++;w.st.legsWon++;
+  legDone(w);
+  G.log.unshift(w.name+" vinner sudden death med "+top);
 }
 // once a turn is complete, hand over to the next player after the score has been shown
 let advanceT=null;
@@ -777,6 +937,10 @@ function winLeg(p,t){
   if(G.dbl)st.coHit++;
   if(t.start>st.hiCo)st.hiCo=t.start;
   if(!st.best||p.legDarts<st.best)st.best=p.legDarts;
+  legDone(p);
+}
+// the leg is won by G.cur: count it towards sets and the match
+function legDone(p){
   G.setWon=false;
   const legsNeed=firstTo(G.fmt.legs);
   if(p.legs>=legsNeed){
@@ -802,8 +966,11 @@ function nextPlayer(){
   if(G.winner!==null){newLeg();return;}
   snap();
   const p=G.players[G.cur],t=G.turn;
-  if(!t.done){const miss=3-t.darts.length;p.darts+=miss;p.legDarts+=miss;p.st.darts+=miss;if(t.darts.length){turnStats(p,t);logTurn();}}
+  if(G.sd&&!t.done){t.done=true;sdTurnDone();if(G.winner!==null){save();render();return;}}
+  else if(!t.done){const miss=3-t.darts.length;p.darts+=miss;p.legDarts+=miss;p.st.darts+=miss;if(t.darts.length){turnStats(p,t);logTurn();}}
   G.cur=(G.cur+1)%G.players.length;
+  // sudden death: when everyone has thrown the dart limit without a checkout, highest 3-dart score takes the leg
+  if(G.sdAt&&!G.sd&&G.cur===G.legStarter&&G.players.every(x=>x.legDarts>=G.sdAt)){G.sd={r:1,s:[]};G.log.unshift("Sudden death: högst poäng på 3 pilar vinner leget");}
   const q=G.players[G.cur];
   G.turn=newTurn(q.score,q.legDarts);
   save();render();cam.onNewTurn();caller.turnStart();
@@ -813,7 +980,7 @@ function newLeg(){
   if(G.setWon){G.players.forEach(p=>{p.legs=0;});G.setStarter=(G.setStarter+1)%G.players.length;G.legStarter=G.setStarter;}
   else G.legStarter=(G.legStarter+1)%G.players.length;
   G.players.forEach(p=>{p.score=G.start;p.legDarts=0;});
-  G.cur=G.legStarter;G.winner=null;G.setWon=false;
+  G.cur=G.legStarter;G.winner=null;G.setWon=false;G.sd=null;
   G.turn=newTurn(G.start,0);
   save();render();cam.onNewTurn();caller.gameOn();
 }
@@ -1189,14 +1356,14 @@ function fmtText(f){
 }
 function rematch(){
   if(sess.role==="client"){sess.send({a:"rematch"});return;}
-  const cfg=G.mode!=="x01"?Object.assign({},G.cfg,{names:G.players.map(p=>p.name)}):{start:G.start,dbl:G.dbl,fmt:G.fmt,names:G.players.map(p=>p.name)};
+  const cfg=G.mode!=="x01"?Object.assign({},G.cfg,{names:G.players.map(p=>p.name)}):{start:G.start,dbl:G.dbl,fmt:G.fmt,sdAt:G.sdAt||0,names:G.players.map(p=>p.name)};
   // the loser of the last match starts
   const loser=G.players.map(p=>p.name).filter((n,i)=>i!==G.matchWinner);
   if(loser.length)cfg.names=loser.concat(cfg.names.filter(n=>!loser.includes(n)));
   newGame(cfg);cam.onNewTurn();caller.gameOn();
 }
 function coLine(p,i){
-  if(G.winner!==null||!G.dbl)return "";
+  if(G.winner!==null||!G.dbl||G.sd)return "";
   if(i===G.cur&&G.turn.done)return "";
   const left=i===G.cur?3-G.turn.darts.length:3;
   const co=checkout(p.score,left,true);
@@ -1697,8 +1864,8 @@ const guide=(function(){
 /* ---------- Screens: home -> new game -> game ---------- */
 let curScreen="home";
 function showScreen(name){
-  const order={home:0,setup:1,game:2},dir=order[name]>=order[curScreen]?"fwd":"back";
-  ["home","setup","game"].forEach(n=>{
+  const order={home:0,setup:1,cup:1,game:2},dir=order[name]>=order[curScreen]?"fwd":"back";
+  ["home","setup","game","cup"].forEach(n=>{
     const el=$("scr"+n[0].toUpperCase()+n.slice(1)),on=n===name;
     el.classList.toggle("active",on);el.classList.remove("fwd","back");
     if(on&&n!==curScreen){void el.offsetWidth;el.classList.add(dir);}
@@ -1718,13 +1885,13 @@ function endGame(){
   G.ended=true;
   undo=[];save();showScreen("home");
 }
-function closeSheets(){["editPl","voiceAdmin","sessPanel","statsPanel","sharePanel"].forEach(id=>{$(id).hidden=true;});}
+function closeSheets(){["editPl","voiceAdmin","sessPanel","statsPanel","sharePanel","cupPanel","cupCard"].forEach(id=>{$(id).hidden=true;});}
 
 /* ---------- Render ---------- */
 function render(){
   if(G.mode!=="x01"){renderMode();return;}
   $("modeBox").hidden=true;
-  $("gameMeta").textContent=G.start+" · "+(G.dbl?"dubbel ut":"rak ut")+" · "+fmtText(G.fmt);
+  $("gameMeta").textContent=(G.cup?"Bana "+G.cup.board+(G.cup.round?" · "+G.cup.round:"")+" · ":"")+G.start+" · "+(G.dbl?"dubbel ut":"rak ut")+" · "+fmtText(G.fmt);
   const pl=$("players");pl.innerHTML="";
   G.players.forEach((p,i)=>{
     const el=document.createElement("div");
@@ -1740,7 +1907,7 @@ function render(){
     pl.appendChild(el);
   });
   const t=G.turn,p=G.players[G.cur];
-  $("turnLabel").textContent=G.matchWinner!==null?"Match avgjord":G.winner!==null?(G.setWon?"Set avgjort":"Leg avgjord"):"Tur: "+p.name;
+  $("turnLabel").textContent=G.matchWinner!==null?"Match avgjord":G.winner!==null?(G.setWon?"Set avgjort":"Leg avgjord"):(G.sd?"Sudden death – tur: ":"Tur: ")+p.name;
   const sl=$("slots");sl.innerHTML="";
   for(let i=0;i<3;i++){
     const s=document.createElement("div");const d=t.darts[i];
@@ -1752,12 +1919,13 @@ function render(){
   const m=$("msg");m.className="msg";m.textContent="";
   if(G.matchWinner!==null){m.className="msg win";m.textContent=G.players[G.matchWinner].name+" vinner matchen! Se statistiken eller tryck Revansch.";}
   else if(G.winner!==null){m.className="msg win";m.textContent=G.players[G.winner].name+(G.setWon?" vinner setet! Tryck Nästa set.":" vinner leget! Tryck Nästa leg.");}
+  else if(G.sd){m.className="msg win";m.textContent="Sudden death"+(G.sd.r>1?" (runda "+G.sd.r+")":"")+": högst på 3 pilar vinner leget. "+G.players.map((x,i)=>x.name+" "+(G.sd.s[i]==null?"–":G.sd.s[i])).join(" · ");}
   else if(t.bust){m.className="msg bust";m.textContent="Bust – poängen återställs till "+t.start+".";}
   else{
     const co=checkout(p.score,3-t.darts.length,G.dbl);
     if(co&&!t.done){m.className="msg co";m.innerHTML='<span class="label">'+(G.dbl?"Utgång ":"Kvar ")+p.score+'</span>'+co.map((d,k)=>'<span class="chip'+(k===0?" nx":"")+(d.m===2?" d":"")+'">'+d.label+'</span>').join("");}
   }
-  $("btnNext").textContent=G.matchWinner!==null?"Revansch":G.winner!==null?(G.setWon?"Nästa set":"Nästa leg"):"Nästa spelare";
+  $("btnNext").textContent=G.matchWinner!==null?(G.cup&&cup.inMatch?"Klar – nästa match":"Revansch"):G.winner!==null?(G.setWon?"Nästa set":"Nästa leg"):"Nästa spelare";
   if($("statsPanel")&&!$("statsPanel").hidden)renderStats();
   $("btnUndo").disabled=sess.role==="client"?!sess.undoN:!undo.length;
   $("log").innerHTML="";
@@ -2634,7 +2802,7 @@ const sess=(function(){
       scanTimer=setInterval(()=>{
         if(!v.videoWidth)return;const w=480,h=Math.round(480*v.videoHeight/v.videoWidth);c.width=w;c.height=h;x.drawImage(v,0,0,w,h);
         const r=jsQR(x.getImageData(0,0,w,h).data,w,h);
-        if(r&&r.data){const m=r.data.match(/#join-([A-Za-z0-9]{4})/)||r.data.trim().match(/^([A-Za-z0-9]{4})$/);if(m){stopScan();join(m[1]);}}
+        if(r&&r.data){const cm=r.data.match(/#cup-([A-Za-z0-9]{4})/);if(cm){stopScan();$("sessPanel").hidden=true;cup.join(cm[1]);$("cupPanel").hidden=false;return;}const m=r.data.match(/#join-([A-Za-z0-9]{4})/)||r.data.trim().match(/^([A-Za-z0-9]{4})$/);if(m){stopScan();join(m[1]);}}
       },250);
     }catch(e){stopScan();setMsg("Kunde inte starta kameran för skanning. Skriv in koden i stället.");}
   }
@@ -2655,6 +2823,410 @@ const sess=(function(){
   }
   return {host,join,leave,send,ev,changed,streamChanged,scan,ui,boot,get code(){return code;},
     get role(){return role;},get undoN(){return undoN;},get available(){return ok();}};
+})();
+
+/* ---------- Tournament (cup): one host device shows the big screen, one phone per board ---------- */
+// The host owns the bracket. Each board phone connects (PeerJS), gets a match assigned, plays it as a
+// normal game and streams the score back. A result moves the winner on; the next ready match goes to a free board.
+const cup=(function(){
+  const PFX="trebleeye-cup-",ALPHA="ABCDEFGHJKMNPQRSTUVWXYZ23456789";
+  let role=null,peer=null,code=null,C=null,conns={},hostConn=null,retryT=null,B={},msg="";
+  const ok=()=>typeof Peer!=="undefined";
+  function mkCode(){let s="";for(let i=0;i<4;i++)s+=ALPHA[Math.floor(Math.random()*ALPHA.length)];return s;}
+  function joinUrl(c){return location.origin+location.pathname+"#cup-"+c;}
+  function devId(){let d=store.get("dk_cupdev");if(!d){d=Math.random().toString(36).slice(2,10);store.set("dk_cupdev",d);}return d;}
+  function wake(){try{navigator.wakeLock&&navigator.wakeLock.request("screen").catch(()=>{});}catch(e){}}
+  document.addEventListener("visibilitychange",()=>{if(role&&document.visibilityState==="visible")wake();});
+
+  /* ----- bracket (host) ----- */
+  function draw(names){
+    const p=names.slice();
+    for(let i=p.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[p[i],p[j]]=[p[j],p[i]];}
+    let size=2;while(size<p.length)size*=2;
+    const half=size/2,rounds=[],r0=[];
+    // every first-round match gets at least one player, so byes never meet each other
+    for(let m=0;m<half;m++)r0.push({a:p[m],b:m<p.length-half?p[half+m]:null,w:null,board:null,live:null});
+    rounds.push(r0);
+    for(let n=half/2;n>=1;n/=2){const r=[];for(let m=0;m<n;m++)r.push({a:null,b:null,w:null,board:null,live:null});rounds.push(r);}
+    rounds.forEach((r,ri)=>r.forEach((m,i)=>{m.id=ri+"."+i;}));
+    return rounds;
+  }
+  const M=id=>{const [r,i]=String(id).split(".").map(Number);return C&&C.rounds[r]&&C.rounds[r][i]||null;};
+  const pos=m=>m.id.split(".").map(Number);
+  function nextOf(m){const [r,i]=pos(m);return C.rounds[r+1]?{m:C.rounds[r+1][i>>1],k:i%2?"b":"a"}:null;}
+  function setWinner(m,name){
+    m.w=name;const n=nextOf(m);
+    if(n)n.m[n.k]=name;else{C.champ=name;sendAll({t:"done",champ:name});}
+  }
+  function canClear(m){const n=nextOf(m);return !n||(!n.m.w&&n.m.board==null);}
+  function clearWinner(m){
+    if(!m.w||!canClear(m))return false;
+    const n=nextOf(m);if(n)n.m[n.k]=null;else C.champ=null;
+    m.w=null;return true;
+  }
+  function roundName(r){const left=C.rounds.length-r;return left===1?"Final":left===2?"Semifinal":left===3?"Kvartsfinal":"Omgång "+(r+1);}
+  function readyMatch(){for(const r of C.rounds)for(const m of r)if(m.a&&m.b&&!m.w&&m.board==null)return m;return null;}
+  function boardOf(dev){if(!C.boards[dev])C.boards[dev]=Object.keys(C.boards).length+1;return C.boards[dev];}
+  const devOf=n=>Object.keys(C.boards).find(d=>C.boards[d]===n);
+  function persist(){store.set("dk_cuphost",C);}
+  function sendTo(dev,m){const c=conns[dev];if(c&&c.open){try{c.send(m);}catch(e){}}}
+  function sendAll(m){Object.keys(conns).forEach(d=>sendTo(d,m));}
+  function assignMsg(m,n){return {t:"assign",id:m.id,board:n,cup:C.name,round:roundName(pos(m)[0]),cfg:C.cfg,names:[m.a,m.b]};}
+  function assignFree(){
+    Object.keys(conns).forEach(dev=>{
+      if(!conns[dev].open)return;const n=boardOf(dev);
+      if(C.cur[n]!=null)return;
+      const m=readyMatch();
+      if(!m){sendTo(dev,{t:"wait",board:n,cup:C.name,champ:C.champ||null});return;}
+      m.board=n;C.cur[n]=m.id;sendTo(dev,assignMsg(m,n));
+    });
+    persist();renderHost();
+  }
+
+  /* ----- host ----- */
+  function create(name,cfg,names){
+    const seen={},list=[];
+    names.forEach(n=>{n=n.trim().slice(0,24);if(!n)return;let k=n,i=2;while(seen[k.toLowerCase()])k=n+" "+(i++);seen[k.toLowerCase()]=1;list.push(k);});
+    if(list.length<2){setMsg("Skriv in minst två spelare.");return;}
+    if(list.length>64){setMsg("Högst 64 spelare.");return;}
+    usage.ev("turnering/start");
+    C={code:mkCode(),name:name||"Turnering",cfg,players:list,rounds:draw(list),boards:{},cur:{},champ:null};
+    C.rounds[0].forEach(m=>{if(!m.b)setWinner(m,m.a);});
+    persist();host();renderHost();
+  }
+  function host(){
+    if(!ok()){setMsg("Turneringsläget fungerar bara i appen från GitHub-adressen.");return;}
+    if(peer){try{peer.destroy();}catch(_){}}
+    role="host";code=C.code;conns={};setMsg("Startar…");wake();
+    peer=new Peer(PFX+code);
+    peer.on("open",()=>{host.tries=0;setMsg("");renderHost();});
+    peer.on("error",e=>{
+      if(e.type==="unavailable-id"){
+        // after a reload the old id can linger for a moment: retry, then switch to a new code
+        const n=(host.tries=(host.tries||0)+1);try{peer.destroy();}catch(_){}
+        if(n<6){setTimeout(()=>{if(role==="host")host();},2500);return;}
+        host.tries=0;C.code=mkCode();persist();host();return;
+      }
+      if(e.type==="network"||e.type==="server-error"||e.type==="socket-error")setMsg("Kopplingsservern svarar inte. Kontrollera internet.");
+    });
+    peer.on("disconnected",()=>{if(role==="host")setTimeout(()=>{try{peer.reconnect();}catch(_){}},1500);});
+    peer.on("connection",c=>{
+      c.on("data",m=>onBoardMsg(m,c));
+      c.on("close",()=>{if(c.dev&&conns[c.dev]===c){delete conns[c.dev];renderHost();}});
+    });
+  }
+  function onBoardMsg(m,c){
+    if(!m||typeof m!=="object"||!C)return;
+    if(m.t==="hello"&&typeof m.dev==="string"){
+      const dev=m.dev.slice(0,16);c.dev=dev;
+      if(conns[dev]&&conns[dev]!==c){try{conns[dev].close();}catch(_){}}
+      conns[dev]=c;const n=boardOf(dev);
+      const cur=C.cur[n]!=null&&M(C.cur[n]);
+      if(cur)sendTo(dev,assignMsg(cur,n));
+      assignFree();return;
+    }
+    const dev=c.dev;if(!dev||conns[dev]!==c)return;
+    const n=C.boards[dev],mt=M(m.id);
+    if(m.t==="live"&&mt&&mt.board===n&&C.cur[n]===mt.id&&Array.isArray(m.p)){
+      mt.live={cur:m.cur|0,sd:!!m.sd,p:m.p.slice(0,2).map(x=>({s:+x.s||0,l:+x.l||0,a:String(x.a||"").slice(0,6)}))};
+      if(Array.isArray(m.st))mt.stats=m.st.slice(0,2).map(cleanSt);
+      const w=typeof m.w==="string"&&(m.w===mt.a||m.w===mt.b)?m.w:null;
+      if(w&&!mt.w)setWinner(mt,w);
+      else if(!w&&mt.w)clearWinner(mt); // the board undid the winning dart
+      persist();renderHost();
+    }else if(m.t==="ready"){
+      const cur=M(C.cur[n]);
+      if(cur&&cur.w){C.cur[n]=null;assignFree();}
+    }
+  }
+  function manual(m,name){
+    if(!C||C.champ&&!m.w)return;
+    if(m.w){
+      if(!canClear(m)){alertMsg("Nästa match har redan börjat, resultatet kan inte ändras.");return;}
+      if(!confirm("Ta bort resultatet i "+m.a+" – "+m.b+"? Matchen spelas om.") )return;
+      clearWinner(m);m.board=null;m.live=null;m.stats=null;
+    }else{
+      if(!m.a||!m.b)return;
+      if(!confirm(name+" vinner "+m.a+" – "+m.b+"?"))return;
+      if(m.board!=null&&C.cur[m.board]===m.id){const d=devOf(m.board);C.cur[m.board]=null;if(d)sendTo(d,{t:"cancel",id:m.id});}
+      setWinner(m,name);
+    }
+    assignFree();
+  }
+  function alertMsg(t){setMsg(t);setTimeout(()=>{if(msg===t)setMsg("");},5000);}
+  function end(){
+    if(!confirm("Avsluta turneringen? Lottningen och resultaten raderas."))return;
+    sendAll({t:"ended"});
+    stop();C=null;store.set("dk_cuphost",null);bigOff();showScreen("home");chip();
+  }
+  function stop(){
+    clearTimeout(retryT);
+    Object.values(conns).forEach(c=>{try{c.close();}catch(_){}});conns={};
+    if(hostConn){try{hostConn.close();}catch(_){}hostConn=null;}
+    if(peer){try{peer.destroy();}catch(_){}peer=null;}
+    role=null;code=null;
+  }
+
+  /* ----- board phone ----- */
+  function join(c){
+    if(!ok()){setPMsg("Turneringsläget fungerar bara i appen från GitHub-adressen.");return;}
+    c=String(c||"").toUpperCase().replace(/[^A-Z0-9]/g,"");
+    if(c.length!==4){setPMsg("Koden består av fyra tecken.");return;}
+    if(role==="host"){setPMsg("Den här enheten är storskärm för en turnering.");return;}
+    if(sess.role==="client"){setPMsg("Lämna den delade sessionen först. Banans telefon räknar själv.");return;}
+    stop();role="board";code=c;B={};store.set("dk_cupb",{code});setPMsg("Ansluter till "+c+"…");wake();
+    usage.ev("turnering/bana");
+    peer=new Peer();
+    peer.on("open",connect);
+    peer.on("error",e=>{if(e.type==="peer-unavailable"){setPMsg("Hittar ingen turnering "+code+". Försöker igen…");retry();}
+      else if(e.type==="network"||e.type==="server-error"||e.type==="socket-error"){setPMsg("Kopplingsservern svarar inte. Försöker igen…");retry();}});
+    peer.on("disconnected",()=>{if(role==="board")setTimeout(()=>{try{peer.reconnect();}catch(_){}},1500);});
+    chip();boardUi();
+  }
+  function connect(){
+    if(role!=="board"||!peer||peer.destroyed)return;
+    hostConn=peer.connect(PFX+code,{reliable:true});
+    hostConn.on("open",()=>{setPMsg("");hostConn.send({t:"hello",dev:devId()});chip();boardUi();});
+    hostConn.on("data",onHostMsg);
+    hostConn.on("close",()=>{chip();boardUi();retry();});
+  }
+  function retry(){clearTimeout(retryT);retryT=setTimeout(()=>{if(role!=="board")return;if(peer&&peer.disconnected){try{peer.reconnect();}catch(_){}}if(!(hostConn&&hostConn.open))connect();},3000);}
+  function onHostMsg(m){
+    if(!m||typeof m!=="object")return;
+    if(m.board)B.board=m.board|0;if(m.cup)B.cup=String(m.cup).slice(0,40);
+    if(m.t==="assign"&&Array.isArray(m.names)&&m.cfg){
+      B.wait=false;
+      const mine=G&&G.cup&&G.cup.code===code&&G.cup.id===m.id&&!G.ended;
+      if(!mine){
+        const f=m.cfg,start=[301,501,701].includes(f.start)?f.start:501,legs=[1,3,5,7].includes(f.legs)?f.legs:1;
+        newGame({start,dbl:!!f.dbl,fmt:{legs,sets:0},sdAt:f.sdAt===30?30:0,names:m.names.slice(0,2).map(n=>String(n).slice(0,24))});
+        G.cup={code,id:String(m.id),board:B.board,round:String(m.round||"")};save();render();
+        cam.onNewTurn();caller.gameOn();
+      }else send();
+      $("cupPanel").hidden=true;
+      if(curScreen!=="game")showScreen("game");
+    }else if(m.t==="wait"){B.wait=true;B.champ=m.champ||null;}
+    else if(m.t==="cancel"){if(G&&G.cup&&G.cup.id===m.id){G.cup=null;G.ended=true;save();showScreen("home");}B.note="Storskärmen avgjorde matchen.";}
+    else if(m.t==="done"){B.champ=String(m.champ||"");}
+    else if(m.t==="ended"){leave(true);setPMsg("Turneringen är avslutad.");}
+    chip();boardUi();
+  }
+  function send(){
+    if(role!=="board"||!G||!G.cup||G.cup.code!==code||!(hostConn&&hostConn.open))return;
+    const p=G.players.map(p=>({s:p.score,l:p.legs,a:p.st&&p.st.darts?(p.st.pts/p.st.darts*3).toFixed(1):"–"}));
+    const w=G.matchWinner!=null?G.players[G.matchWinner].name:null;
+    hostConn.send({t:"live",id:G.cup.id,p,cur:G.cur,sd:!!G.sd,w,st:w?G.players.map(p=>p.st):null});
+  }
+  function onSave(){if(role==="board")send();}
+  function ready(){
+    if(hostConn&&hostConn.open)hostConn.send({t:"ready"});
+    B.wait=true;showScreen("home");chip();
+  }
+  function resync(){if(hostConn&&hostConn.open)hostConn.send({t:"hello",dev:devId()});else retry();}
+  function leave(silent){
+    stop();B={};store.set("dk_cupb",null);if(!silent)setPMsg("");chip();boardUi();
+  }
+
+  /* ----- UI ----- */
+  function setMsg(t){msg=t;const el=$("cupMsg");el.textContent=t;el.hidden=!t;}
+  function setPMsg(t){const el=$("cupPMsg");el.textContent=t;el.hidden=!t;}
+  function chip(){
+    const c=$("cupChip");
+    if(role==="host"&&C){c.hidden=false;c.className="chipbtn live";c.textContent="Turnering: "+C.name+" · "+C.code+" · "+Object.keys(conns).length+" banor";return;}
+    if(role==="board"){
+      const live=hostConn&&hostConn.open;c.hidden=false;c.className="chipbtn"+(live?" live":"");
+      c.textContent=(B.cup||"Turnering")+(B.board?" · Bana "+B.board:"")+" · "+(live?(B.wait?"väntar på match":"ansluten"):"ansluter…");return;
+    }
+    c.hidden=true;
+  }
+  function boardUi(){
+    $("cupIdle").hidden=role==="board";$("cupBoardBox").hidden=role!=="board";
+    if(role!=="board")return;
+    const live=hostConn&&hostConn.open;
+    let t=live?"Ansluten till "+(B.cup||"turneringen")+(B.board?" som Bana "+B.board:"")+".":"Ansluter till turnering "+code+"…";
+    if(B.champ)t+=" "+B.champ+" vann turneringen!";
+    else if(live&&B.wait)t+=" Väntar på nästa match, den startar automatiskt.";
+    if(B.note)t+=" "+B.note;
+    $("cupBoardTxt").textContent=t;
+  }
+  function open(){
+    if(role==="host"&&C){showScreen("cup");renderHost();return;}
+    closeSheets();$("cupPanel").hidden=false;boardUi();
+  }
+  function startSetup(){closeSheets();showScreen("cup");renderHost();}
+  function renderHost(){
+    chip();
+    $("cupSetup").hidden=!!C;$("cupRun").hidden=!C;$("cupBig").hidden=!C;
+    $("cupTitle").textContent=C?C.name:"Ny turnering";
+    if(!C)return;
+    // QR + code for boards
+    const qr=$("cupQR");
+    if(qr.dataset.code!==C.code&&typeof qrcode!=="undefined"){const q=qrcode(0,"M");q.addData(joinUrl(C.code));q.make();qr.innerHTML=q.createSvgTag({cellSize:5,margin:2,scalable:true});qr.dataset.code=C.code;}
+    $("cupCode").textContent=C.code;
+    const ch=$("cupChamp");ch.hidden=!C.champ;if(C.champ)ch.textContent="🏆 "+C.champ+" vinner "+C.name+"!";
+    // boards with live scores
+    const nums=Object.values(C.boards).sort((a,b)=>a-b),on={};
+    Object.keys(conns).forEach(d=>{if(conns[d].open)on[C.boards[d]]=1;});
+    let h="";
+    nums.forEach(n=>{
+      const m=C.cur[n]!=null?M(C.cur[n]):null;
+      h+='<div class="bcard'+(m&&!m.w?" live":"")+(on[n]?"":" off")+'"><div class="hd"><b>Bana '+n+'</b><span>'+(on[n]?(m?(m.live&&m.live.sd&&!m.w?"Sudden death":esc(roundName(pos(m)[0]))):"Ledig"):"Ej ansluten")+'</span></div>';
+      if(m){
+        const L=m.live||{cur:0,p:[]};
+        [m.a,m.b].forEach((nm,k)=>{const p=L.p[k]||{s:C.cfg.start,l:0,a:"–"};
+          h+='<div class="bpr'+(!m.w&&L.cur===k?" on":"")+(m.w===nm?" w":"")+'"><span class="nm">'+esc(nm)+'</span><span class="lg" title="Legs">'+p.l+'</span><span class="sc">'+(m.w?(m.w===nm?"✓":""):p.s)+'</span></div>';});
+        if(m.w)h+='<div class="idle">'+esc(m.w)+' vann. Väntar på att banan tar nästa match.</div>';
+      }else h+='<div class="idle">'+(on[n]?(C.champ?"Turneringen är klar.":"Väntar på match…"):"Telefonen är inte ansluten.")+'</div>';
+      h+='</div>';
+    });
+    renderCupStats();
+    if(!nums.length)h='<div class="bcard"><div class="idle">Inga banor anslutna än. Öppna TrebleEye på banans telefon, välj Turnering och ange koden, eller skanna QR-koden.</div></div>';
+    $("cupBoards").innerHTML=h;
+    // bracket
+    const br=$("cupBracket");br.innerHTML="";
+    C.rounds.forEach((r,ri)=>{
+      const col=document.createElement("div");col.className="bcol";
+      col.innerHTML='<div class="label">'+esc(roundName(ri))+'</div><div class="ms"></div>';
+      r.forEach(m=>{
+        const el=document.createElement("div");const live=m.board!=null&&C.cur[m.board]===m.id&&!m.w;
+        el.className="bm"+(live?" live":"");
+        let x=live?'<div class="tag">Bana '+m.board+'</div>':"";
+        [m.a,m.b].forEach((nm,k)=>{
+          const bye=ri===0&&!nm,cls=!nm?"tbd":m.w?(m.w===nm?"w":"l"):"";
+          const legs=m.live&&m.live.p[k]&&(m.w||live)?m.live.p[k].l:"";
+          x+='<div class="r '+cls+(nm&&m.a&&m.b&&!C.champ||m.w&&nm===m.w?" pick":"")+'" data-k="'+k+'"><span>'+(nm?esc(nm):bye?"walkover":"–")+'</span><span>'+legs+'</span></div>';
+        });
+        el.innerHTML=x;
+        el.querySelectorAll(".r.pick").forEach(rw=>rw.addEventListener("click",()=>{if(document.documentElement.classList.contains("cupbig"))return;manual(m,[m.a,m.b][+rw.dataset.k]);}));
+        if(!(ri===0&&!m.b))col.querySelector(".ms").appendChild(el);else{el.style.opacity=".5";col.querySelector(".ms").appendChild(el);}
+      });
+      br.appendChild(col);
+    });
+  }
+
+  /* ----- statistics (host) and a per-player card that can be opened on the player's own phone ----- */
+  const ST_KEYS=["pts","darts","f9pts","f9darts","c180","c140","c100","hiTurn","hiCo","coTry","coHit","best","legsWon"];
+  function cleanSt(x){const o={};ST_KEYS.forEach(k=>{o[k]=Math.max(0,Math.min(1e6,+(x&&x[k])||0));});return o;}
+  const avg3=(p,d)=>d?(p/d*3):null,fx1=v=>v==null?"–":v.toFixed(1).replace(".",",");
+  function playerStats(){
+    const S={};
+    C.players.forEach(n=>{S[n]={n,m:0,w:0,lw:0,ll:0,pts:0,darts:0,f9p:0,f9d:0,c180:0,c140:0,c100:0,hc:0,coT:0,coH:0,best:0,ms:[],out:null};});
+    C.rounds.forEach((r,ri)=>r.forEach(m=>{
+      if(!m.w||!m.a||!m.b)return;
+      [m.a,m.b].forEach((nm,k)=>{
+        const x=S[nm];if(!x)return;
+        const st=m.stats&&m.stats[k],L=m.live&&m.live.p&&m.live.p.length===2?m.live.p:null;
+        const lf=L?L[k].l:(m.w===nm?1:0),la=L?L[1-k].l:(m.w===nm?0:1);
+        x.m++;if(m.w===nm)x.w++;else x.out=ri;x.lw+=lf;x.ll+=la;
+        if(st){x.pts+=st.pts;x.darts+=st.darts;x.f9p+=st.f9pts;x.f9d+=st.f9darts;x.c180+=st.c180;x.c140+=st.c140;x.c100+=st.c100;
+          x.coT+=st.coTry;x.coH+=st.coHit;if(st.hiCo>x.hc)x.hc=st.hiCo;if(st.best&&(!x.best||st.best<x.best))x.best=st.best;}
+        x.ms.push([roundName(ri),k?m.a:m.b,lf,la,st&&st.darts?fx1(avg3(st.pts,st.darts)):"–",m.w===nm?1:0]);
+      });
+    }));
+    return Object.values(S).sort((a,b)=>(b.out==null)-(a.out==null)||(b.out||0)-(a.out||0)||b.w-a.w||(avg3(b.pts,b.darts)||0)-(avg3(a.pts,a.darts)||0));
+  }
+  function place(x){
+    if(C.champ===x.n)return "Vinnare";
+    if(x.out==null)return C.champ?"–":"Kvar i turneringen";
+    return x.out===C.rounds.length-1?"Final (tvåa)":"Utslagen i "+roundName(x.out).toLowerCase();
+  }
+  function summary(x){
+    return {c:C.name,d:new Date().toISOString().slice(0,10),n:x.n,pl:place(x),
+      s:[x.m,x.w,x.lw,x.ll,fx1(avg3(x.pts,x.darts)),fx1(avg3(x.f9p,x.f9d)),x.c180,x.c140,x.c100,x.hc,x.coT?Math.round(x.coH/x.coT*100)+"% ("+x.coH+"/"+x.coT+")":"–",x.best],
+      ms:x.ms};
+  }
+  const COLS=["Matcher","Vunna","Legs vunna","Legs förlorade","Snitt","Första 9","180","140+","100+","Högsta utgång","Utgång %","Bästa leg (pilar)"];
+  function renderCupStats(){
+    const box=$("cupStats");if(!C){box.innerHTML="";return;}
+    const rows=playerStats().filter(x=>x.m);
+    $("cupStatsBox").hidden=!rows.length;if(!rows.length)return;
+    let h='<table class="crt cupst"><tr><th>Spelare</th><th>Placering</th><th>V–F</th><th>Legs</th><th>Snitt</th><th>180</th><th>Högsta utg.</th><th>Utgång %</th></tr>';
+    rows.forEach(x=>{const o=summary(x).s;
+      h+='<tr data-n="'+esc(x.n)+'"><td class="n">'+esc(x.n)+'</td><td class="n">'+esc(place(x))+'</td><td>'+x.w+'–'+(x.m-x.w)+'</td><td>'+x.lw+'–'+x.ll+'</td><td>'+o[4]+'</td><td>'+(x.c180||"–")+'</td><td>'+(x.hc||"–")+'</td><td>'+o[10].replace(/ \(.*/,"")+'</td></tr>';});
+    box.innerHTML=h+'</table>';
+    box.querySelectorAll("tr[data-n]").forEach(tr=>tr.addEventListener("click",()=>{const x=rows.find(r=>r.n===tr.dataset.n);if(x)showCard(summary(x),true);}));
+  }
+  function enc(o){return btoa(unescape(encodeURIComponent(JSON.stringify(o)))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");}
+  function dec(t){try{return JSON.parse(decodeURIComponent(escape(atob(t.replace(/-/g,"+").replace(/_/g,"/")))));}catch(e){return null;}}
+  const cardUrl=o=>APP_URL+"#cs-"+enc(o);
+  function showCard(o,fromHost){
+    if(!o||typeof o.n!=="string"||!Array.isArray(o.s))return;
+    const s=o.s.map(v=>esc(String(v==null||v===0?"–":v)));
+    let h='<div class="pcard"><div class="label">'+esc(o.c||"Turnering")+' · '+esc(o.d||"")+'</div><h2>'+esc(o.n)+'</h2><div class="plc">'+esc(o.pl||"")+'</div><div class="pgrid">';
+    COLS.forEach((c,i)=>{h+='<div><span>'+c+'</span><b>'+s[i]+'</b></div>';});
+    h+='</div>';
+    if(Array.isArray(o.ms)&&o.ms.length){h+='<div class="label" style="margin-top:12px">Matcher</div><table class="crt cupst"><tr><th>Omgång</th><th>Mot</th><th>Legs</th><th>Snitt</th></tr>';
+      o.ms.slice(0,12).forEach(m=>{h+='<tr><td class="n">'+esc(m[0])+'</td><td class="n">'+esc(m[1])+'</td><td>'+(m[5]?"<b>":"")+(+m[2]||0)+'–'+(+m[3]||0)+(m[5]?"</b>":"")+'</td><td>'+esc(m[4])+'</td></tr>';});
+      h+='</table>';}
+    $("cupCardBody").innerHTML=h+'</div>';
+    const url=cardUrl(o),qr=$("cupCardQR");
+    qr.hidden=!fromHost;
+    if(fromHost&&typeof qrcode!=="undefined"){const q=qrcode(0,"L");q.addData(url);q.make();qr.innerHTML=q.createSvgTag({cellSize:4,margin:2,scalable:true});}
+    $("cupCardHint").textContent=fromHost?"Spelaren skannar QR-koden med mobilkameran och får sin statistik i sin egen telefon.":"Spara eller dela din statistik.";
+    $("cupCardShare").hidden=!navigator.share;
+    $("cupCardShare").onclick=()=>navigator.share({title:o.n+" – "+(o.c||"Turnering"),text:cardText(o),url}).catch(()=>{});
+    $("cupCardDl").onclick=()=>download((o.n+" "+(o.c||"")).trim().replace(/[^\wåäöÅÄÖ -]/g,"")+".txt",cardText(o)+"\n\n"+url,"text/plain");
+    closeSheets();$("cupCard").hidden=false;
+  }
+  function cardText(o){
+    let t=o.n+" – "+(o.c||"Turnering")+" "+(o.d||"")+"\n"+(o.pl?"Placering: "+o.pl+"\n":"");
+    COLS.forEach((c,i)=>{t+=c+": "+(o.s[i]==null||o.s[i]===0?"–":o.s[i])+"\n";});
+    if(Array.isArray(o.ms))o.ms.forEach(m=>{t+="\n"+m[0]+" mot "+m[1]+": "+m[2]+"–"+m[3]+(m[5]?" (vinst)":"")+", snitt "+m[4];});
+    return t;
+  }
+  function download(name,text,type){
+    const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([text],{type:type+";charset=utf-8"}));a.download=name;
+    document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1000);
+  }
+  function csv(){
+    if(!C)return;const q=v=>'"'+String(v==null?"":v).replace(/"/g,'""')+'"';
+    let t="﻿"+["Spelare","Placering"].concat(COLS).map(q).join(";")+"\n";
+    playerStats().forEach(x=>{const o=summary(x);t+=[x.n,o.pl].concat(o.s).map(q).join(";")+"\n";});
+    t+="\n"+["Omgång","Spelare 1","Spelare 2","Legs","Vinnare"].map(q).join(";")+"\n";
+    C.rounds.forEach((r,ri)=>r.forEach(m=>{if(!m.a||!m.b)return;const L=m.live&&m.live.p&&m.live.p.length===2?m.live.p:null;
+      t+=[roundName(ri),m.a,m.b,L&&m.w?L[0].l+"–"+L[1].l:"",m.w||""].map(q).join(";")+"\n";}));
+    download(C.name.replace(/[^\wåäöÅÄÖ -]/g,"")+" statistik.csv",t,"text/csv");
+  }
+  function bigOn(){
+    document.documentElement.classList.add("cupbig");$("cupExitBig").hidden=false;
+    try{if(document.documentElement.requestFullscreen)document.documentElement.requestFullscreen().catch(()=>{});}catch(e){}
+    wake();
+  }
+  function bigOff(){
+    document.documentElement.classList.remove("cupbig");$("cupExitBig").hidden=true;
+    try{if(document.fullscreenElement)document.exitFullscreen();}catch(e){}
+  }
+  function go(){
+    const names=$("cupPlayers").value.split(/\n|,/);
+    create($("cupName").value.trim().slice(0,40),{start:+$("cupStart").value,dbl:$("cupDbl").checked,legs:+$("cupLegs").value,sdAt:$("cupSd").checked?30:0},names);
+  }
+  function boot(){
+    const cs=location.hash.match(/^#cs-([A-Za-z0-9_-]+)$/);
+    if(cs){history.replaceState(null,"",location.pathname);setTimeout(()=>showCard(dec(cs[1]),false),300);}
+    const h=location.hash.match(/^#cup-([A-Za-z0-9]{4})$/);
+    if(h){history.replaceState(null,"",location.pathname);join(h[1]);return;}
+    const c=store.get("dk_cuphost");
+    if(c&&c.rounds&&c.code){C=c;host();renderHost();return;}
+    const b=store.get("dk_cupb");
+    if(b&&b.code)join(b.code);
+  }
+  $("btnCup").addEventListener("click",open);
+  $("cupChip").addEventListener("click",open);
+  $("cupClose").addEventListener("click",()=>{$("cupPanel").hidden=true;});
+  $("cupNew").addEventListener("click",startSetup);
+  $("cupJoin").addEventListener("click",()=>join($("cupCodeIn").value));
+  $("cupCodeIn").addEventListener("keydown",e=>{if(e.key==="Enter")join($("cupCodeIn").value);});
+  $("cupScan").addEventListener("click",()=>{closeSheets();$("sessPanel").hidden=false;sess.ui();sess.scan();});
+  $("cupResync").addEventListener("click",resync);
+  $("cupLeave").addEventListener("click",()=>leave());
+  $("cupBack").addEventListener("click",()=>{bigOff();showScreen("home");});
+  $("cupGo").addEventListener("click",go);
+  $("cupEnd").addEventListener("click",end);
+  $("cupBig").addEventListener("click",bigOn);
+  $("cupExitBig").addEventListener("click",bigOff);
+  $("cupCsv").addEventListener("click",csv);
+  $("cupCardClose").addEventListener("click",()=>{$("cupCard").hidden=true;});
+  return {boot,join,onSave,ready,get role(){return role;},get inMatch(){return role==="board"&&!!(G&&G.cup&&G.cup.code===code);}};
 })();
 
 /* ---------- Caller voices (voices.json in the repo decides what users can pick) ---------- */
@@ -2939,7 +3511,7 @@ $("sessScan").addEventListener("click",()=>sess.scan());
 $("sessEnd").addEventListener("click",()=>sess.leave());
 $("sessLeave").addEventListener("click",()=>sess.leave());
 $("btnUndo").addEventListener("click",doUndo);
-$("btnNext").addEventListener("click",()=>{if(G&&G.matchWinner!=null)rematch();else nextPlayer();});
+$("btnNext").addEventListener("click",()=>{if(G&&G.matchWinner!=null){if(G.cup&&cup.inMatch)cup.ready();else rematch();}else nextPlayer();});
 function tab(cam_){
   $("tabMan").setAttribute("aria-selected",String(!cam_));$("tabCam").setAttribute("aria-selected",String(cam_));
   $("paneMan").hidden=cam_;$("paneCam").hidden=!cam_;
@@ -2978,10 +3550,11 @@ if(saved&&saved.players&&saved.turn){
 else newGame({silent:true,start:501,dbl:true,names:["Spelare 1","Spelare 2"]});
 autoStart();
 sess.boot();
+cup.boot();
 usage.send("/","TrebleEye");
 usage.ev(window.matchMedia&&matchMedia("(display-mode: standalone)").matches||navigator.standalone===true?"start/hemskärm":"start/webbläsare");
 // first start: show the guide (not on a TV or when the page was opened to join a session)
-if(guide.due&&!tv.on&&sess.role!=="client")setTimeout(()=>guide.open(),400);
+if(guide.due&&!tv.on&&sess.role!=="client"&&!cup.role)setTimeout(()=>guide.open(),400);
 if(caller.lang==="pro")audio.prefetch(caller.clipNames());
 loadVoices();
 // remove data left behind by the old on-device voice generator
