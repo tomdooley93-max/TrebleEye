@@ -174,9 +174,10 @@ html.tv .crt td{font-size:clamp(24px,3vw,52px)}
 .bar button{white-space:nowrap}
 @media (max-width:480px){.bar{gap:6px}.bar button{padding:8px 10px;font-size:13px}#scrCup .bar .gmeta{visibility:hidden}}
 /* home */
-.home-head{display:flex;flex-direction:column;align-items:center;gap:6px;margin:7vh 0 34px;text-align:center}
+.home-head{display:flex;flex-direction:column;align-items:center;gap:6px;margin:4vh 0 28px;text-align:center}
 .home-head h1{font-size:clamp(56px,16vw,96px);line-height:.9;letter-spacing:-.01em}
-.home-head::after{content:"";width:56px;height:4px;background:var(--acc);margin-top:6px;transform:skewX(-20deg)}
+.home-head h1.logo{line-height:0}
+.home-head h1.logo img{display:block;width:min(92vw,460px);height:auto}
 .byline{font-size:13px;color:var(--mut);letter-spacing:.04em}
 .home-head .meta{order:3;margin-top:4px}
 .privacy{font-size:12px;color:var(--dim);text-align:center;margin:18px 0 0;line-height:1.5}
@@ -343,6 +344,7 @@ html.tv .bar,html.tv .backdrop{display:none!important}
   #scrHome.active{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,460px);gap:64px;align-items:center;min-height:calc(100dvh - 120px);max-width:1040px;margin:0 auto}
   .home-head{align-items:flex-start;text-align:left;margin:0}
   .home-head h1{font-size:clamp(96px,10vw,140px)}
+  .home-head h1.logo img{width:min(100%,560px)}
 }
 /* Landscape phones (e.g. on a selfie stick next to the board): everything on one screen, no page scrolling */
 @media (orientation:landscape) and (max-height:540px){
@@ -353,6 +355,7 @@ html.tv .bar,html.tv .backdrop{display:none!important}
   #scrHome.active{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:20px;align-items:center;min-height:calc(100dvh - 12px)}
   .home-head{margin:0}
   .home-head h1{font-size:clamp(40px,10vh,68px)}
+  .home-head h1.logo img{width:auto;height:min(38vh,200px)}
   .home{gap:8px}
   .home .big{padding:10px;font-size:20px}
   .tiles{gap:6px}.tiles button{padding:9px 10px;font-size:14px}
@@ -593,7 +596,7 @@ html.cupbig .queue{font-size:min(1.15cqw,2.05cqh)}
 <div class="wrap">
   <div class="screen active" id="scrHome">
     <header class="home-head">
-      <h1>Treble<span>Eye</span></h1>
+      <h1 class="logo"><img src="icons/wordmark.webp" alt="TrebleEye" width="980" height="556"></h1>
       <div class="byline">by T.Henriksson</div>
       <div class="meta"><span id="appVer">v2.14.2</span></div>
     </header>
@@ -2076,7 +2079,7 @@ const guide=(function(){
   };
   const homeScr=(label)=>scr('<rect x="11" y="11" width="138" height="258" rx="15" fill="#2b4a6b"/>'+
     Array.from({length:12},(_,i)=>{const x=24+(i%4)*30,y=34+Math.floor(i/4)*40;return i===9?'':'<rect x="'+x+'" y="'+y+'" width="22" height="22" rx="6" fill="#ffffff" opacity=".35"/>';}).join("")+
-    '<rect x="24" y="114" width="22" height="22" rx="6" fill="#3f9160"/>'+T(35,129,9,' fill="#fff" font-weight="700" text-anchor="middle"')+'TE</text>'+
+    '<image href="icons/icon-192.png" x="24" y="114" width="22" height="22" clip-path="inset(0 round 6px)"/>'+
     T(35,146,7,' fill="#fff" text-anchor="middle"')+label+'</text>'+tap(35,125));
   const safariOld=scr(page+'<rect x="11" y="214" width="138" height="55" fill="#f7f7f7"/><rect x="22" y="219" width="116" height="18" rx="9" fill="#e4e4e4"/>'+
     T(80,231,8,' fill="#555" text-anchor="middle"')+'tomdooley93-max.github.io</text>'+
@@ -2101,8 +2104,8 @@ const guide=(function(){
   const addDlg=(webapp)=>scr('<rect x="11" y="11" width="138" height="258" rx="15" fill="#f2f2f7"/>'+
     T(20,40,8.5,' fill="#1a73e8"')+'Avbryt</text>'+T(80,40,8,' fill="#222" font-weight="700" text-anchor="middle"')+'Lägg till</text>'+
     T(140,40,9,' fill="#1a73e8" font-weight="700" text-anchor="end"')+'Lägg till</text>'+
-    '<rect x="20" y="58" width="120" height="50" rx="10" fill="#fff"/><rect x="28" y="66" width="34" height="34" rx="8" fill="#3f9160"/>'+
-    T(45,88,12,' fill="#fff" font-weight="700" text-anchor="middle"')+'TE</text>'+T(70,82,10,' fill="#222"')+'TrebleEye</text>'+
+    '<rect x="20" y="58" width="120" height="50" rx="10" fill="#fff"/><image href="icons/icon-192.png" x="28" y="66" width="34" height="34" clip-path="inset(0 round 8px)"/>'+
+    T(70,82,10,' fill="#222"')+'TrebleEye</text>'+
     (webapp?'<rect x="20" y="118" width="120" height="26" rx="8" fill="#fff"/>'+T(28,135,8,' fill="#222"')+'Öppna som webbapp</text>'+
       '<rect x="112" y="124" width="22" height="13" rx="6.5" fill="#34c759"/><circle cx="127.5" cy="130.5" r="5.3" fill="#fff"/>':'')+tap(126,36));
   const chrome=scr('<rect x="11" y="11" width="138" height="40" rx="15" fill="#f1f3f4"/><rect x="20" y="24" width="98" height="20" rx="10" fill="#fff"/>'+
@@ -2114,7 +2117,7 @@ const guide=(function(){
       T(54,60+i*24,8.5,' fill="#222"'+(r[2]?' font-weight="700"':''))+r[0]+(r[1]&&r[1].length>1?'<tspan x="54" dy="10">'+r[1]+'</tspan>':'')+'</text>').join("")+tap(128,160));
   const chromeDlg=scr('<rect x="11" y="11" width="138" height="258" rx="15" fill="#000" opacity=".35"/>'+
     '<rect x="22" y="96" width="116" height="92" rx="12" fill="#fff"/>'+T(32,116,9,' fill="#222" font-weight="700"')+'Installera appen</text>'+
-    '<rect x="32" y="126" width="22" height="22" rx="6" fill="#3f9160"/>'+T(43,141,8,' fill="#fff" font-weight="700" text-anchor="middle"')+'TE</text>'+T(60,141,9,' fill="#222"')+'TrebleEye</text>'+
+    '<image href="icons/icon-192.png" x="32" y="126" width="22" height="22" clip-path="inset(0 round 6px)"/>'+T(60,141,9,' fill="#222"')+'TrebleEye</text>'+
     T(64,176,9,' fill="#1a73e8" text-anchor="end"')+'Avbryt</text>'+T(124,176,9,' fill="#1a73e8" font-weight="700" text-anchor="end"')+'Installera</text>'+tap(108,172));
   const safariVer=+((ua.match(/Version\/(\d+)/)||[])[1]||0);
   const isIPad=/iPad/.test(ua)||(/Macintosh/.test(ua)&&"ontouchend" in document);
@@ -2133,18 +2136,18 @@ const guide=(function(){
       }
       s.push(step(shareSheet,"Lägg till på hemskärmen",'<p>Dra listan <b>uppåt</b> med fingret tills du ser <b>Lägg till på hemskärmen</b> '+ICON.plus+'. Tryck på den.</p><p class="gsmall">Syns den inte? Tryck på <b>Visa fler</b> eller <b>Redigera åtgärder</b> längst ner i listan.</p>'));
       s.push(step(addDlg(safariVer>=26),"Tryck på Lägg till",'<p>Tryck på <b>Lägg till</b> uppe till höger.</p>'+(safariVer>=26?'<p class="gsmall">Låt <b>Öppna som webbapp</b> vara påslagen (grön).</p>':'')));
-      s.push(step(homeScr("TrebleEye"),"Öppna från hemskärmen",'<p>Klart! Gå till hemskärmen och tryck på den gröna ikonen <b>TrebleEye</b>.</p><p class="gsmall">Starta alltid appen därifrån. Du kan stänga Safari.</p>'));
+      s.push(step(homeScr("TrebleEye"),"Öppna från hemskärmen",'<p>Klart! Gå till hemskärmen och tryck på den svartgröna TE-ikonen <b>TrebleEye</b>.</p><p class="gsmall">Starta alltid appen därifrån. Du kan stänga Safari.</p>'));
       s.forEach((x,i)=>x.title=(i+1)+". "+x.title);
       return s;
     }
     if(isAndroid){
       const s=[];
-      if(installEvt)s.push({art:phone('<rect x="38" y="60" width="44" height="44" rx="10" fill="#3f9160"/><text x="60" y="90" text-anchor="middle" font-size="22" font-weight="700" fill="#fff" font-family="sans-serif">TE</text>'),
+      if(installEvt)s.push({art:phone('<image href="icons/icon-192.png" x="38" y="60" width="44" height="44" clip-path="inset(0 round 10px)"/>'),
         title:"Installera appen",body:'<p>Då startar TrebleEye som en vanlig app, i helskärm och med egen ikon.</p><p><button class="pri gbig" id="gInstall">Installera appen nu</button></p><p class="gsmall">Fungerar inte knappen? Tryck <b>Nästa</b> så visar vi hur du gör själv.</p>'});
       s.push(step(chrome,"1. Tryck på menyn",'<p>Tryck på de <b>tre prickarna</b> '+ICON.dots+' uppe till höger i Chrome.</p>'));
       s.push(step(chromeMenu,"2. Lägg till på startskärmen",'<p>Tryck på <b>Lägg till på startskärmen</b> eller <b>Installera app</b>.</p><p class="gsmall">Dra menyn uppåt om du inte ser den.</p>'));
       s.push(step(chromeDlg,"3. Tryck på Installera",'<p>Tryck på <b>Installera</b>. Får du frågan om genväg eller app, välj <b>Installera</b>.</p>'));
-      s.push(step(homeScr("TrebleEye"),"4. Öppna från startskärmen",'<p>Klart! Tryck på den gröna ikonen <b>TrebleEye</b> på startskärmen.</p><p class="gsmall">Starta alltid appen därifrån.</p>'));
+      s.push(step(homeScr("TrebleEye"),"4. Öppna från startskärmen",'<p>Klart! Tryck på den svartgröna TE-ikonen <b>TrebleEye</b> på startskärmen.</p><p class="gsmall">Starta alltid appen därifrån.</p>'));
       return s;
     }
     return [{title:"Använd appen på mobilen",body:'<p>TrebleEye fungerar bäst på mobil eller surfplatta. Öppna adressen i telefonens webbläsare, så visar guiden hur du lägger appen på hemskärmen:</p><p class="glink">'+esc(APP_URL)+'</p>'}];

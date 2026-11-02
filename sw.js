@@ -1,7 +1,7 @@
 // Bump VERSION on every release so installed apps pick up the update.
 const VERSION = "2.14.2";
 const CACHE = "trebleeye-" + VERSION;
-const CORE = ["./", "./index.html", "./manifest.webmanifest", "./lib/peerjs.min.js", "./lib/qrcode.js", "./icons/apple-touch-icon.png", "./icons/icon-192.png", "./icons/icon-512.png"];
+const CORE = ["./", "./index.html", "./manifest.webmanifest", "./lib/peerjs.min.js", "./lib/qrcode.js", "./icons/apple-touch-icon.png", "./icons/icon-192.png", "./icons/icon-512.png", "./icons/wordmark.webp"];
 
 self.addEventListener("install", e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(CORE)));
