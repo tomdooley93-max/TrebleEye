@@ -317,56 +317,115 @@ html.tv .bar,html.tv .backdrop{display:none!important}
   .gcard{padding:12px 16px 14px;gap:8px}.gcard h2{font-size:24px}.gbody{font-size:16px}
   .gnav{bottom:-14px;margin:0 -16px -14px;padding:8px 16px 14px}.gnav button{padding:10px}
 }
-/* Tournament (cup): host/big screen + one phone per board */
+/* Tournament (cup). The stage is the big-screen picture: on a laptop it is shown as a 16:9 preview,
+   in big-screen mode it fills the whole display. Cards use container units so text scales with the card. */
 #scrCup .wrapc{display:flex;flex-direction:column;gap:16px}
-.cupform{display:flex;flex-direction:column;gap:12px}
+.cupform{display:flex;flex-direction:column;gap:12px;max-width:640px;margin:0 auto;width:100%;box-sizing:border-box}
 .cupform .set{display:flex;flex-wrap:wrap;gap:10px}
 .cupform textarea{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:8px 10px;color:var(--fg);font:inherit;width:100%;box-sizing:border-box;min-height:180px}
-.cuptop{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:16px;align-items:start}
-@media (max-width:700px){.cuptop{grid-template-columns:minmax(0,1fr)}}
-.cupjoin{display:flex;gap:12px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px 14px}
-#cupQR{background:#fff;border-radius:8px;padding:4px;width:120px}
-#cupQR svg{display:block;width:100%;height:auto}
-.cupjoin .code{font-family:var(--f-num);font-weight:700;font-size:40px;letter-spacing:.14em;line-height:1;color:var(--chalk)}
-.cupboards{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px}
-.bcard{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:6px}
+.stage{--gap:clamp(8px,1.1vmin,18px);position:relative;display:grid;grid-template-rows:auto minmax(0,1fr);gap:var(--gap);
+  aspect-ratio:16/9;width:100%;box-sizing:border-box;padding:var(--gap);background:var(--bg);border:1px solid var(--line);border-radius:14px;overflow:hidden;container-type:inline-size}
+.sthead{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;min-width:0}
+.stname{font-family:var(--f-num);font-weight:700;font-size:3.2cqw;line-height:1;color:var(--chalk);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stsub{font-size:1.25cqw;color:var(--mut);letter-spacing:.06em;text-transform:uppercase;margin-top:.3em}
+.stjoin{text-align:right;font-size:1.15cqw;color:var(--mut);line-height:1.3}
+.stjoin b{font-family:var(--f-num);font-size:2.6cqw;letter-spacing:.14em;color:var(--chalk);display:block}
+.stmain{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:var(--gap);min-height:0}
+.stright{display:grid;grid-template-rows:auto minmax(0,1fr);gap:var(--gap);min-height:0}
+.cupboards{display:grid;gap:var(--gap);grid-template-columns:repeat(var(--cols,2),minmax(0,1fr));grid-template-rows:repeat(var(--rows,1),minmax(0,1fr));min-height:0}
+.bcard{container-type:size;position:relative;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:clamp(6px,1.2vmin,18px) clamp(8px,1.4vmin,22px);
+  display:grid;grid-template-rows:auto 1fr 1fr;gap:3cqh;min-height:0;overflow:hidden;box-sizing:border-box}
 .bcard.live{border-color:var(--grn)}
-.bcard.off{opacity:.55}
-.bcard .hd{display:flex;justify-content:space-between;gap:8px;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--mut)}
-.bcard .hd b{color:var(--fg)}
-.bcard .idle{color:var(--mut);font-size:15px;padding:8px 0}
-.bpr{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:10px;align-items:center}
-.bpr .nm{font-weight:600;font-size:18px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.bpr.on .nm::before{content:"";display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--grn);margin-right:8px;vertical-align:middle}
-.bpr.w .nm{color:var(--warn)}
-.bpr .lg{font-family:var(--f-num);font-weight:700;font-size:20px;color:var(--mut);font-variant-numeric:tabular-nums}
-.bpr .sc{font-family:var(--f-num);font-weight:700;font-size:44px;line-height:1;color:var(--chalk);font-variant-numeric:tabular-nums;min-width:2.2em;text-align:right}
-.champ{text-align:center;font-family:var(--f-num);font-weight:700;font-size:clamp(28px,5vw,64px);color:var(--warn);background:var(--panel);border:1px solid var(--warn);border-radius:12px;padding:12px}
-.bracket{display:flex;gap:14px;overflow-x:auto;padding-bottom:6px;align-items:stretch}
-.bcol{display:flex;flex-direction:column;min-width:170px;flex:1}
+.bcard.done{border-color:var(--warn)}
+.bcard.off{background:transparent;border-style:dashed}
+.bcard .hd{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-size:clamp(10px,9cqh,40px);letter-spacing:.06em;text-transform:uppercase;color:var(--mut);white-space:nowrap}
+.bcard .hd b{font-family:var(--f-num);font-size:1.5em;color:var(--fg);letter-spacing:.04em}
+.bcard .hd .sd{color:var(--warn);font-weight:700}
+.bpr{display:grid;grid-template-columns:minmax(0,1fr) auto auto;align-items:center;gap:4cqw;border-radius:8px;padding:0 3cqw;min-height:0;position:relative}
+.bpr.on{background:var(--panel2)}
+.bpr.on::before{content:"";position:absolute;left:0;top:15%;bottom:15%;width:max(3px,1.2cqw);border-radius:3px;background:var(--grn)}
+.bpr .nm{font-weight:600;font-size:clamp(12px,14cqh,64px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bpr.w .nm,.bpr.w .sc{color:var(--warn)}
+.bpr.l{opacity:.45}
+.bpr .lg{font-family:var(--f-num);font-weight:700;font-size:clamp(12px,13cqh,60px);color:var(--mut);font-variant-numeric:tabular-nums;min-width:1.2em;text-align:center;border:1px solid var(--line);border-radius:6px;padding:0 .3em}
+.bpr .sc{font-family:var(--f-num);font-weight:700;font-size:clamp(20px,30cqh,150px);line-height:1;color:var(--chalk);font-variant-numeric:tabular-nums;min-width:2.1em;text-align:right}
+.bcard .msgc{grid-row:2/4;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:3cqh;color:var(--mut);font-size:clamp(11px,9cqh,36px)}
+.bcard .msgc strong{color:var(--fg);font-size:1.3em}
+.bcard.off .msgc{flex-direction:row;gap:6cqw;text-align:left}
+.bqr{background:#fff;border-radius:8px;padding:2cqh;height:58cqh;aspect-ratio:1;box-sizing:border-box;flex:none}
+.bqr svg{display:block;width:100%;height:100%}
+.stside{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:1cqw 1.2cqw;display:flex;flex-direction:column;gap:.6cqw;min-height:0;overflow:hidden}
+.queue li.empty{grid-column:1/-1}
+.stside .label{font-size:1cqw}
+.queue{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:.5cqw 1.2cqw;font-size:1.1cqw}
+.queue li{display:flex;flex-direction:column;border-bottom:1px solid var(--line);padding-bottom:.45cqw}
+.queue li b{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.queue li span{color:var(--mut);font-size:.8em;letter-spacing:.05em;text-transform:uppercase}
+.queue li.empty{color:var(--mut);border:none}
+.stbr{min-height:0;overflow:hidden;position:relative;background:var(--panel);border:1px solid var(--line);border-radius:12px}
+.stbr .bracket{padding:14px}
+.bracket{display:flex;gap:22px;align-items:stretch;transform-origin:0 0;position:absolute;left:0;top:0}
+.bcol{display:flex;flex-direction:column;width:190px}
 .bcol .label{text-align:center;margin-bottom:6px}
-.bcol .ms{display:flex;flex-direction:column;justify-content:space-around;gap:10px;flex:1}
-.bm{background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden}
-.bm.live{border-color:var(--grn)}
-.bm .r{display:flex;justify-content:space-between;gap:8px;padding:6px 10px;font-size:15px}
+.bcol .ms{display:flex;flex-direction:column;justify-content:space-around;gap:8px;flex:1}
+.bm{background:var(--panel);border:1px solid var(--line);border-radius:8px;overflow:hidden;position:relative}
+.bm.live{border-color:var(--grn);box-shadow:0 0 0 1px var(--grn)}
+.bm.bye{visibility:hidden}
+.bm .r{display:flex;justify-content:space-between;gap:8px;padding:5px 10px;font-size:16px;line-height:1.25}
 .bm .r+.r{border-top:1px solid var(--line)}
 .bm .r span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bm .r span:last-child{font-family:var(--f-num);font-weight:700;color:var(--mut)}
 .bm .r.w{color:var(--warn);font-weight:700}
+.bm .r.w span:last-child{color:var(--warn)}
 .bm .r.l{opacity:.45}
-.bm .r.tbd{color:var(--mut);font-style:italic}
+.bm .r.tbd{color:var(--mut)}
 .bm .r.pick{cursor:pointer}
 .bm .r.pick:hover{background:var(--panel2)}
-.bm .tag{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#7fe0a0;padding:3px 10px 0}
-.cupexit{position:fixed;right:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:25;opacity:.35}
-.cupexit:hover{opacity:1}
-html.cupbig body{overflow:auto}
-html.cupbig .wrap{max-width:none;padding-inline:clamp(16px,2vw,40px)}
-html.cupbig #scrCup .bar,html.cupbig .cupctl,html.cupbig .tvbar{display:none!important}
-html.cupbig .bpr .nm{font-size:clamp(18px,1.8vw,34px)}
-html.cupbig .bpr .sc{font-size:clamp(44px,5vw,96px)}
-html.cupbig .bpr .lg{font-size:clamp(20px,2vw,36px)}
-html.cupbig .bm .r{font-size:clamp(15px,1.2vw,22px)}
-html.cupbig .cupboards{grid-template-columns:repeat(auto-fit,minmax(clamp(250px,24vw,480px),1fr))}
+.bm .tag{font-size:10px;letter-spacing:.08em;text-transform:uppercase;background:var(--grn);color:#fff;padding:1px 10px;font-weight:600}
+.champov{position:absolute;inset:0;z-index:5;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1cqw;background:rgba(17,23,20,.9);cursor:pointer;text-align:center}
+.champov .t{font-size:8cqw;line-height:1}
+.champov .n{font-family:var(--f-num);font-weight:700;font-size:7cqw;line-height:1;color:var(--warn)}
+.champov .s{font-size:2cqw;color:var(--fg)}
+.champov .h{font-size:1.1cqw;color:var(--mut)}
+.cupctl{gap:10px}
+.cupexit{position:fixed;right:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:60;opacity:0;transition:opacity .4s}
+html.cupbig .cupexit.show,.cupexit:hover,.cupexit:focus-visible{opacity:.85}
+/* big-screen mode: only the stage, filling the display */
+html.cupbig body{overflow:hidden}
+html.cupbig #scrCup .stage{position:fixed;inset:0;z-index:50;width:100vw;height:100vh;height:100dvh;aspect-ratio:auto;border:none;border-radius:0;container-type:size}
+html.cupbig .stname{font-size:min(3.2cqw,6cqh)}
+html.cupbig .stsub,html.cupbig .stjoin{font-size:min(1.25cqw,2.3cqh)}
+html.cupbig .stjoin b{font-size:min(2.6cqw,4.8cqh)}
+html.cupbig .queue{font-size:min(1.1cqw,2cqh)}
+#cupPrintBox{display:none}
+@media print{
+  body *{visibility:hidden!important}
+  #cupPrintBox,#cupPrintBox *{visibility:visible!important}
+  #cupPrintBox{display:block;position:absolute;left:0;top:0;width:100%;color:#000;background:#fff}
+  .ppage{height:96vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4vh;text-align:center;font-family:var(--f-body);break-after:page;page-break-after:always}
+  .ppage h2{font-family:var(--f-num);font-size:110pt;margin:0;line-height:1}
+  .ppage .pq{width:11cm;height:11cm}.ppage .pq svg{width:100%;height:100%}
+  .ppage p{font-size:16pt;margin:0;max-width:15cm}
+  .ppage small{font-size:11pt;color:#555}
+}
+/* phones: no stage preview, everything stacks */
+@media (max-width:760px){
+  html:not(.cupbig) .stage{aspect-ratio:auto;display:flex;flex-direction:column;container-type:normal;border:none;padding:0;background:none}
+  html:not(.cupbig) .stname{font-size:28px}
+  html:not(.cupbig) .stsub,html:not(.cupbig) .stjoin{font-size:13px;text-align:left}
+  html:not(.cupbig) .stjoin b{font-size:24px}
+  html:not(.cupbig) .sthead{flex-direction:column;align-items:flex-start}
+  html:not(.cupbig) .stmain,html:not(.cupbig) .stright{display:flex;flex-direction:column}
+  html:not(.cupbig) .queue{grid-template-columns:1fr}
+  html:not(.cupbig) .cupboards{display:flex;flex-direction:column}
+  html:not(.cupbig) .bcard{height:170px}
+  html:not(.cupbig) .stside .label,html:not(.cupbig) .queue{font-size:14px}
+  html:not(.cupbig) .stside{padding:12px}
+  html:not(.cupbig) .stbr{overflow-x:auto}
+  html:not(.cupbig) .bracket{position:static;transform:none!important}
+  html:not(.cupbig) .champov{position:static;padding:16px;border-radius:12px;border:1px solid var(--warn)}
+  html:not(.cupbig) .champov .t{font-size:40px}html:not(.cupbig) .champov .n{font-size:40px}html:not(.cupbig) .champov .s{font-size:16px}html:not(.cupbig) .champov .h{font-size:12px}
+}
 .cupst td{font-size:18px}.cupst td.n{font-family:var(--f-body);font-size:15px;color:var(--fg)}
 .cupst tr[data-n]{cursor:pointer}.cupst tr[data-n]:hover td{background:var(--panel2)}
 #cupCardQR{background:#fff;border-radius:10px;padding:6px;width:220px;max-width:100%}
@@ -540,10 +599,11 @@ html.cupbig .cupboards{grid-template-columns:repeat(auto-fit,minmax(clamp(250px,
       <div class="label" style="margin-top:16px">Anslut den här telefonen som bana</div>
       <div class="row" style="margin-top:6px">
         <input type="text" id="cupCodeIn" maxlength="4" placeholder="KOD" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-label="Turneringskod">
+        <select id="cupBoardIn" aria-label="Bana"><option value="0">Bana …</option><option value="1">Bana 1</option><option value="2">Bana 2</option><option value="3">Bana 3</option><option value="4">Bana 4</option><option value="5">Bana 5</option><option value="6">Bana 6</option><option value="7">Bana 7</option><option value="8">Bana 8</option><option value="9">Bana 9</option><option value="10">Bana 10</option><option value="11">Bana 11</option><option value="12">Bana 12</option></select>
         <button id="cupJoin">Anslut</button>
         <button id="cupScan">Skanna QR</button>
       </div>
-      <p class="help">Koden och QR-koden står på storskärmen. Du kan också skanna QR-koden med telefonens vanliga kamera.</p>
+      <p class="help">Enklast: skanna banans QR-kod på storskärmen med telefonens kamera, så blir telefonen rätt bana direkt. Annars skriver du koden och väljer bana.</p>
     </div>
     <div id="cupBoardBox" hidden>
       <p id="cupBoardTxt"></p>
@@ -739,43 +799,60 @@ html.cupbig .cupboards{grid-template-columns:repeat(auto-fit,minmax(clamp(250px,
   </div>
   </div>
   <div class="screen" id="scrCup">
-    <div class="bar"><button id="cupBack">‹ Meny</button><span class="gmeta" id="cupTitle">Turnering</span><button id="cupBig" hidden>Storskärm</button></div>
+    <div class="bar"><button id="cupBack">‹ Meny</button><span class="gmeta" id="cupTitle">Turnering</span><button id="cupDelBoard" hidden title="Ta bort sista banan">− Bana</button><button id="cupAddBoard" hidden title="Lägg till en bana">+ Bana</button><button class="pri" id="cupBig" hidden>Visa på storskärm</button></div>
     <div class="wrapc">
       <section id="cupSetup" class="panel cupform">
         <label class="label" style="display:flex;flex-direction:column;gap:4px">Namn på turneringen
           <input type="text" id="cupName" maxlength="40" value="Fredagscupen" autocomplete="off">
         </label>
         <div class="set">
+          <label class="label">Banor <select id="cupBoardsN"><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option selected>6</option><option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option></select></label>
           <label class="label">Spel <select id="cupStart"><option value="301">301</option><option value="501" selected>501</option><option value="701">701</option></select></label>
           <label class="label">Format <select id="cupLegs"><option value="1">1 leg</option><option value="3" selected>Bäst av 3 legs</option><option value="5">Bäst av 5 legs</option><option value="7">Bäst av 7 legs</option></select></label>
+        </div>
+        <div class="set">
           <label class="ck"><input type="checkbox" id="cupDbl" checked> Dubbel ut</label>
           <label class="ck"><input type="checkbox" id="cupSd" checked> Sudden death efter 30 pilar</label>
         </div>
+        <div class="set" style="align-items:flex-end">
+          <label class="label">Klubbkod <input type="text" id="cupClub" maxlength="4" autocomplete="off" autocapitalize="characters" spellcheck="false" style="width:96px;text-transform:uppercase;font-family:var(--f-num);font-size:20px;letter-spacing:.16em;text-align:center"></label>
+          <button id="cupPrint1">Skriv ut bankoder</button>
+        </div>
+        <p class="help" style="margin:0">Klubbkoden är densamma varje gång, så utskrivna QR-koder vid banorna fungerar vecka efter vecka. Starta turneringen från samma enhet, eller skriv in samma klubbkod på en ny storskärm.</p>
         <label class="label" style="display:flex;flex-direction:column;gap:4px">Spelare, en per rad
           <textarea id="cupPlayers" placeholder="Anna&#10;Bosse&#10;Cissi&#10;…"></textarea>
         </label>
-        <p class="help" style="margin:0">Lottningen slumpas. Går antalet inte jämnt upp får några spelare walkover i första omgången. Vinnaren går vidare. Sudden death: har ingen gått ut när båda kastat 30 pilar i leget kastar båda 3 pilar och högst poäng vinner leget (lika ger ny runda).</p>
+        <p class="help" style="margin:0">Lottningen slumpas. Går antalet inte jämnt upp får några spelare walkover i första omgången. Vinnaren går vidare. Varje bana får en egen QR-kod på storskärmen: skanna den med banans telefon så kopplas telefonen till just den banan.<br>Sudden death: har ingen gått ut när båda kastat 30 pilar i leget kastar båda 3 pilar och högst poäng vinner leget (lika ger ny runda).</p>
         <button class="pri" id="cupGo">Lotta och starta</button>
       </section>
       <div id="cupRun" hidden>
         <div class="wrapc">
-          <div id="cupChamp" class="champ" hidden></div>
-          <div class="cuptop">
-            <div class="cupboards" id="cupBoards"></div>
-            <div class="cupjoin"><div id="cupQR" aria-label="QR-kod för att ansluta en bana"></div><div><div class="label">Anslut bana</div><div class="code" id="cupCode"></div><div class="help" style="margin-top:4px">Turnering → kod</div></div></div>
+          <div class="stage" id="cupStage">
+            <header class="sthead">
+              <div style="min-width:0"><div class="stname" id="cupStName"></div><div class="stsub" id="cupProg"></div></div>
+              <div class="stjoin">Anslut bana<b id="cupCode"></b>Skanna banans QR-kod</div>
+            </header>
+            <div class="stmain">
+              <div class="cupboards" id="cupBoards"></div>
+              <div class="stright">
+                <aside class="stside"><div class="label">Nästa på tur</div><ol class="queue" id="cupQueue"></ol></aside>
+                <div class="stbr" id="cupBr"><div class="bracket" id="cupBracket"></div></div>
+              </div>
+            </div>
+            <div class="champov" id="cupChamp" hidden></div>
           </div>
-          <div class="bracket" id="cupBracket"></div>
+          <div class="row cupctl"><span class="help" style="margin:0;flex:1;min-width:220px">Spelledare: tryck på ett namn i trädet för att sätta eller ta bort ett resultat.</span><button id="cupPrint2">Skriv ut bankoder</button><button class="dng" id="cupEnd">Avsluta turneringen</button></div>
           <section class="panel" id="cupStatsBox" hidden>
-            <div class="row" style="justify-content:space-between"><div class="label">Statistik</div><button id="cupCsv" class="cupctl">Ladda ner allt (CSV)</button></div>
+            <div class="row" style="justify-content:space-between"><div class="label">Statistik</div><button id="cupCsv">Ladda ner allt (CSV)</button></div>
             <div id="cupStats" style="overflow-x:auto;margin-top:8px"></div>
-            <p class="help cupctl" style="margin-bottom:0">Tryck på en spelare för att visa hens statistik och en QR-kod som spelaren kan skanna.</p>
+            <p class="help" style="margin-bottom:0">Tryck på en spelare för att visa statistiken och en QR-kod som spelaren kan skanna.</p>
           </section>
-          <div class="row cupctl"><span class="help" style="margin:0;flex:1">Tryck på ett namn i trädet för att sätta vinnare för hand (t.ex. om en bana saknar telefon).</span><button class="dng" id="cupEnd">Avsluta turneringen</button></div>
         </div>
       </div>
       <div class="status" id="cupMsg" hidden></div>
     </div>
     <button class="cupexit" id="cupExitBig" hidden>Lämna storskärm</button>
+    <div id="cupPrintBox" aria-hidden="true"></div>
   </div>
 </div>
 
@@ -2802,7 +2879,7 @@ const sess=(function(){
       scanTimer=setInterval(()=>{
         if(!v.videoWidth)return;const w=480,h=Math.round(480*v.videoHeight/v.videoWidth);c.width=w;c.height=h;x.drawImage(v,0,0,w,h);
         const r=jsQR(x.getImageData(0,0,w,h).data,w,h);
-        if(r&&r.data){const cm=r.data.match(/#cup-([A-Za-z0-9]{4})/);if(cm){stopScan();$("sessPanel").hidden=true;cup.join(cm[1]);$("cupPanel").hidden=false;return;}const m=r.data.match(/#join-([A-Za-z0-9]{4})/)||r.data.trim().match(/^([A-Za-z0-9]{4})$/);if(m){stopScan();join(m[1]);}}
+        if(r&&r.data){const cm=r.data.match(/#cup-([A-Za-z0-9]{4})(?:-(\d{1,2}))?/);if(cm){stopScan();$("sessPanel").hidden=true;cup.join(cm[1],+cm[2]||0);$("cupPanel").hidden=false;return;}const m=r.data.match(/#join-([A-Za-z0-9]{4})/)||r.data.trim().match(/^([A-Za-z0-9]{4})$/);if(m){stopScan();join(m[1]);}}
       },250);
     }catch(e){stopScan();setMsg("Kunde inte starta kameran för skanning. Skriv in koden i stället.");}
   }
@@ -2833,7 +2910,7 @@ const cup=(function(){
   let role=null,peer=null,code=null,C=null,conns={},hostConn=null,retryT=null,B={},msg="";
   const ok=()=>typeof Peer!=="undefined";
   function mkCode(){let s="";for(let i=0;i<4;i++)s+=ALPHA[Math.floor(Math.random()*ALPHA.length)];return s;}
-  function joinUrl(c){return location.origin+location.pathname+"#cup-"+c;}
+  function joinUrl(c,n){return location.origin+location.pathname+"#cup-"+c+(n?"-"+n:"");}
   function devId(){let d=store.get("dk_cupdev");if(!d){d=Math.random().toString(36).slice(2,10);store.set("dk_cupdev",d);}return d;}
   function wake(){try{navigator.wakeLock&&navigator.wakeLock.request("screen").catch(()=>{});}catch(e){}}
   document.addEventListener("visibilitychange",()=>{if(role&&document.visibilityState==="visible")wake();});
@@ -2866,15 +2943,30 @@ const cup=(function(){
   }
   function roundName(r){const left=C.rounds.length-r;return left===1?"Final":left===2?"Semifinal":left===3?"Kvartsfinal":"Omgång "+(r+1);}
   function readyMatch(){for(const r of C.rounds)for(const m of r)if(m.a&&m.b&&!m.w&&m.board==null)return m;return null;}
-  function boardOf(dev){if(!C.boards[dev])C.boards[dev]=Object.keys(C.boards).length+1;return C.boards[dev];}
   const devOf=n=>Object.keys(C.boards).find(d=>C.boards[d]===n);
+  const online=dev=>!!(dev&&conns[dev]&&conns[dev].open);
+  // which board a phone becomes: the one it asked for (QR per board), else its previous one, else the first free
+  function seat(dev,want){
+    const old=C.boards[dev];
+    if(!(want>=1&&want<=16))want=old||0;
+    if(!want){for(let n=1;n<=C.nBoards;n++){if(!online(devOf(n))){want=n;break;}}if(!want)want=++C.nBoards;}
+    const holder=devOf(want);
+    if(holder&&holder!==dev){if(online(holder))return 0;delete C.boards[holder];}
+    if(want>C.nBoards)C.nBoards=want;
+    if(old&&old!==want&&C.cur[old]!=null){
+      // the phone moved to another board: its running match moves with it unless the new board already has one
+      const m=M(C.cur[old]);C.cur[old]=null;
+      if(m&&C.cur[want]==null){C.cur[want]=m.id;m.board=want;}else if(m&&!m.w){m.board=null;m.live=null;}
+    }
+    C.boards[dev]=want;return want;
+  }
   function persist(){store.set("dk_cuphost",C);}
   function sendTo(dev,m){const c=conns[dev];if(c&&c.open){try{c.send(m);}catch(e){}}}
   function sendAll(m){Object.keys(conns).forEach(d=>sendTo(d,m));}
   function assignMsg(m,n){return {t:"assign",id:m.id,board:n,cup:C.name,round:roundName(pos(m)[0]),cfg:C.cfg,names:[m.a,m.b]};}
   function assignFree(){
     Object.keys(conns).forEach(dev=>{
-      if(!conns[dev].open)return;const n=boardOf(dev);
+      if(!conns[dev].open)return;const n=C.boards[dev];if(!n)return;
       if(C.cur[n]!=null)return;
       const m=readyMatch();
       if(!m){sendTo(dev,{t:"wait",board:n,cup:C.name,champ:C.champ||null});return;}
@@ -2884,13 +2976,20 @@ const cup=(function(){
   }
 
   /* ----- host ----- */
-  function create(name,cfg,names){
+  function clubCode(){
+    let c=String($("cupClub").value||"").toUpperCase().replace(/[^A-Z0-9]/g,"");
+    if(c.length!==4)c=store.get("dk_cupclub")||mkCode();
+    store.set("dk_cupclub",c);$("cupClub").value=c;return c;
+  }
+  function create(name,cfg,names,nb){
+    store.set("dk_cupnb",nb);
     const seen={},list=[];
     names.forEach(n=>{n=n.trim().slice(0,24);if(!n)return;let k=n,i=2;while(seen[k.toLowerCase()])k=n+" "+(i++);seen[k.toLowerCase()]=1;list.push(k);});
     if(list.length<2){setMsg("Skriv in minst två spelare.");return;}
     if(list.length>64){setMsg("Högst 64 spelare.");return;}
     usage.ev("turnering/start");
-    C={code:mkCode(),name:name||"Turnering",cfg,players:list,rounds:draw(list),boards:{},cur:{},champ:null};
+    const club=clubCode();
+    C={code:club,name:name||"Turnering",cfg,players:list,rounds:draw(list),boards:{},cur:{},champ:null,nBoards:Math.max(1,Math.min(16,nb|0||4))};
     C.rounds[0].forEach(m=>{if(!m.b)setWinner(m,m.a);});
     persist();host();renderHost();
   }
@@ -2904,8 +3003,9 @@ const cup=(function(){
       if(e.type==="unavailable-id"){
         // after a reload the old id can linger for a moment: retry, then switch to a new code
         const n=(host.tries=(host.tries||0)+1);try{peer.destroy();}catch(_){}
-        if(n<6){setTimeout(()=>{if(role==="host")host();},2500);return;}
-        host.tries=0;C.code=mkCode();persist();host();return;
+        // the club code is permanent (printed QR codes), so keep trying instead of switching code
+        if(n===4)setMsg("Väntar på klubbkoden "+code+". Är en annan storskärm igång med samma kod? Stäng den så tar den här över.");
+        setTimeout(()=>{if(role==="host")host();},n<4?2500:8000);return;
       }
       if(e.type==="network"||e.type==="server-error"||e.type==="socket-error")setMsg("Kopplingsservern svarar inte. Kontrollera internet.");
     });
@@ -2920,7 +3020,9 @@ const cup=(function(){
     if(m.t==="hello"&&typeof m.dev==="string"){
       const dev=m.dev.slice(0,16);c.dev=dev;
       if(conns[dev]&&conns[dev]!==c){try{conns[dev].close();}catch(_){}}
-      conns[dev]=c;const n=boardOf(dev);
+      const n=seat(dev,m.n|0);
+      if(!n){try{c.send({t:"taken",n:m.n|0});}catch(_){}return;}
+      conns[dev]=c;
       const cur=C.cur[n]!=null&&M(C.cur[n]);
       if(cur)sendTo(dev,assignMsg(cur,n));
       assignFree();return;
@@ -2968,13 +3070,14 @@ const cup=(function(){
   }
 
   /* ----- board phone ----- */
-  function join(c){
+  function join(c,n){
     if(!ok()){setPMsg("Turneringsläget fungerar bara i appen från GitHub-adressen.");return;}
     c=String(c||"").toUpperCase().replace(/[^A-Z0-9]/g,"");
     if(c.length!==4){setPMsg("Koden består av fyra tecken.");return;}
     if(role==="host"){setPMsg("Den här enheten är storskärm för en turnering.");return;}
     if(sess.role==="client"){setPMsg("Lämna den delade sessionen först. Banans telefon räknar själv.");return;}
-    stop();role="board";code=c;B={};store.set("dk_cupb",{code});setPMsg("Ansluter till "+c+"…");wake();
+    n=Math.max(0,Math.min(16,n|0));
+    stop();role="board";code=c;B={want:n};store.set("dk_cupb",{code,n});setPMsg("Ansluter till "+c+(n?" som Bana "+n:"")+"…");wake();
     usage.ev("turnering/bana");
     peer=new Peer();
     peer.on("open",connect);
@@ -2986,14 +3089,15 @@ const cup=(function(){
   function connect(){
     if(role!=="board"||!peer||peer.destroyed)return;
     hostConn=peer.connect(PFX+code,{reliable:true});
-    hostConn.on("open",()=>{setPMsg("");hostConn.send({t:"hello",dev:devId()});chip();boardUi();});
+    hostConn.on("open",()=>{setPMsg("");hostConn.send({t:"hello",dev:devId(),n:B.want||0});chip();boardUi();});
     hostConn.on("data",onHostMsg);
     hostConn.on("close",()=>{chip();boardUi();retry();});
   }
   function retry(){clearTimeout(retryT);retryT=setTimeout(()=>{if(role!=="board")return;if(peer&&peer.disconnected){try{peer.reconnect();}catch(_){}}if(!(hostConn&&hostConn.open))connect();},3000);}
   function onHostMsg(m){
     if(!m||typeof m!=="object")return;
-    if(m.board)B.board=m.board|0;if(m.cup)B.cup=String(m.cup).slice(0,40);
+    if(m.t==="taken"){leave(true);closeSheets();$("cupPanel").hidden=false;boardUi();setPMsg("Bana "+(m.n|0)+" är redan ansluten med en annan telefon. Välj en annan bana.");return;}
+    if(m.board){B.board=m.board|0;B.want=B.board;store.set("dk_cupb",{code,n:B.board});}if(m.cup)B.cup=String(m.cup).slice(0,40);
     if(m.t==="assign"&&Array.isArray(m.names)&&m.cfg){
       B.wait=false;
       const mine=G&&G.cup&&G.cup.code===code&&G.cup.id===m.id&&!G.ended;
@@ -3008,7 +3112,7 @@ const cup=(function(){
     }else if(m.t==="wait"){B.wait=true;B.champ=m.champ||null;}
     else if(m.t==="cancel"){if(G&&G.cup&&G.cup.id===m.id){G.cup=null;G.ended=true;save();showScreen("home");}B.note="Storskärmen avgjorde matchen.";}
     else if(m.t==="done"){B.champ=String(m.champ||"");}
-    else if(m.t==="ended"){leave(true);setPMsg("Turneringen är avslutad.");}
+    else if(m.t==="ended"){leave(true);setPMsg("Turneringen är avslutad. Skanna banans QR-kod nästa gång.");}
     chip();boardUi();
   }
   function send(){
@@ -3022,7 +3126,7 @@ const cup=(function(){
     if(hostConn&&hostConn.open)hostConn.send({t:"ready"});
     B.wait=true;showScreen("home");chip();
   }
-  function resync(){if(hostConn&&hostConn.open)hostConn.send({t:"hello",dev:devId()});else retry();}
+  function resync(){if(hostConn&&hostConn.open)hostConn.send({t:"hello",dev:devId(),n:B.want||0});else retry();}
   function leave(silent){
     stop();B={};store.set("dk_cupb",null);if(!silent)setPMsg("");chip();boardUi();
   }
@@ -3032,7 +3136,7 @@ const cup=(function(){
   function setPMsg(t){const el=$("cupPMsg");el.textContent=t;el.hidden=!t;}
   function chip(){
     const c=$("cupChip");
-    if(role==="host"&&C){c.hidden=false;c.className="chipbtn live";c.textContent="Turnering: "+C.name+" · "+C.code+" · "+Object.keys(conns).length+" banor";return;}
+    if(role==="host"&&C){c.hidden=false;c.className="chipbtn live";c.textContent="Turnering: "+C.name+" · "+C.code+" · "+Object.keys(conns).filter(online).length+" av "+C.nBoards+" banor anslutna";return;}
     if(role==="board"){
       const live=hostConn&&hostConn.open;c.hidden=false;c.className="chipbtn"+(live?" live":"");
       c.textContent=(B.cup||"Turnering")+(B.board?" · Bana "+B.board:"")+" · "+(live?(B.wait?"väntar på match":"ansluten"):"ansluter…");return;
@@ -3053,57 +3157,95 @@ const cup=(function(){
     if(role==="host"&&C){showScreen("cup");renderHost();return;}
     closeSheets();$("cupPanel").hidden=false;boardUi();
   }
-  function startSetup(){closeSheets();showScreen("cup");renderHost();}
+  function startSetup(){
+    closeSheets();showScreen("cup");
+    $("cupClub").value=store.get("dk_cupclub")||"";if(!$("cupClub").value)clubCode();
+    const nb=store.get("dk_cupnb");if(nb)$("cupBoardsN").value=String(nb);
+    renderHost();
+  }
+  const qrCache={};
+  function qrSvg(url){
+    if(!qrCache[url]&&typeof qrcode!=="undefined"){const q=qrcode(0,"M");q.addData(url);q.make();qrCache[url]=q.createSvgTag({cellSize:4,margin:1,scalable:true});}
+    return qrCache[url]||"";
+  }
+  // grid for n boards: wide rather than tall, the stage is 16:9
+  function grid(n){return n<=2?[1,n]:n<=4?[2,2]:n<=6?[2,3]:n<=8?[2,4]:n<=9?[3,3]:n<=12?[3,4]:[4,4];}
+  let champHidden=false;
   function renderHost(){
     chip();
-    $("cupSetup").hidden=!!C;$("cupRun").hidden=!C;$("cupBig").hidden=!C;
+    $("cupSetup").hidden=!!C;$("cupRun").hidden=!C;$("cupBig").hidden=!C;$("cupAddBoard").hidden=!C;$("cupDelBoard").hidden=!C;
     $("cupTitle").textContent=C?C.name:"Ny turnering";
     if(!C)return;
-    // QR + code for boards
-    const qr=$("cupQR");
-    if(qr.dataset.code!==C.code&&typeof qrcode!=="undefined"){const q=qrcode(0,"M");q.addData(joinUrl(C.code));q.make();qr.innerHTML=q.createSvgTag({cellSize:5,margin:2,scalable:true});qr.dataset.code=C.code;}
-    $("cupCode").textContent=C.code;
-    const ch=$("cupChamp");ch.hidden=!C.champ;if(C.champ)ch.textContent="🏆 "+C.champ+" vinner "+C.name+"!";
-    // boards with live scores
-    const nums=Object.values(C.boards).sort((a,b)=>a-b),on={};
-    Object.keys(conns).forEach(d=>{if(conns[d].open)on[C.boards[d]]=1;});
+    if(!C.nBoards)C.nBoards=Math.max(4,...Object.values(C.boards));
+    $("cupStName").textContent=C.name;$("cupCode").textContent=C.code;
+    // progress line: the earliest round that is still being played
+    let prog="";
+    for(let ri=0;ri<C.rounds.length;ri++){
+      const real=C.rounds[ri].filter(m=>!(ri===0&&!m.b)),done=real.filter(m=>m.w).length;
+      if(done<real.length||ri===C.rounds.length-1){prog=roundName(ri)+" · "+done+" av "+real.length+" matcher klara";break;}
+    }
+    if(C.champ)prog="Turneringen är avgjord";
+    $("cupProg").textContent=prog+" · "+C.players.length+" spelare · "+C.cfg.start+(C.cfg.legs>1?" bäst av "+C.cfg.legs:"")+(C.cfg.sdAt?" · sudden death efter "+C.cfg.sdAt+" pilar":"");
+    // boards
+    const [cols,rows]=grid(C.nBoards),bx=$("cupBoards");
+    bx.style.setProperty("--cols",cols);bx.style.setProperty("--rows",rows);
     let h="";
-    nums.forEach(n=>{
-      const m=C.cur[n]!=null?M(C.cur[n]):null;
-      h+='<div class="bcard'+(m&&!m.w?" live":"")+(on[n]?"":" off")+'"><div class="hd"><b>Bana '+n+'</b><span>'+(on[n]?(m?(m.live&&m.live.sd&&!m.w?"Sudden death":esc(roundName(pos(m)[0]))):"Ledig"):"Ej ansluten")+'</span></div>';
+    for(let n=1;n<=C.nBoards;n++){
+      const on=online(devOf(n)),m=C.cur[n]!=null?M(C.cur[n]):null;
+      const state=!on&&!m?"off":m&&m.w?"done":m?"live":"idle";
+      const right=m?(m.live&&m.live.sd&&!m.w?'<span class="sd">Sudden death</span>':esc(roundName(pos(m)[0]))):on?"Ledig":"Ej ansluten";
+      h+='<div class="bcard '+state+'"><div class="hd"><b>Bana '+n+'</b>'+(m&&!on?'<span class="sd">Telefonen tappade anslutningen</span>':'<span>'+right+'</span>')+'</div>';
       if(m){
         const L=m.live||{cur:0,p:[]};
-        [m.a,m.b].forEach((nm,k)=>{const p=L.p[k]||{s:C.cfg.start,l:0,a:"–"};
-          h+='<div class="bpr'+(!m.w&&L.cur===k?" on":"")+(m.w===nm?" w":"")+'"><span class="nm">'+esc(nm)+'</span><span class="lg" title="Legs">'+p.l+'</span><span class="sc">'+(m.w?(m.w===nm?"✓":""):p.s)+'</span></div>';});
-        if(m.w)h+='<div class="idle">'+esc(m.w)+' vann. Väntar på att banan tar nästa match.</div>';
-      }else h+='<div class="idle">'+(on[n]?(C.champ?"Turneringen är klar.":"Väntar på match…"):"Telefonen är inte ansluten.")+'</div>';
+        [m.a,m.b].forEach((nm,k)=>{const p=L.p[k]||{s:C.cfg.start,l:0};
+          const cls=m.w?(m.w===nm?" w":" l"):L.cur===k?" on":"";
+          h+='<div class="bpr'+cls+'"><span class="nm">'+esc(nm)+'</span><span class="lg" title="Vunna legs">'+p.l+'</span><span class="sc">'+(m.w?(m.w===nm?"VANN":""):p.s)+'</span></div>';});
+      }else if(state==="off")h+='<div class="msgc"><div class="bqr">'+qrSvg(joinUrl(C.code,n))+'</div><div><strong>Skanna för Bana '+n+'</strong><br>med telefonen som ska räkna på banan</div></div>';
+      else h+='<div class="msgc"><strong>Ledig</strong>'+(C.champ?"Turneringen är klar":"Väntar på nästa match")+'</div>';
       h+='</div>';
-    });
-    renderCupStats();
-    if(!nums.length)h='<div class="bcard"><div class="idle">Inga banor anslutna än. Öppna TrebleEye på banans telefon, välj Turnering och ange koden, eller skanna QR-koden.</div></div>';
-    $("cupBoards").innerHTML=h;
+    }
+    bx.innerHTML=h;
+    // queue: matches ready to start but without a board, then matches waiting for a winner
+    const q=[];
+    C.rounds.forEach((r,ri)=>r.forEach(m=>{if(m.a&&m.b&&!m.w&&m.board==null)q.push('<li><b>'+esc(m.a)+' – '+esc(m.b)+'</b><span>'+esc(roundName(ri))+' · väntar på ledig bana</span></li>');}));
+    $("cupQueue").innerHTML=q.slice(0,6).join("")||'<li class="empty">'+(C.champ?"Alla matcher är spelade.":"Inga matcher väntar just nu.")+'</li>';
     // bracket
     const br=$("cupBracket");br.innerHTML="";
+    const cupbig=document.documentElement.classList.contains("cupbig");
     C.rounds.forEach((r,ri)=>{
       const col=document.createElement("div");col.className="bcol";
       col.innerHTML='<div class="label">'+esc(roundName(ri))+'</div><div class="ms"></div>';
       r.forEach(m=>{
-        const el=document.createElement("div");const live=m.board!=null&&C.cur[m.board]===m.id&&!m.w;
-        el.className="bm"+(live?" live":"");
+        const el=document.createElement("div");const live=m.board!=null&&C.cur[m.board]===m.id&&!m.w,bye=ri===0&&!m.b;
+        el.className="bm"+(live?" live":"")+(bye?" bye":"");
         let x=live?'<div class="tag">Bana '+m.board+'</div>':"";
         [m.a,m.b].forEach((nm,k)=>{
-          const bye=ri===0&&!nm,cls=!nm?"tbd":m.w?(m.w===nm?"w":"l"):"";
+          const cls=!nm?"tbd":m.w&&!bye?(m.w===nm?"w":"l"):"";
           const legs=m.live&&m.live.p[k]&&(m.w||live)?m.live.p[k].l:"";
-          x+='<div class="r '+cls+(nm&&m.a&&m.b&&!C.champ||m.w&&nm===m.w?" pick":"")+'" data-k="'+k+'"><span>'+(nm?esc(nm):bye?"walkover":"–")+'</span><span>'+legs+'</span></div>';
+          const pick=!cupbig&&!bye&&nm&&(m.a&&m.b&&!m.w&&!C.champ||m.w===nm);
+          x+='<div class="r '+cls+(pick?" pick":"")+'" data-k="'+k+'"><span>'+(nm?esc(nm):bye?"walkover":"–")+'</span><span>'+legs+'</span></div>';
         });
         el.innerHTML=x;
-        el.querySelectorAll(".r.pick").forEach(rw=>rw.addEventListener("click",()=>{if(document.documentElement.classList.contains("cupbig"))return;manual(m,[m.a,m.b][+rw.dataset.k]);}));
-        if(!(ri===0&&!m.b))col.querySelector(".ms").appendChild(el);else{el.style.opacity=".5";col.querySelector(".ms").appendChild(el);}
+        el.querySelectorAll(".r.pick").forEach(rw=>rw.addEventListener("click",()=>manual(m,[m.a,m.b][+rw.dataset.k])));
+        col.querySelector(".ms").appendChild(el);
       });
       br.appendChild(col);
     });
+    fitBracket();
+    const ch=$("cupChamp");ch.hidden=!C.champ||champHidden;
+    if(C.champ)ch.innerHTML='<div class="t">🏆</div><div class="n">'+esc(C.champ)+'</div><div class="s">vinner '+esc(C.name)+'</div><div class="h">Tryck för att visa trädet</div>';
+    renderCupStats();
   }
-
+  // scale the bracket so the whole tree is always visible in its box
+  function fitBracket(){
+    const box=$("cupBr"),br=$("cupBracket");if(!box||!br||!C)return;
+    br.style.transform="none";
+    if(window.matchMedia("(max-width:760px)").matches&&!document.documentElement.classList.contains("cupbig"))return;
+    const W=box.clientWidth,H=box.clientHeight,w=br.scrollWidth,h=br.scrollHeight;if(!W||!H||!w||!h)return;
+    const k=Math.min(W/w,H/h,2);
+    br.style.transform="translate("+Math.max(0,(W-w*k)/2)+"px,0) scale("+k+")";
+  }
+  window.addEventListener("resize",()=>{if(role==="host")fitBracket();});
   /* ----- statistics (host) and a per-player card that can be opened on the player's own phone ----- */
   const ST_KEYS=["pts","darts","f9pts","f9darts","c180","c140","c100","hiTurn","hiCo","coTry","coHit","best","legsWon"];
   function cleanSt(x){const o={};ST_KEYS.forEach(k=>{o[k]=Math.max(0,Math.min(1e6,+(x&&x[k])||0));});return o;}
@@ -3187,35 +3329,60 @@ const cup=(function(){
       t+=[roundName(ri),m.a,m.b,L&&m.w?L[0].l+"–"+L[1].l:"",m.w||""].map(q).join(";")+"\n";}));
     download(C.name.replace(/[^\wåäöÅÄÖ -]/g,"")+" statistik.csv",t,"text/csv");
   }
+  let exitT=null;
   function bigOn(){
     document.documentElement.classList.add("cupbig");$("cupExitBig").hidden=false;
     try{if(document.documentElement.requestFullscreen)document.documentElement.requestFullscreen().catch(()=>{});}catch(e){}
-    wake();
+    wake();renderHost();setTimeout(fitBracket,300);
   }
   function bigOff(){
+    if(!document.documentElement.classList.contains("cupbig"))return;
     document.documentElement.classList.remove("cupbig");$("cupExitBig").hidden=true;
     try{if(document.fullscreenElement)document.exitFullscreen();}catch(e){}
+    if(C)renderHost();
   }
+  // leaving fullscreen with Esc also leaves big-screen mode
+  document.addEventListener("fullscreenchange",()=>{if(!document.fullscreenElement)bigOff();});
+  // the exit button shows only when the mouse moves or the screen is touched
+  ["pointermove","pointerdown"].forEach(t=>document.addEventListener(t,()=>{
+    if(!document.documentElement.classList.contains("cupbig"))return;
+    const b=$("cupExitBig");b.classList.add("show");clearTimeout(exitT);exitT=setTimeout(()=>b.classList.remove("show"),2500);
+  },{passive:true}));
   function go(){
     const names=$("cupPlayers").value.split(/\n|,/);
-    create($("cupName").value.trim().slice(0,40),{start:+$("cupStart").value,dbl:$("cupDbl").checked,legs:+$("cupLegs").value,sdAt:$("cupSd").checked?30:0},names);
+    create($("cupName").value.trim().slice(0,40),{start:+$("cupStart").value,dbl:$("cupDbl").checked,legs:+$("cupLegs").value,sdAt:$("cupSd").checked?30:0},names,+$("cupBoardsN").value);
   }
   function boot(){
     const cs=location.hash.match(/^#cs-([A-Za-z0-9_-]+)$/);
     if(cs){history.replaceState(null,"",location.pathname);setTimeout(()=>showCard(dec(cs[1]),false),300);}
-    const h=location.hash.match(/^#cup-([A-Za-z0-9]{4})$/);
-    if(h){history.replaceState(null,"",location.pathname);join(h[1]);return;}
+    const h=location.hash.match(/^#cup-([A-Za-z0-9]{4})(?:-(\d{1,2}))?$/);
+    if(h){history.replaceState(null,"",location.pathname);join(h[1],+h[2]||0);return;}
     const c=store.get("dk_cuphost");
     if(c&&c.rounds&&c.code){C=c;host();renderHost();return;}
     const b=store.get("dk_cupb");
-    if(b&&b.code)join(b.code);
+    if(b&&b.code)join(b.code,b.n);
   }
   $("btnCup").addEventListener("click",open);
   $("cupChip").addEventListener("click",open);
   $("cupClose").addEventListener("click",()=>{$("cupPanel").hidden=true;});
   $("cupNew").addEventListener("click",startSetup);
-  $("cupJoin").addEventListener("click",()=>join($("cupCodeIn").value));
-  $("cupCodeIn").addEventListener("keydown",e=>{if(e.key==="Enter")join($("cupCodeIn").value);});
+  $("cupJoin").addEventListener("click",()=>join($("cupCodeIn").value,+$("cupBoardIn").value));
+  $("cupCodeIn").addEventListener("keydown",e=>{if(e.key==="Enter")join($("cupCodeIn").value,+$("cupBoardIn").value);});
+  $("cupAddBoard").addEventListener("click",()=>{if(C&&C.nBoards<16){C.nBoards++;store.set("dk_cupnb",C.nBoards);persist();renderHost();}});
+  $("cupDelBoard").addEventListener("click",()=>{
+    if(!C||C.nBoards<=1)return;const n=C.nBoards;
+    if(online(devOf(n))||C.cur[n]!=null){alertMsg("Bana "+n+" används just nu och kan inte tas bort.");return;}
+    const d=devOf(n);if(d)delete C.boards[d];C.nBoards--;store.set("dk_cupnb",C.nBoards);persist();renderHost();
+  });
+  function printCodes(){
+    const code=C?C.code:clubCode(),nb=C?C.nBoards:+$("cupBoardsN").value,name=C?C.name:($("cupName").value||"");
+    let h="";
+    for(let n=1;n<=nb;n++)h+='<section class="ppage"><h2>Bana '+n+'</h2><div class="pq">'+qrSvg(joinUrl(code,n))+'</div><p>Skanna med telefonen som räknar matcherna på den här banan. Den kopplas till Bana '+n+' på storskärmen.</p><small>TrebleEye'+(name?" · "+esc(name):"")+' · klubbkod '+code+' · bana '+n+'</small></section>';
+    $("cupPrintBox").innerHTML=h;setTimeout(()=>window.print(),100);
+  }
+  $("cupPrint1").addEventListener("click",printCodes);
+  $("cupPrint2").addEventListener("click",printCodes);
+  $("cupChamp").addEventListener("click",()=>{champHidden=true;renderHost();});
   $("cupScan").addEventListener("click",()=>{closeSheets();$("sessPanel").hidden=false;sess.ui();sess.scan();});
   $("cupResync").addEventListener("click",resync);
   $("cupLeave").addEventListener("click",()=>leave());
