@@ -404,7 +404,8 @@ html.tv .bar,html.tv .backdrop{display:none!important}
 .stage{--gap:clamp(8px,1.1vmin,18px);position:relative;display:grid;grid-template-rows:auto minmax(0,1fr);gap:var(--gap);
   aspect-ratio:16/9;width:100%;box-sizing:border-box;padding:var(--gap);background:var(--bg);border:1px solid var(--line);border-radius:var(--r-lg);overflow:hidden;container-type:inline-size}
 .sthead{display:flex;align-items:center;justify-content:space-between;gap:16px;min-width:0;padding-bottom:var(--gap);border-bottom:2px solid var(--line)}
-.sthead>div:first-child{border-left:.5cqw solid var(--acc);padding-left:1.2cqw}
+.sthead>div:first-of-type{border-left:.5cqw solid var(--acc);padding-left:1.2cqw}
+.stlogo{display:block;height:7cqw;width:auto;flex:none;margin:-.6cqw -.4cqw -.6cqw 0}
 .stname{font-family:var(--f-num);font-weight:800;font-size:3.6cqw;line-height:.95;color:var(--fg);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-transform:uppercase;font-style:italic;letter-spacing:.005em}
 .stsub{font-size:1.2cqw;color:var(--mut);letter-spacing:.1em;text-transform:uppercase;margin-top:.35em;font-weight:600;font-variant-numeric:tabular-nums}
 .stlive{display:flex;align-items:center;gap:1cqw;text-align:right;font-size:1.05cqw;color:var(--mut);line-height:1.35}
@@ -415,6 +416,7 @@ html.tv .bar,html.tv .backdrop{display:none!important}
 .stlive .lq{background:#fff;border-radius:var(--r-sm);padding:.3cqw;width:6.2cqw;aspect-ratio:1;box-sizing:border-box}
 .stlive .lq svg{display:block;width:100%;height:100%}
 /* audience view on phones */
+#scrLive .lvlogo{display:block;width:min(64vw,240px);height:auto;margin:2px auto 10px}
 #scrLive .lvhead{margin:4px 0 14px;border-left:4px solid var(--acc);padding-left:12px}
 #scrLive .lvhead .stname{font-size:34px}
 #liveBody .bcard{height:160px;cursor:pointer;margin-bottom:10px}
@@ -496,6 +498,7 @@ html.tv .bar,html.tv .backdrop{display:none!important}
 .bm .tag.plan{background:var(--panel2);color:var(--mut)}
 .bcard .nextm{margin:0 -2px;padding:.2em .6em;border-radius:4px;background:var(--bg2);color:var(--mut);font-size:clamp(10px,7cqh,28px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .champov{position:absolute;inset:0;z-index:5;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1cqw;background:rgba(16,20,17,.94);cursor:pointer;text-align:center}
+.champov .cl{display:block;width:26cqw;height:auto;margin-bottom:.5cqw}
 .champov .t{font-size:8cqw;line-height:1}
 .champov .n{font-family:var(--f-num);font-weight:800;font-style:italic;text-transform:uppercase;font-size:8cqw;line-height:.95;color:var(--acc)}
 .champov .s{font-size:2cqw;color:var(--fg);font-weight:600;text-transform:uppercase;letter-spacing:.08em}
@@ -534,9 +537,10 @@ html.cupbig .queue{font-size:min(1.15cqw,2.05cqh)}
   body *{visibility:hidden!important}
   #cupPrintBox,#cupPrintBox *{visibility:visible!important}
   #cupPrintBox{display:block;position:absolute;left:0;top:0;width:100%;color:#000;background:#fff}
-  .ppage{height:96vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4vh;text-align:center;font-family:var(--f-body);break-after:page;page-break-after:always}
+  .ppage{height:96vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3vh;text-align:center;font-family:var(--f-body);break-after:page;page-break-after:always}
+  .ppage .plogo{background:#101411;border-radius:12pt;padding:8pt 18pt;-webkit-print-color-adjust:exact;print-color-adjust:exact}.ppage .plogo img{display:block;width:7cm;height:auto}
   .ppage h2{font-family:var(--f-num);font-size:110pt;margin:0;line-height:1;text-transform:uppercase}
-  .ppage .pq{width:11cm;height:11cm}.ppage .pq svg{width:100%;height:100%}
+  .ppage .pq{width:10cm;height:10cm}.ppage .pq svg{width:100%;height:100%}
   .ppage p{font-size:16pt;margin:0;max-width:15cm}
   .ppage small{font-size:11pt;color:#555}
 }
@@ -548,7 +552,8 @@ html.cupbig .queue{font-size:min(1.15cqw,2.05cqh)}
   html:not(.cupbig) .stlive b{font-size:20px;justify-content:flex-start}
   html:not(.cupbig) .stlive .lq{width:72px;padding:3px}
   html:not(.cupbig) .sthead{flex-direction:column;align-items:flex-start;padding-bottom:12px}
-  html:not(.cupbig) .sthead>div:first-child{border-left-width:4px;padding-left:12px}
+  html:not(.cupbig) .sthead>div:first-of-type{border-left-width:4px;padding-left:12px}
+  html:not(.cupbig) .stlogo{height:auto;width:min(70vw,280px);margin:0}
   html:not(.cupbig) .stmain,html:not(.cupbig) .stright{display:flex;flex-direction:column;gap:12px}
   html:not(.cupbig) .queue{grid-template-columns:1fr;gap:8px}
   html:not(.cupbig) .cupboards{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));grid-template-rows:none;gap:10px}
@@ -559,7 +564,7 @@ html.cupbig .queue{font-size:min(1.15cqw,2.05cqh)}
   html:not(.cupbig) .stbr{overflow-x:auto}
   html:not(.cupbig) .bracket{position:static;transform:none!important}
   html:not(.cupbig) .champov{position:static;padding:16px;border-radius:var(--r);border:1px solid var(--acc)}
-  html:not(.cupbig) .champov .t{font-size:40px}html:not(.cupbig) .champov .n{font-size:44px}html:not(.cupbig) .champov .s{font-size:14px}html:not(.cupbig) .champov .h{font-size:12px}
+  html:not(.cupbig) .champov .cl{width:min(60vw,220px)}html:not(.cupbig) .champov .t{font-size:40px}html:not(.cupbig) .champov .n{font-size:44px}html:not(.cupbig) .champov .s{font-size:14px}html:not(.cupbig) .champov .h{font-size:12px}
 }
 .cupst td{font-size:20px}.cupst td.n{font-family:var(--f-body);font-size:15px;font-weight:600;color:var(--fg)}
 .cupst tr[data-n]{cursor:pointer}.cupst tr[data-n]:hover td{background:var(--panel2)}
@@ -1024,7 +1029,8 @@ html.cupbig .queue{font-size:min(1.15cqw,2.05cqh)}
         <div class="wrapc">
           <div class="stage" id="cupStage">
             <header class="sthead">
-              <div style="min-width:0"><div class="stname" id="cupStName"></div><div class="stsub" id="cupProg"></div></div>
+              <img class="stlogo" src="icons/wordmark.webp" alt="TrebleEye" width="980" height="556">
+              <div style="min-width:0;flex:1"><div class="stname" id="cupStName"></div><div class="stsub" id="cupProg"></div></div>
               <div class="stlive"><div><b>Följ live</b><span>Skanna med mobilen</span><span class="cc">Klubbkod <i id="cupCode"></i></span></div><div class="lq" id="cupLiveQR"></div></div>
             </header>
             <div class="stmain">
@@ -1056,6 +1062,7 @@ html.cupbig .queue{font-size:min(1.15cqw,2.05cqh)}
   </div>
   <div class="screen" id="scrLive">
     <div class="bar"><button id="liveBack">‹ Meny</button><span class="gmeta" id="liveTitle">Live</span><button class="dng" id="liveStop">Sluta följa</button></div>
+    <img class="lvlogo" src="icons/wordmark.webp" alt="TrebleEye" width="980" height="556">
     <div class="lvhead"><div class="stname" id="liveName">Ansluter…</div><div class="help" style="margin-top:4px" id="liveProg"></div></div>
     <div class="tabs" role="tablist"><button role="tab" id="lvTabM" aria-selected="true">Matcher</button><button role="tab" id="lvTabB" aria-selected="false">Träd</button><button role="tab" id="lvTabS" aria-selected="false">Statistik</button></div>
     <div id="liveBody"></div>
@@ -3720,7 +3727,7 @@ const cup=(function(){
     fitBracket();
     const ch=$("cupChamp");ch.hidden=!C.champ||champHidden;
     if(watchers.length&&!snapT)snapT=setTimeout(()=>{snapT=null;if(!C)return;const s=liveSnap();watchers=watchers.filter(w=>w.open);watchers.forEach(w=>{try{w.send(s);}catch(_){}});},400);
-    if(C.champ)ch.innerHTML='<div class="t">🏆</div><div class="n">'+esc(C.champ)+'</div><div class="s">vinner '+esc(C.name)+'</div><div class="h">Tryck för att visa trädet</div>';
+    if(C.champ)ch.innerHTML='<img class="cl" src="icons/wordmark.webp" alt="TrebleEye"><div class="t">🏆</div><div class="n">'+esc(C.champ)+'</div><div class="s">vinner '+esc(C.name)+'</div><div class="h">Tryck för att visa trädet</div>';
     renderCupStats();renderLog();
   }
   // scale the bracket so the whole tree is always visible in its box
@@ -3973,7 +3980,7 @@ const cup=(function(){
   function printCodes(){
     const code=C?C.code:clubCode(),nb=C?C.nBoards:+$("cupBoardsN").value,name=C?C.name:($("cupName").value||"");
     let h="";
-    for(let n=1;n<=nb;n++)h+='<section class="ppage"><h2>Bana '+n+'</h2><div class="pq">'+qrSvg(joinUrl(code,n))+'</div><p>Skanna med telefonen som räknar matcherna på den här banan. Den kopplas till Bana '+n+' på storskärmen.</p><small>TrebleEye'+(name?" · "+esc(name):"")+' · klubbkod '+code+' · bana '+n+'</small></section>';
+    for(let n=1;n<=nb;n++)h+='<section class="ppage"><div class="plogo"><img src="icons/wordmark.webp" alt="TrebleEye"></div><h2>Bana '+n+'</h2><div class="pq">'+qrSvg(joinUrl(code,n))+'</div><p>Skanna med telefonen som räknar matcherna på den här banan. Den kopplas till Bana '+n+' på storskärmen.</p><small>TrebleEye'+(name?" · "+esc(name):"")+' · klubbkod '+code+' · bana '+n+'</small></section>';
     $("cupPrintBox").innerHTML=h;setTimeout(()=>window.print(),100);
   }
   $("cupPrint1").addEventListener("click",printCodes);
