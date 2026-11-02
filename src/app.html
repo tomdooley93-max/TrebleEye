@@ -316,6 +316,11 @@ html.tv .bar,html.tv .backdrop{display:none!important}
 .help ol{padding-left:18px;margin:6px 0}
 .filebtn{position:relative;overflow:hidden;display:inline-flex;align-items:center;justify-content:center}
 .filebtn input{position:absolute;inset:0;opacity:0;cursor:pointer}
+#newsNote .nnhead{display:flex;gap:12px;align-items:center;margin-bottom:12px}
+#newsNote .nnhead img{border-radius:22%;flex:none}
+#newsNote .nnver{font-family:var(--f-num);font-weight:800;font-style:italic;font-size:26px;line-height:1;text-transform:uppercase}
+#newsNote .nnlist{margin:0 0 16px;padding-left:20px;display:flex;flex-direction:column;gap:8px;font-size:15px;line-height:1.45}
+#newsNote .nnlist li::marker{color:var(--acc)}
 #iconNote .inhead{display:flex;gap:12px;align-items:center;margin:10px 0 4px}
 #iconNote .inhead img{border-radius:22%;flex:none}
 #iconNote .inhead p{margin:0;font-size:15px;line-height:1.45}
@@ -642,6 +647,11 @@ html.cupbig .queue{font-size:min(1.15cqw,2.05cqh)}
     </div>
   </section>
 
+  <section id="newsNote" class="panel sheet" hidden>
+    <div class="nnhead"><img src="icons/icon-192.png" alt="" width="48" height="48"><div><div class="label">Nytt i den här uppdateringen</div><div class="nnver" id="nnVer"></div></div></div>
+    <ul class="nnlist" id="nnList"></ul>
+    <button class="pri" id="nnOk" style="width:100%">Okej</button>
+  </section>
   <section id="iconNote" class="panel sheet" hidden>
     <div class="row" style="justify-content:space-between;align-items:center">
       <div class="label">Ny ikon</div>
@@ -2233,7 +2243,7 @@ function endGame(){
   G.ended=true;
   undo=[];save();showScreen("home");
 }
-function closeSheets(){["iconNote","editPl","voiceAdmin","adminTools","sessPanel","statsPanel","sharePanel","cupPanel","cupCard","cupAdmin"].forEach(id=>{$(id).hidden=true;});}
+function closeSheets(){["newsNote","iconNote","editPl","voiceAdmin","adminTools","sessPanel","statsPanel","sharePanel","cupPanel","cupCard","cupAdmin"].forEach(id=>{$(id).hidden=true;});}
 
 /* ---------- Render ---------- */
 function render(){
@@ -4135,6 +4145,34 @@ const iconNote=(function(){
   });
   return {get due(){return ios&&inst&&store.get("dk_iconnote")==="due";},open};
 })();
+/* ---------- "Nytt i den här uppdateringen": shown once per version that has an entry here.
+   Small fixes get no entry, so no pop-up. Newest first. ---------- */
+const NEWS=[
+  {v:"2.14.3",items:[
+    "Ny logga och ny appikon.",
+    "Loggan syns också i turneringsläget: på storskärmen, i publikvyn, på vinnarbilden och på de utskrivna bankoderna.",
+    "Säkerhetskopian kan läsas in direkt i välkomstguiden."
+  ]}
+];
+const news=(function(){
+  const cur=$("appVer").textContent.replace(/^v/,"");
+  const num=v=>String(v).split(".").map(n=>+n||0);
+  const newer=(a,b)=>{const x=num(a),y=num(b);for(let i=0;i<3;i++){if((x[i]||0)!==(y[i]||0))return (x[i]||0)>(y[i]||0);}return false;};
+  // first run of this code: a fresh install has nothing new to show; an existing user sees the latest entry
+  let seen=store.get("dk_seenver");
+  if(seen==null){seen=store.get("dk_guided")?"0":cur;store.set("dk_seenver",seen);}
+  const list=NEWS.filter(n=>newer(n.v,seen)&&!newer(n.v,cur));
+  let after=null;
+  function open(then){
+    after=then||null;closeSheets();
+    $("nnVer").textContent="Version "+cur;
+    $("nnList").innerHTML=(seen==="0"?list.slice(0,1):list).flatMap(n=>n.items).map(t=>"<li>"+esc(t)+"</li>").join("");
+    $("newsNote").hidden=false;usage.ev("nytt/visad");
+  }
+  $("nnOk").addEventListener("click",()=>{store.set("dk_seenver",cur);$("newsNote").hidden=true;if(after)setTimeout(after,250);});
+  if(!list.length&&newer(cur,seen))store.set("dk_seenver",cur);  // only small fixes since last time
+  return {get due(){return list.length>0;},open};
+})();
 (function(){let n=0,t=0;$("appVer").addEventListener("click",()=>{const now=Date.now();n=now-t<1500?n+1:1;t=now;if(n>=7){n=0;admin.toggle();}});})();
 function fillVoiceSelect(){
   $("lnkVisits").hidden=!admin.on;$("btnAdminTools").hidden=!admin.on;
@@ -4441,7 +4479,10 @@ usage.send("/","TrebleEye");
 usage.ev(window.matchMedia&&matchMedia("(display-mode: standalone)").matches||navigator.standalone===true?"start/hemskärm":"start/webbläsare");
 // first start: show the guide (not on a TV or when the page was opened to join a session)
 if(guide.due&&!tv.on&&sess.role!=="client"&&!cup.role)setTimeout(()=>guide.open(),400);
-else if(iconNote.due&&!tv.on&&sess.role!=="client"&&!cup.role)setTimeout(()=>iconNote.open(),600);
+else if(!tv.on&&sess.role!=="client"&&!cup.role){
+  if(news.due)setTimeout(()=>news.open(iconNote.due?()=>iconNote.open():null),600);
+  else if(iconNote.due)setTimeout(()=>iconNote.open(),600);
+}
 if(caller.lang==="pro")audio.prefetch(caller.clipNames());
 loadVoices();
 // remove data left behind by the old on-device voice generator
