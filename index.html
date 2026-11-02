@@ -231,8 +231,11 @@ html.tv .bar,html.tv .backdrop{display:none!important}
 .gnav{display:flex;gap:10px;position:sticky;bottom:-20px;margin:0 -22px -20px;padding:12px 22px 20px;background:var(--panel);border-top:1px solid var(--line)}
 .gnav button{flex:1;padding:15px;font-size:17px;border-radius:var(--r)}
 .help-tile{grid-column:1/-1}
+/* the four main choices form a 2×2 block; "Dela appen" and "Så funkar appen" share a quieter row below, so no tile is left alone */
+.tiles #btnShareApp,.tiles #btnGuide{grid-column:auto;text-align:center;background:transparent;padding-block:12px;font-weight:500;color:var(--mut)}
+.tiles #btnShareApp:hover,.tiles #btnGuide:hover{color:var(--fg);background:var(--panel)}
+.tiles #btnShareApp::after,.tiles #btnGuide::after,.tiles .help-tile::after{content:none}
 .tiles .help-tile{text-align:center;background:transparent}
-.tiles .help-tile::after{content:none}
 .tilelink{display:block;text-align:center;padding:14px 10px;border-radius:var(--r);border:1px dashed var(--line2);color:var(--mut);text-decoration:none;font-size:14px}
 #btnEnd{padding:8px 10px}
 .tabs.small{margin:0;flex:1;max-width:420px}
@@ -591,7 +594,7 @@ html.cupbig .queue{font-size:min(1.15cqw,2.05cqh)}
     <header class="home-head">
       <h1>Treble<span>Eye</span></h1>
       <div class="byline">by T.Henriksson</div>
-      <div class="meta"><span id="appVer">v2.14.0</span></div>
+      <div class="meta"><span id="appVer">v2.14.1</span></div>
     </header>
     <div class="home">
       <button class="pri big" id="btnSettings">Nytt spel</button>
