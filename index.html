@@ -419,6 +419,7 @@ html.tv .bar,html.tv .backdrop{display:none!important}
 .bm .r.tbd{color:var(--mut)}
 .bm.pick{cursor:pointer}
 .bm.pick:hover{border-color:var(--mut)}
+.bm .seed{font-style:normal;font-size:.75em;color:var(--warn);margin-right:5px;font-weight:700}
 .bm .tag.plan{background:var(--panel2);color:var(--fg)}
 .bcard .nextm{margin:0 -2px;padding:.15em .6em;border-radius:6px;background:var(--panel2);color:var(--mut);font-size:clamp(10px,7cqh,28px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .bm .tag{font-size:10px;letter-spacing:.08em;text-transform:uppercase;background:var(--grn);color:#fff;padding:1px 10px;font-weight:600}
@@ -900,7 +901,9 @@ html.cupbig .queue{font-size:min(1.1cqw,2cqh)}
         <label class="label" style="display:flex;flex-direction:column;gap:4px">Spelare, en per rad
           <textarea id="cupPlayers" placeholder="Anna&#10;Bosse&#10;Cissi&#10;…"></textarea>
         </label>
-        <p class="help" style="margin:0">Lottningen slumpas. Går antalet inte jämnt upp får några spelare walkover i första omgången. Vinnaren går vidare. Varje bana får en egen QR-kod på storskärmen: skanna den med banans telefon så kopplas telefonen till just den banan.<br>Sudden death: har ingen gått ut när båda kastat 30 pilar i leget kastar båda 3 pilar och högst poäng vinner leget (lika ger ny runda).</p>
+        <label class="ck"><input type="checkbox" id="cupSeed" checked> Seeda efter spelarnas snitt</label>
+        <p class="help" id="cupSeedInfo" style="margin:0"></p>
+        <p class="help" style="margin:0">De bästa spelarna (efter snitt från banornas telefoner) seedas så att de inte möts tidigt och får eventuella walkovers, resten lottas. Går antalet inte jämnt upp får några spelare walkover i första omgången. Vinnaren går vidare. Varje bana får en egen QR-kod på storskärmen: skanna den med banans telefon så kopplas telefonen till just den banan.<br>Sudden death: har ingen gått ut när båda kastat 30 pilar i leget kastar båda 3 pilar och högst poäng vinner leget (lika ger ny runda).</p>
         <button class="pri" id="cupGo">Lotta och starta</button>
       </section>
       <div id="cupRun" hidden>
@@ -3001,14 +3004,21 @@ const cup=(function(){
   document.addEventListener("visibilitychange",()=>{if(role&&document.visibilityState==="visible")wake();});
 
   /* ----- bracket (host) ----- */
-  function draw(names){
-    const p=names.slice();
-    for(let i=p.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[p[i],p[j]]=[p[j],p[i]];}
-    let size=2;while(size<p.length)size*=2;
-    const half=size/2,rounds=[],r0=[];
-    // every first-round match gets at least one player, so byes never meet each other
-    for(let m=0;m<half;m++)r0.push({a:p[m],b:m<p.length-half?p[half+m]:null,w:null,board:null,live:null});
+  // seeded players (best first) are spread over the bracket, everyone else is drawn at random;
+  // the top seeds get the walkovers and seed 1 and 2 can only meet in the final
+  function draw(names,seeds){
+    const rest=names.filter(n=>!seeds.includes(n));
+    for(let i=rest.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[rest[i],rest[j]]=[rest[j],rest[i]];}
+    const byRank=seeds.concat(rest);
+    let size=2;while(size<byRank.length)size*=2;
+    let order=[1,2];while(order.length<size){const l=order.length*2,o=[];order.forEach(x=>o.push(x,l+1-x));order=o;}
+    const rounds=[],r0=[];
+    for(let m=0;m<size/2;m++){
+      let a=byRank[order[2*m]-1]||null,b=byRank[order[2*m+1]-1]||null;if(!a){a=b;b=null;}
+      r0.push({a,b,w:null,board:null,live:null});
+    }
     rounds.push(r0);
+    const half=size/2;
     for(let n=half/2;n>=1;n/=2){const r=[];for(let m=0;m<n;m++)r.push({a:null,b:null,w:null,board:null,live:null});rounds.push(r);}
     rounds.forEach((r,ri)=>r.forEach((m,i)=>{m.id=ri+"."+i;}));
     return rounds;
@@ -3070,21 +3080,60 @@ const cup=(function(){
     persist();renderHost();
   }
 
+  /* ----- seeding from the players' statistics on the board phones ----- */
+  // every board phone sends its match history totals when it connects; they are kept on the host
+  // (one entry per phone, replaced each time, so the same matches are never counted twice)
+  const nkey=n=>String(n||"").trim().toLowerCase();
+  function seedData(){
+    const all=store.get("dk_cupseed")||{},t={};
+    const add=(rows)=>rows.forEach(r=>{if(!Array.isArray(r))return;const k=nkey(r[0]);if(!k)return;const x=t[k]||(t[k]={pts:0,darts:0,m:0});x.pts+=+r[1]||0;x.darts+=+r[2]||0;x.m+=+r[3]||0;});
+    Object.values(all).forEach(d=>add(d.rows||[]));
+    add(careers().map(x=>[x.name,x.pts,x.darts,x.matches])); // this device's own games
+    return {t,phones:Object.keys(all).length};
+  }
+  function saveSeedRows(dev,rows){
+    if(!Array.isArray(rows))return;
+    const all=store.get("dk_cupseed")||{};
+    all[dev]={t:Date.now(),rows:rows.slice(0,400).map(r=>[String(r[0]).slice(0,24),+r[1]||0,+r[2]||0,+r[3]||0])};
+    store.set("dk_cupseed",all);
+  }
+  // players with at least 30 darts on record, best 3-dart average first; a quarter of the field is seeded
+  function seedList(names){
+    const {t}=seedData();
+    const rated=names.map(n=>({n,x:t[nkey(n)]})).filter(o=>o.x&&o.x.darts>=30).map(o=>({n:o.n,avg:o.x.pts/o.x.darts*3,m:o.x.m})).sort((a,b)=>b.avg-a.avg);
+    let size=2;while(size<names.length)size*=2;
+    const k=names.length<4?0:Math.max(2,size/4);
+    return {rated,seeds:rated.slice(0,k)};
+  }
+  function seedPreview(){
+    const names=parseNames($("cupPlayers").value),el=$("cupSeedInfo");
+    if(!$("cupSeed").checked){el.textContent="Lottningen blir helt slumpad.";return;}
+    const {rated,seeds}=seedList(names),{phones}=seedData();
+    if(names.length<4){el.textContent="Seedning används från 4 spelare.";return;}
+    el.innerHTML=seeds.length?"Seedade: "+seeds.map((x,i)=>(i+1)+". "+esc(x.n)+" ("+fx1(x.avg)+")").join(", ")+(rated.length<names.length?". "+(names.length-rated.length)+" spelare saknar statistik och lottas fritt.":""):
+      "Ingen av spelarna har statistik än. Den samlas in från banornas telefoner"+(phones?" ("+phones+" telefoner hittills)":"")+", så seedningen fungerar från nästa cup.";
+  }
+  function parseNames(v){
+    const seen={},list=[];
+    String(v||"").split(/\n|,/).forEach(n=>{n=n.trim().slice(0,24);if(!n)return;let k=n,i=2;while(seen[k.toLowerCase()])k=n+" "+(i++);seen[k.toLowerCase()]=1;list.push(k);});
+    return list;
+  }
+
   /* ----- host ----- */
   function clubCode(){
     let c=String($("cupClub").value||"").toUpperCase().replace(/[^A-Z0-9]/g,"");
     if(c.length!==4)c=store.get("dk_cupclub")||mkCode();
     store.set("dk_cupclub",c);$("cupClub").value=c;return c;
   }
-  function create(name,cfg,names,nb){
+  function create(name,cfg,names,nb,useSeed){
     store.set("dk_cupnb",nb);
-    const seen={},list=[];
-    names.forEach(n=>{n=n.trim().slice(0,24);if(!n)return;let k=n,i=2;while(seen[k.toLowerCase()])k=n+" "+(i++);seen[k.toLowerCase()]=1;list.push(k);});
+    const list=parseNames(names.join("\n"));
     if(list.length<2){setMsg("Skriv in minst två spelare.");return;}
     if(list.length>64){setMsg("Högst 64 spelare.");return;}
     usage.ev("turnering/start");
     const club=clubCode();
-    C={code:club,name:name||"Turnering",cfg,players:list,rounds:draw(list),boards:{},cur:{},champ:null,nBoards:Math.max(1,Math.min(16,nb|0||4))};
+    const seeds=useSeed?seedList(list).seeds:[];
+    C={code:club,name:name||"Turnering",cfg,players:list,rounds:draw(list,seeds.map(x=>x.n)),seeds:Object.fromEntries(seeds.map((x,i)=>[x.n,i+1])),boards:{},cur:{},champ:null,nBoards:Math.max(1,Math.min(16,nb|0||4))};
     C.rounds[0].forEach(m=>{if(!m.b)setWinner(m,m.a);});
     persist();host();renderHost();
   }
@@ -3114,7 +3163,7 @@ const cup=(function(){
     if(!m||typeof m!=="object"||!C)return;
     if(m.t==="watch"){if(!watchers.includes(c))watchers.push(c);c.on("close",()=>{watchers=watchers.filter(x=>x!==c);});try{c.send(liveSnap());}catch(_){}return;}
     if(m.t==="hello"&&typeof m.dev==="string"){
-      const dev=m.dev.slice(0,16);c.dev=dev;
+      const dev=m.dev.slice(0,16);c.dev=dev;saveSeedRows(dev,m.car);
       if(conns[dev]&&conns[dev]!==c){try{conns[dev].close();}catch(_){}}
       const n=seat(dev,m.n|0);
       if(!n){try{c.send({t:"taken",n:m.n|0});}catch(_){}return;}
@@ -3248,7 +3297,7 @@ const cup=(function(){
   function connect(){
     if(role!=="board"||!peer||peer.destroyed)return;
     hostConn=peer.connect(PFX+code,{reliable:true});
-    hostConn.on("open",()=>{setPMsg("");hostConn.send({t:"hello",dev:devId(),n:B.want||0});chip();boardUi();});
+    hostConn.on("open",()=>{setPMsg("");hostConn.send({t:"hello",dev:devId(),n:B.want||0,car:careers().slice(0,400).map(x=>[x.name,x.pts,x.darts,x.matches])});chip();boardUi();});
     hostConn.on("data",onHostMsg);
     hostConn.on("close",()=>{chip();boardUi();retry();});
   }
@@ -3331,6 +3380,7 @@ const cup=(function(){
     closeSheets();showScreen("cup");
     $("cupClub").value=store.get("dk_cupclub")||"";if(!$("cupClub").value)clubCode();
     const nb=store.get("dk_cupnb");if(nb)$("cupBoardsN").value=String(nb);
+    seedPreview();
     renderHost();
   }
   const qrCache={};
@@ -3397,7 +3447,8 @@ const cup=(function(){
         [m.a,m.b].forEach((nm,k)=>{
           const cls=!nm?"tbd":m.w&&!bye?(m.w===nm?"w":"l"):"";
           const legs=m.live&&m.live.p[k]&&(m.w||live)?m.live.p[k].l:"";
-          x+='<div class="r '+cls+'" data-k="'+k+'"><span>'+(nm?esc(nm):bye?"walkover":"–")+'</span><span>'+legs+'</span></div>';
+          const sd=nm&&C.seeds&&C.seeds[nm];
+          x+='<div class="r '+cls+'" data-k="'+k+'"><span>'+(sd?'<i class="seed">'+sd+'</i>':"")+(nm?esc(nm):bye?"walkover":"–")+'</span><span>'+legs+'</span></div>';
         });
         el.innerHTML=x;
         if(!cupbig&&!bye&&(m.a||m.b)){el.classList.add("pick");el.addEventListener("click",()=>openAdmin(m));}
@@ -3610,7 +3661,7 @@ const cup=(function(){
   },{passive:true}));
   function go(){
     const names=$("cupPlayers").value.split(/\n|,/);
-    create($("cupName").value.trim().slice(0,40),{start:+$("cupStart").value,dbl:$("cupDbl").checked,legs:+$("cupLegs").value,sdAt:$("cupSd").checked?30:0},names,+$("cupBoardsN").value);
+    create($("cupName").value.trim().slice(0,40),{start:+$("cupStart").value,dbl:$("cupDbl").checked,legs:+$("cupLegs").value,sdAt:$("cupSd").checked?30:0},names,+$("cupBoardsN").value,$("cupSeed").checked);
   }
   function boot(){
     const cs=location.hash.match(/^#cs-([A-Za-z0-9_-]+)$/);
@@ -3666,6 +3717,8 @@ const cup=(function(){
   $("cupLeave").addEventListener("click",()=>leave());
   $("cupBack").addEventListener("click",()=>{bigOff();showScreen("home");});
   $("cupGo").addEventListener("click",go);
+  $("cupPlayers").addEventListener("input",()=>{clearTimeout(seedPreview.t);seedPreview.t=setTimeout(seedPreview,300);});
+  $("cupSeed").addEventListener("change",seedPreview);
   $("cupEnd").addEventListener("click",end);
   $("cupBig").addEventListener("click",bigOn);
   $("cupExitBig").addEventListener("click",bigOff);
