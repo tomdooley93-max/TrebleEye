@@ -316,6 +316,12 @@ html.tv .bar,html.tv .backdrop{display:none!important}
 .help ol{padding-left:18px;margin:6px 0}
 .filebtn{position:relative;overflow:hidden;display:inline-flex;align-items:center;justify-content:center}
 .filebtn input{position:absolute;inset:0;opacity:0;cursor:pointer}
+#iconNote .inhead{display:flex;gap:12px;align-items:center;margin:10px 0 4px}
+#iconNote .inhead img{border-radius:22%;flex:none}
+#iconNote .inhead p{margin:0;font-size:15px;line-height:1.45}
+#iconNote .insteps{margin:10px 0 14px;padding-left:22px;display:flex;flex-direction:column;gap:10px;font-size:15px;line-height:1.45}
+#iconNote #inMsg{display:block;margin-top:6px}
+.gimp{margin-top:14px}
 
 /* Settings (Nytt spel) */
 #settings{margin-bottom:16px;max-width:760px;margin-inline:auto}
@@ -589,7 +595,7 @@ html.cupbig .queue{font-size:min(1.15cqw,2.05cqh)}
     <header class="home-head">
       <h1 class="logo"><img src="icons/wordmark.webp" alt="TrebleEye" width="980" height="556"></h1>
       <div class="byline">by T.Henriksson</div>
-      <div class="meta"><span id="appVer">v2.14.2</span></div>
+      <div class="meta"><span id="appVer">v2.14.3</span></div>
     </header>
     <div class="home">
       <button class="pri big" id="btnSettings">Nytt spel</button>
@@ -636,6 +642,22 @@ html.cupbig .queue{font-size:min(1.15cqw,2.05cqh)}
     </div>
   </section>
 
+  <section id="iconNote" class="panel sheet" hidden>
+    <div class="row" style="justify-content:space-between;align-items:center">
+      <div class="label">Ny ikon</div>
+      <button id="inLater">Påminn senare</button>
+    </div>
+    <div class="inhead"><img src="icons/icon-192.png" alt="" width="56" height="56"><p>TrebleEye har fått ny ikon. På iPhone och iPad byts ikonen på hemskärmen bara om du lägger till appen igen.</p></div>
+    <ol class="insteps">
+      <li><b>Spara en säkerhetskopia först.</b> När du tar bort appen raderar iPhone allt den har sparat: historik, spelare och inställningar.
+        <div class="row" style="margin-top:8px"><button class="pri" id="inBackup">Spara säkerhetskopia</button></div>
+        <span class="help" id="inMsg"></span></li>
+      <li>Gå till hemskärmen, håll fingret på TrebleEye-ikonen och välj <b>Ta bort bokmärke</b> (eller <b>Ta bort app</b>). Bekräfta med <b>Radera</b>.</li>
+      <li>Öppna <span class="sesslink">tomdooley93-max.github.io/TrebleEye</span> i Safari och välj <b>Dela</b> och sedan <b>Lägg till på hemskärmen</b>.</li>
+      <li>Öppna den nya appen och tryck <b>Läs in säkerhetskopia</b> i välkomstguiden. Välj filen du sparade.</li>
+    </ol>
+    <div class="row"><button id="inNever">Behåll den gamla ikonen</button></div>
+  </section>
   <section id="adminTools" class="panel sheet" hidden>
     <div class="row" style="justify-content:space-between">
       <div class="label">Adminverktyg</div>
@@ -2147,7 +2169,7 @@ const guide=(function(){
   }
   function build(){
     slides=[
-      {art:board,title:"Välkommen till TrebleEye",body:'<p>TrebleEye räknar poängen åt er när ni spelar dart.</p><ul class="gpts"><li>Räknar ner och föreslår hur du går ut.</li><li>En uppropare ropar ut poängen som på TV.</li><li>Kameran kan se var pilen hamnade.</li></ul><p>Den här korta guiden visar det viktigaste. Tryck <b>Nästa</b>.</p>'},
+      {art:board,title:"Välkommen till TrebleEye",body:(installed()?'<p class="gsmall gimp">Har du lagt till appen igen? <span class="filebtn"><button tabindex="-1">Läs in säkerhetskopia</button><input type="file" id="gImport" accept="application/json,.json" aria-label="Läs in säkerhetskopia"></span></p>':'')+'<p>TrebleEye räknar poängen åt er när ni spelar dart.</p><ul class="gpts"><li>Räknar ner och föreslår hur du går ut.</li><li>En uppropare ropar ut poängen som på TV.</li><li>Kameran kan se var pilen hamnade.</li></ul><p>Den här korta guiden visar det viktigaste. Tryck <b>Nästa</b>.</p>'},
       ...installSlides(),
       {art:phone('<rect x="24" y="44" width="72" height="22" rx="6" fill="#3f9160"/><text x="60" y="59" text-anchor="middle" font-size="10" font-weight="700" fill="#fff" font-family="sans-serif">Nytt spel</text><rect x="24" y="74" width="72" height="16" rx="5" fill="#202b26"/><rect x="24" y="96" width="72" height="16" rx="5" fill="#202b26"/><rect x="24" y="140" width="72" height="20" rx="6" fill="#3f9160"/><text x="60" y="154" text-anchor="middle" font-size="9" font-weight="700" fill="#fff" font-family="sans-serif">Starta spel</text>'),
         title:"Starta ett spel",body:'<ol class="gsteps"><li>Tryck på <b>Nytt spel</b>.</li><li>Välj spelläge och hur många som spelar. Skriv gärna in namnen.</li><li>Tryck på <b>Starta spel</b>.</li></ol><p class="gsmall"><b>501</b> är det vanliga spelet: alla börjar på 501 och räknar ner till noll. Sista pilen ska vara en dubbel.<br><b>Cricket</b>, <b>Killer</b>, <b>170</b> och <b>Around the Clock</b> är roliga alternativ, och under <b>Träning</b> kan du öva på utgångar och dubblar.</p>'},
@@ -2169,6 +2191,7 @@ const guide=(function(){
     const card=$("gCard");card.classList.remove("in");void card.offsetWidth;card.classList.add("in");
     const cb=$("gCopy");if(cb)cb.onclick=()=>{const done=()=>{cb.textContent="✓ Kopierad";};
       if(navigator.clipboard)navigator.clipboard.writeText(APP_URL).then(done,()=>{});else{const t=document.createElement("textarea");t.value=APP_URL;document.body.appendChild(t);t.select();try{document.execCommand("copy");done();}catch(e){}t.remove();}};
+    const gi=$("gImport");if(gi)gi.onchange=e=>{const f=e.target.files[0];e.target.value="";adminTools.importData(f,t=>{const p=gi.closest("p");if(p)p.textContent=t;});};
     const ib=$("gInstall");if(ib)ib.onclick=()=>{installEvt.prompt();installEvt.userChoice.finally(()=>{installEvt=null;build();show(idx);});};
   }
   function open(){build();$("guide").hidden=false;show(0);}
@@ -2210,7 +2233,7 @@ function endGame(){
   G.ended=true;
   undo=[];save();showScreen("home");
 }
-function closeSheets(){["editPl","voiceAdmin","adminTools","sessPanel","statsPanel","sharePanel","cupPanel","cupCard","cupAdmin"].forEach(id=>{$(id).hidden=true;});}
+function closeSheets(){["iconNote","editPl","voiceAdmin","adminTools","sessPanel","statsPanel","sharePanel","cupPanel","cupCard","cupAdmin"].forEach(id=>{$(id).hidden=true;});}
 
 /* ---------- Render ---------- */
 function render(){
@@ -4045,24 +4068,35 @@ const adminTools=(function(){
     location.replace(location.pathname+"?u="+Date.now());
   }
   const SKIP=["dk_ghtoken","dk_admin","dk_errlog","dk_cupdev"];
-  function exportData(){
+  async function exportData(msg){
+    msg=typeof msg==="function"?msg:say;
     const data={};
     for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k.startsWith("dk_")&&!SKIP.includes(k))data[k]=localStorage.getItem(k);}
     const txt=JSON.stringify({app:"TrebleEye",version:$("appVer").textContent,date:new Date().toISOString(),data});
+    const fname="TrebleEye-backup-"+new Date().toISOString().slice(0,10)+".json";
+    // iPhone home-screen apps handle downloads poorly; the share sheet lets the user pick "Spara i Filer"
+    try{
+      const file=new File([txt],fname,{type:"application/json"});
+      if(navigator.canShare&&navigator.canShare({files:[file]})){
+        await navigator.share({files:[file],title:"TrebleEye säkerhetskopia"});
+        msg("Säkerhetskopian är sparad ("+Object.keys(data).length+" poster).");return true;
+      }
+    }catch(e){if(e&&e.name==="AbortError"){msg("Inget sparades. Försök igen och välj Spara i Filer.","e");return false;}}
     const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([txt],{type:"application/json"}));
-    a.download="TrebleEye-backup-"+new Date().toISOString().slice(0,10)+".json";document.body.appendChild(a);a.click();
+    a.download=fname;document.body.appendChild(a);a.click();
     setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1000);
-    say("Säkerhetskopian är sparad ("+Object.keys(data).length+" poster).");
+    msg("Säkerhetskopian är sparad ("+Object.keys(data).length+" poster).");return true;
   }
-  function importData(f){
+  function importData(f,msg){
+    msg=typeof msg==="function"?msg:say;
     if(!f)return;const r=new FileReader();
     r.onload=()=>{
-      let o;try{o=JSON.parse(r.result);}catch(e){say("Filen kunde inte läsas.","e");return;}
-      if(!o||o.app!=="TrebleEye"||!o.data||typeof o.data!=="object"){say("Det här är ingen säkerhetskopia från TrebleEye.","e");return;}
+      let o;try{o=JSON.parse(r.result);}catch(e){msg("Filen kunde inte läsas.","e");return;}
+      if(!o||o.app!=="TrebleEye"||!o.data||typeof o.data!=="object"){msg("Det här är ingen säkerhetskopia från TrebleEye.","e");return;}
       const keys=Object.keys(o.data).filter(k=>k.startsWith("dk_")&&!SKIP.includes(k)&&typeof o.data[k]==="string");
       if(!confirm("Läsa in "+keys.length+" poster från "+String(o.date||"").slice(0,10)+"? Det som finns på den här enheten skrivs över."))return;
-      try{keys.forEach(k=>localStorage.setItem(k,o.data[k]));}catch(e){say("Det gick inte att spara: "+e.message,"e");return;}
-      say("Inläst. Appen laddas om…");setTimeout(()=>location.reload(),800);
+      try{keys.forEach(k=>localStorage.setItem(k,o.data[k]));store.set("dk_iconnote","done");}catch(e){msg("Det gick inte att spara: "+e.message,"e");return;}
+      msg("Inläst. Appen laddas om…");setTimeout(()=>location.reload(),800);
     };
     r.readAsText(f);
   }
@@ -4079,9 +4113,27 @@ const adminTools=(function(){
   $("atDiagRefresh").addEventListener("click",diag);
   $("atDiagCopy").addEventListener("click",async()=>{const t=await diagText();try{await navigator.clipboard.writeText(t);say("Diagnosen är kopierad.");}catch(e){say("Kunde inte kopiera. Markera texten och kopiera själv.","e");}});
   $("atErrClear").addEventListener("click",()=>{store.set("dk_errlog",[]);diag();});
-  $("atExport").addEventListener("click",exportData);
+  $("atExport").addEventListener("click",()=>exportData());
   $("atImport").addEventListener("change",e=>{importData(e.target.files[0]);e.target.value="";});
-  return {open};
+  return {open,exportData,importData};
+})();
+/* ---------- One-time notice (2.14.3): iPhone/iPad home-screen apps keep the old icon until re-added ---------- */
+const iconNote=(function(){
+  const ua=navigator.userAgent;
+  const ios=/iPad|iPhone|iPod/.test(ua)||(/Macintosh/.test(ua)&&"ontouchend" in document);
+  const inst=window.matchMedia&&matchMedia("(display-mode: standalone)").matches||navigator.standalone===true;
+  // decided once per device: existing users (guide already seen) get the notice, fresh installs already have the new icon
+  if(store.get("dk_iconnote")==null)store.set("dk_iconnote",store.get("dk_guided")?"due":"skip");
+  const say=(t,cls)=>{const e=$("inMsg");e.textContent=t;e.style.color=cls==="e"?"var(--red)":"var(--acc)";};
+  function open(){closeSheets();say("");$("iconNote").hidden=false;usage.ev("ikon/visad");}
+  $("inLater").addEventListener("click",()=>{$("iconNote").hidden=true;usage.ev("ikon/senare");});
+  $("inNever").addEventListener("click",()=>{store.set("dk_iconnote","never");$("iconNote").hidden=true;usage.ev("ikon/aldrig");});
+  $("inBackup").addEventListener("click",async()=>{
+    store.set("dk_iconnote","done");  // set before exporting so the restored backup does not show the notice again
+    const ok=await adminTools.exportData(say);
+    if(ok===false)store.set("dk_iconnote","due");else usage.ev("ikon/backup");
+  });
+  return {get due(){return ios&&inst&&store.get("dk_iconnote")==="due";},open};
 })();
 (function(){let n=0,t=0;$("appVer").addEventListener("click",()=>{const now=Date.now();n=now-t<1500?n+1:1;t=now;if(n>=7){n=0;admin.toggle();}});})();
 function fillVoiceSelect(){
@@ -4389,6 +4441,7 @@ usage.send("/","TrebleEye");
 usage.ev(window.matchMedia&&matchMedia("(display-mode: standalone)").matches||navigator.standalone===true?"start/hemskärm":"start/webbläsare");
 // first start: show the guide (not on a TV or when the page was opened to join a session)
 if(guide.due&&!tv.on&&sess.role!=="client"&&!cup.role)setTimeout(()=>guide.open(),400);
+else if(iconNote.due&&!tv.on&&sess.role!=="client"&&!cup.role)setTimeout(()=>iconNote.open(),600);
 if(caller.lang==="pro")audio.prefetch(caller.clipNames());
 loadVoices();
 // remove data left behind by the old on-device voice generator
