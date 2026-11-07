@@ -635,7 +635,7 @@ html.cupbig .queue{font-size:min(1.15cqw,2.05cqh)}
     <header class="home-head">
       <h1 class="logo"><img src="icons/wordmark.webp" alt="TrebleEye" width="980" height="556"></h1>
       <div class="byline">by T.Henriksson</div>
-      <div class="meta"><span id="appVer">v2.17.0</span></div>
+      <div class="meta"><span id="appVer">v2.17.1</span></div>
     </header>
     <div class="home">
       <button class="pri big" id="btnSettings">Nytt spel</button>
@@ -3263,6 +3263,10 @@ const sess=(function(){
   }
   function retry(){clearTimeout(retryT);retryT=setTimeout(()=>{if(role!=="client")return;if(peer&&peer.disconnected){try{peer.reconnect();}catch(_){}}connect();},3000);}
   function onHostMsg(m){
+    if(m&&m.t==="bye"){
+      leave();if(tv.on)tv.exit();closeSheets();showScreen("home");
+      setTimeout(()=>{if($("sessMsg"))setMsg("Värden avslutade sessionen.");},0);return;
+    }
     if(!m||typeof m!=="object"||camOnly)return;
     if(m.t==="state"&&m.G&&Array.isArray(m.G.players)){
       G=m.G;undoN=m.undoN|0;
@@ -3303,6 +3307,13 @@ const sess=(function(){
 
   function leave(silent){
     clearTimeout(retryT);
+    // the host ending the session tells everyone, so connected devices close the match instead of waiting for it
+    if(!silent&&role==="host"&&conns.length){
+      conns.forEach(c=>{try{c.open&&c.send({t:"bye"});}catch(_){}});
+      // give the goodbye time to arrive before the connections close
+      const oc=conns,op=peer;conns=[];peer=null;
+      setTimeout(()=>{oc.forEach(c=>{try{c.close();}catch(_){}});try{op&&op.destroy();}catch(_){}},800);
+    }
     Object.keys(calls).forEach(k=>{try{calls[k].close();}catch(_){}delete calls[k];});
     conns.forEach(c=>{try{c.close();}catch(_){}});conns=[];
     if(hostConn){try{hostConn.close();}catch(_){}hostConn=null;}
