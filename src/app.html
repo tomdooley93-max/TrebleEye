@@ -600,7 +600,7 @@ html.cupbig .queue{font-size:min(1.15cqw,2.05cqh)}
     <header class="home-head">
       <h1 class="logo"><img src="icons/wordmark.webp" alt="TrebleEye" width="980" height="556"></h1>
       <div class="byline">by T.Henriksson</div>
-      <div class="meta"><span id="appVer">v2.15.1</span></div>
+      <div class="meta"><span id="appVer">v2.15.2</span></div>
     </header>
     <div class="home">
       <button class="pri big" id="btnSettings">Nytt spel</button>
@@ -2232,7 +2232,8 @@ function showScreen(name){
   if(name==="home")updateResume();
 }
 function updateResume(){
-  const has=!!(G&&!G.ended&&(G.log.length||G.turn.darts.length)&&G.matchWinner==null);
+  // a connected device always gets a way back to the host's running match, even before the first dart
+  const has=!!(G&&!G.ended&&G.matchWinner==null&&(sess.role==="client"||G.log.length||G.turn.darts.length));
   $("btnResume").hidden=!has;
   if(has)$("resumeInfo").textContent=G.players.map(p=>p.name).join(" – ")+" · "+$("gameMeta").textContent;
 }
@@ -2939,7 +2940,13 @@ function onSettled(g,t){
   if(cam.prop){cam.dirty=true;return;}
   if(!cam.ref||cam.needRef){
     // wait until the board looks empty again (darts pulled), max 20 s
-    if(cam.emptyRef&&G.turn.darts.length===0&&changed(g,cam.emptyRef)>Math.max(60,cam.maskN*0.003)){
+    const ch=cam.emptyRef?changed(g,cam.emptyRef):0;
+    // a huge difference is not darts but a moved camera or new light: recalibrate instead of waiting
+    if(ch>cam.maskN*0.1){
+      if(!cam.waitSince)cam.waitSince=t;
+      if(t-cam.waitSince<5000){cam.dirty=true;status("Väntar på stilla bild…");return;}
+      cam.waitSince=0;refineCalib();
+    }else if(cam.emptyRef&&G.turn.darts.length===0&&ch>Math.max(60,cam.maskN*0.003)){
       if(!cam.waitSince)cam.waitSince=t;
       if(t-cam.waitSince<20000){cam.dirty=true;status("Dra ut pilarna från tavlan.");return;}
     }
@@ -3130,7 +3137,11 @@ const sess=(function(){
       G=m.G;undoN=m.undoN|0;
       if(typeof m.rot==="number"&&m.rot!==remoteRot){remoteRot=m.rot%360;fitRemote();}
       if(G.ended&&curScreen==="game"&&!tv.on){showScreen("home");}
-      if(curScreen!=="game"&&!onHostMsg.shown){onHostMsg.shown=true;$("sessPanel").hidden=true;showScreen("game");}
+      // open the match when one starts on the host (also a new match after the last one ended)
+      const live=!G.ended;
+      if(live&&!onHostMsg.live&&curScreen!=="game"){$("sessPanel").hidden=true;showScreen("game");}
+      onHostMsg.live=live;
+      if(curScreen==="home")updateResume();
       if(m.photos&&typeof m.photos==="object"){const pr=profiles();
         Object.keys(m.photos).forEach(n=>{const ph=m.photos[n];if(typeof ph==="string"&&ph.startsWith("data:image/")&&pr[n]!==ph)saveProfile(n,ph);});}
       render();
@@ -4202,6 +4213,10 @@ const iconNote=(function(){
 /* ---------- "Nytt i den här uppdateringen": shown once per version that has an entry here.
    Small fixes get no entry, so no pop-up. Newest first. ---------- */
 const NEWS=[
+  {v:"2.15.2",items:[
+    "En ansluten enhet kommer direkt in i matchen och har alltid knappen Fortsätt spelet på startsidan.",
+    "Om kameran har flyttats kalibrerar appen om efter 5 sekunder, i stället för att vänta på att pilarna dras ut."
+  ]},
   {v:"2.15.1",items:[
     "Kalibreringen finjusteras automatiskt var 30:e sekund medan appen väntar på ett kast, om tavlan eller kameran har rört sig lite.",
     "Pilar registreras igen även när tavlan är liten i bilden."
