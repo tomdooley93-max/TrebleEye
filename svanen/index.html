@@ -135,6 +135,8 @@ canvas#fx{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-in
 .qr{background:#fff;border-radius:14px;padding:12px;width:min(280px,100%);margin:0 auto}
 .qr svg{display:block;width:100%;height:auto}
 .foot{text-align:center;margin-top:28px}
+.emblem{display:block;width:min(66vw,290px);height:auto;margin:-6px auto 8px;filter:drop-shadow(0 10px 24px rgba(0,0,0,.45))}
+.emblem.sm{width:min(42vw,180px)}
 .foot a{color:var(--dim);font-size:13px}
 .fktbl td:first-child{white-space:normal}
 </style>
@@ -261,7 +263,7 @@ set:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
 };
 const TABS=[["lag","Lag",I.lag],["match","Match",I.match],["femkamp","Femkamp",I.fem],["tabell","Tabell",I.tab],["mer","Mer",I.set]];
 function header(){
-if(!isAdmin)return`<div class="brand">Svanen <span class="sw">Hockey</span> Games<small>Resultat live</small></div>${S?`<span class="chip"><span class="dot" style="background:${netErr?"var(--red)":"var(--mint)"}"></span>${netErr?"Tappat anslutningen":"Live"}</span>`:""}`;
+if(!isAdmin)return`<span class="brand" style="font-size:16px">Resultat <span class="sw">live</span></span>${S?`<span class="chip"><span class="dot" style="background:${netErr?"var(--red)":"var(--mint)"}"></span>${netErr?"Tappat anslutningen":"Live"}</span>`:""}`;
 return`<div class="brand">Svanen <span class="sw">Hockey</span> Games<small>Sekretariatet</small></div>${PIN?`<div class="row" style="justify-content:flex-end">${syncChip()}<button class="btn small pink" data-act="jagerNow">Jäger-paus</button></div>`:""}`;
 }
 function render(){
@@ -388,15 +390,16 @@ return h;
 }
 function vLogin(){
 return`<div class="card stack" style="max-width:420px;margin:30px auto;text-align:center">
-<h2 style="margin:0">Tävlingsledningen</h2><p class="muted" style="margin:0">Skriv in koden för att föra protokoll.</p>
+<img class="emblem sm" src="emblem.webp" alt="" width="640" height="640" style="margin:0 auto"><h2 style="margin:0">Tävlingsledningen</h2><p class="muted" style="margin:0">Skriv in koden för att föra protokoll.</p>
 <form class="stack" data-form="login"><input type="text" id="pin" placeholder="Kod" autocomplete="off" autocapitalize="off" spellcheck="false" style="text-align:center;font-size:20px;letter-spacing:2px"><button class="btn primary">Logga in</button></form>
 <a href="#" class="muted">Till resultatlistan</a></div>`;
 }
 function vPublic(){
 const foot=`<div class="foot"><a href="#sekretariat">Tävlingsledning</a></div>`;
-if(!loaded)return`<div class="empty">Hämtar ställningen…</div>`+foot;
-if(!S)return`<div class="empty">${netErr?"Når inte resultatservern just nu. Försöker igen strax.":"Turneringen har inte börjat än. Håll i klubban!"}</div>`+foot;
-let h="";
+const hero=sm=>`<img class="emblem${sm?" sm":""}" src="emblem.webp" alt="Svanen Hockey Games Ludvika" width="640" height="640">`;
+if(!loaded)return hero()+`<div class="empty">Hämtar ställningen…</div>`+foot;
+if(!S)return hero()+`<div class="empty">${netErr?"Når inte resultatservern just nu. Försöker igen strax.":"Turneringen har inte börjat än. Håll i klubban!"}</div>`+foot;
+let h=hero(!!curMatch()||!!S.jagerLive);
 if(S.jagerLive&&Date.now()-S.jagerLive.t<15*60000){const x=player(S.jagerLive.player);if(x)h+=`<div class="jalert"><div class="k">JÄGER-PAUS!</div><div class="who">${esc(x.p.name)}</div><div style="font-weight:800;letter-spacing:2px;text-transform:uppercase;color:${esc(x.t.color)}">${esc(x.t.name)}</div><div class="muted" style="color:#cfe">tar en shot. Skål!</div></div>`}
 const m=curMatch();
 if(m){h+=`<h2>Pågående match</h2>`+board(m,true);const ev=m.events.slice(-5).reverse();if(ev.length)h+=`<ul class="log" style="margin-top:10px">${ev.map(e=>evRow(e,m,true)).join("")}</ul>`}
