@@ -614,7 +614,7 @@ html.cupbig .queue{font-size:min(1.15cqw,2.05cqh)}
     <header class="home-head">
       <h1 class="logo"><img src="icons/wordmark.webp" alt="TrebleEye" width="980" height="556"></h1>
       <div class="byline">by T.Henriksson</div>
-      <div class="meta"><span id="appVer">v2.15.2</span></div>
+      <div class="meta"><span id="appVer">v2.15.3</span></div>
     </header>
     <div class="home">
       <button class="pri big" id="btnSettings">Nytt spel</button>
@@ -4532,8 +4532,10 @@ function tab(cam_){
   $("tabMan").setAttribute("aria-selected",String(!cam_));$("tabCam").setAttribute("aria-selected",String(cam_));
   $("paneMan").hidden=cam_;$("paneCam").hidden=!cam_;
 }
-$("tabMan").addEventListener("click",()=>tab(false));
-$("tabCam").addEventListener("click",()=>tab(true));
+// manual entry turns the camera off (no feed, no detection); back on the camera tab it starts again
+let camWasOn=false;
+$("tabMan").addEventListener("click",()=>{tab(false);if(cam.live){camWasOn=true;clearProp();stopLive();}});
+$("tabCam").addEventListener("click",()=>{tab(true);if(camWasOn&&!cam.live){camWasOn=false;startLive();}});
 $("btnLive").addEventListener("click",startLive);
 $("filePhoto").addEventListener("change",e=>{onPhoto(e.target.files[0]);e.target.value="";});
 $("btnCalib").addEventListener("click",startCalib);
