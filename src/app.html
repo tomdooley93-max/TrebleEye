@@ -4729,10 +4729,15 @@ $("btnStart").addEventListener("click",()=>{
   const mode=$("selMode").value;
   const cfg=mode==="x01"?{mode,start:+$("selStart").value,dbl:$("chkDbl").checked,names,fmt:{legs:+$("selLegs").value,sets:+$("selSets").value}}
     :{mode,names,range:$("selRange").value,rounds:+$("selRounds").value,lives:+$("selLives").value,pick:$("selPick").value,team:mode==="c170"&&n>1&&$("selTeam").value==="1"};
-  showScreen("game");
+  // a connected device that starts its own match leaves the session first (asks once, then the second tap goes)
+  const sb=$("btnStart");
   if(sess.role==="client"){
-    if(matchRunning()){showScreen("setup");$("modeHelp").textContent="Värden har en match igång. Bara värden kan avsluta den och starta ett nytt spel.";return;}
-    sess.send({a:"newgame",cfg});return;}
+    if(!sb.dataset.sure){sb.dataset.sure="1";sb.textContent="Lämna sessionen och starta";$("modeHelp").textContent="Du är ansluten till värdens session. För att starta en egen match kopplas den här enheten bort från sessionen.";
+      clearTimeout(sb.t);sb.t=setTimeout(()=>{delete sb.dataset.sure;sb.textContent="Starta spel";modeOpts();},6000);return;}
+    sess.leave();
+  }
+  delete sb.dataset.sure;clearTimeout(sb.t);sb.textContent="Starta spel";
+  showScreen("game");
   newGame(cfg);cam.onNewTurn();caller.gameOn();
 });
 $("btnSess").addEventListener("click",()=>{usage.ev("session/start");$("sessPanel").hidden=false;sess.host();});
