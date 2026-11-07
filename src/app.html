@@ -128,6 +128,12 @@ html.tv .chip{font-size:clamp(24px,2.8vw,52px);padding:4px 16px}
 html.tv #remoteVid{max-height:80vh;object-fit:contain}
 /* broadcast look: TV mode with the live camera fills the screen, score graphics on top */
 .tvgfx{display:none}
+#camOnly{position:fixed;inset:0;z-index:40;background:#000;display:flex;align-items:center;justify-content:center}
+#camOnly[hidden]{display:none!important}
+#camOnlyVid{width:100%;height:100%;object-fit:contain}
+#camOnly .cobar{position:absolute;left:50%;bottom:calc(12px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);display:flex;gap:12px;align-items:center;
+  background:rgba(16,20,17,.85);border:1px solid var(--line2);border-radius:999px;padding:6px 6px 6px 16px;font-size:14px;white-space:nowrap}
+#camOnly .cobar span::before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--red);margin-right:8px;vertical-align:middle}
 html.tv:has(#tvGfx:not([hidden])) #remoteBox:not([hidden]){position:fixed;inset:0;z-index:5;margin:0;padding:0;border:0;border-radius:0;background:#000;display:flex;align-items:center;justify-content:center}
 html.tv:has(#tvGfx:not([hidden])) #remoteBox:not([hidden])>.label{display:none}
 html.tv:has(#tvGfx:not([hidden])) #remoteWrap{width:100%;height:100%;display:flex;align-items:center;justify-content:center}
@@ -629,7 +635,7 @@ html.cupbig .queue{font-size:min(1.15cqw,2.05cqh)}
     <header class="home-head">
       <h1 class="logo"><img src="icons/wordmark.webp" alt="TrebleEye" width="980" height="556"></h1>
       <div class="byline">by T.Henriksson</div>
-      <div class="meta"><span id="appVer">v2.16.0</span></div>
+      <div class="meta"><span id="appVer">v2.17.0</span></div>
     </header>
     <div class="home">
       <button class="pri big" id="btnSettings">Nytt spel</button>
@@ -763,6 +769,11 @@ html.cupbig .queue{font-size:min(1.15cqw,2.05cqh)}
     <div class="status" id="vaMsg" hidden></div>
   </section>
 
+  <div id="camOnly" hidden>
+    <video id="camOnlyVid" playsinline autoplay muted></video>
+    <div class="cobar"><span id="camOnlyTxt">Kamera</span><button id="camOnlyStop">Sluta vara kamera</button></div>
+  </div>
+
   <section id="sessPanel" class="panel sheet" hidden>
     <div class="row" style="justify-content:space-between">
       <div class="label">Delad session</div>
@@ -776,6 +787,8 @@ html.cupbig .queue{font-size:min(1.15cqw,2.05cqh)}
         <button id="sessJoin">Anslut</button>
         <button id="sessScan">Skanna QR</button>
       </div>
+      <div class="row" style="margin-top:8px"><button id="sessJoinCam">Anslut som kamera</button></div>
+      <p class="help" style="margin-top:4px">Som kamera visar enheten bara kamerabilden och skickar den till TV-läget. Ställ den i stativet vid tavlan.</p>
       <div id="scanBox" hidden><video id="scanVid" playsinline muted></video></div>
     </div>
     <div id="sessHostBox" hidden>
@@ -797,6 +810,7 @@ html.cupbig .queue{font-size:min(1.15cqw,2.05cqh)}
         </div>
         <p class="help">Smart-TV med webbläsare: öppna <span class="sesslink" id="tvLink"></span><br>
         Apple TV: anslut en iPad med <b>Anslut</b>, välj <b>TV-läge på den här enheten</b> och spegla skärmen med AirPlay (Kontrollcenter → Skärmspegling).</p>
+        <p class="help">Separat kamera vid tavlan: välj <b>Anslut som kamera</b> på den enheten, eller öppna <span class="sesslink" id="camLink"></span></p>
       </div>
     </div>
     <div id="sessClientBox" hidden>
@@ -3129,6 +3143,7 @@ document.addEventListener("pointerdown",()=>{
 const sess=(function(){
   const PFX="trebleeye-",ALPHA="ABCDEFGHJKMNPQRSTUVWXYZ23456789";
   let role=null,peer=null,code=null,conns=[],hostConn=null,pending=[],flushT=null,undoN=0,retryT=null,msg="";
+  let camOnly=null,extStream=null,extCall=null;  // camOnly: this device only films; extStream: a camera device's picture on the host
   const calls={},orig={};
   const ok=()=>typeof Peer!=="undefined";
   const devLabel=()=>{const u=navigator.userAgent;return /iPad|Macintosh/.test(u)&&"ontouchend" in document?"iPad":/iPhone/.test(u)?"iPhone":/Android/.test(u)?"Android":"Dator";};
@@ -3137,16 +3152,28 @@ const sess=(function(){
 
   /* host side */
   function photos(){const pr=profiles(),o={};G.players.forEach(p=>{if(pr[p.name])o[p.name]=pr[p.name];});return o;}
-  function stateMsg(){return {t:"state",G,undoN:undo.length,photos:photos(),rot:cam.rot};}
+  function stateMsg(){return {t:"state",G,undoN:undo.length,photos:photos(),rot:cam.live?cam.rot:0};}
   function sendAll(m){conns.forEach(c=>{if(c.open){try{c.send(m);}catch(e){}}});}
   function flush(){flushT=null;if(role!=="host")return;sendAll(stateMsg());pending.forEach(sendAll);pending=[];}
   function changed(){if(role==="host"&&conns.length&&!flushT)flushT=setTimeout(flush,0);}
   function ev(e,a){if(role!=="host"||!conns.length)return;pending.push({t:"ev",e,a:JSON.parse(JSON.stringify(a))});changed();}
+  // the picture viewers get: a connected camera device first, else this device's own camera
+  const viewStream=()=>extStream||(cam.live&&cam.stream?cam.stream:null);
   function callPeer(id){
     if(calls[id]){try{calls[id].close();}catch(e){}delete calls[id];}
-    if(role==="host"&&peer&&cam.stream&&cam.live)calls[id]=peer.call(id,cam.stream);
+    const c=conns.find(x=>x.peer===id);if(c&&c.camera)return;
+    const st=viewStream();
+    if(role==="host"&&peer&&st)calls[id]=peer.call(id,st);
   }
   function streamChanged(){if(role==="host")conns.forEach(c=>callPeer(c.peer));}
+  function onCamCall(call){
+    if(role!=="host")return;
+    if(extCall&&extCall!==call){try{extCall.close();}catch(_){}}
+    extCall=call;call.answer();
+    // a dedicated camera device takes over: this device's own camera is turned off
+    call.on("stream",st=>{extStream=st;if(cam.live)stopLive();showRemote(st);streamChanged();ui();});
+    call.on("close",()=>{if(extCall!==call)return;extCall=null;extStream=null;showRemote(null);streamChanged();ui();});
+  }
   function host(reuse){
     if(!ok()){setMsg("Delad session fungerar bara i appen från GitHub-adressen.");return;}
     leave(true);
@@ -3163,6 +3190,7 @@ const sess=(function(){
       if(e.type==="network"||e.type==="server-error"||e.type==="socket-error")setMsg("Kopplingsservern svarar inte. Kontrollera internet och försök igen.");
     });
     peer.on("disconnected",()=>{if(role==="host")setTimeout(()=>{try{peer.reconnect();}catch(_){}},1500);});
+    peer.on("call",onCamCall);
     peer.on("connection",c=>{
       c.on("open",()=>{conns.push(c);c.send(stateMsg());callPeer(c.peer);ui();});
       c.on("data",m=>onAct(m,c));
@@ -3172,7 +3200,9 @@ const sess=(function(){
   }
   function onAct(m,c){
     if(!m||typeof m!=="object")return;
-    if(m.t==="hello"){c.label=String(m.label||"Enhet").slice(0,20);ui();return;}
+    if(m.t==="hello"){c.label=String(m.label||"Enhet").slice(0,20);
+      if(m.camera&&!c.camera){c.camera=true;if(calls[c.peer]){try{calls[c.peer].close();}catch(_){}delete calls[c.peer];}}
+      ui();return;}
     if(m.t!=="act")return;
     if(m.a==="dart"&&m.d&&[0,1,2,3].includes(m.d.m)&&(m.d.n===25||m.d.n===0||(m.d.n>=1&&m.d.n<=20)))
       addDart(dart(m.d.m,m.d.n),Array.isArray(m.pos)?m.pos:null);
@@ -3198,15 +3228,22 @@ const sess=(function(){
   }
 
   /* client side */
-  function join(c){
+  async function join(c,asCam){
     if(!ok()){setMsg("Delad session fungerar bara i appen från GitHub-adressen.");return;}
     c=String(c||"").toUpperCase().replace(/[^A-Z0-9]/g,"");
     if(c.length!==4){setMsg("Koden består av fyra tecken.");return;}
-    leave(true);code=c;role="client";store.set("dk_sess",{role:"client",code});setMsg("Ansluter till "+code+"…");
+    leave(true);code=c;role="client";store.set("dk_sess",{role:"client",code,camera:!!asCam});setMsg("Ansluter till "+code+"…");
     if(cam.live)stopLive();
+    if(asCam){
+      try{camOnly=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:"environment"},width:{ideal:1280},height:{ideal:720}},audio:false});}
+      catch(e){setMsg("Kameran kunde inte startas. Tillåt kameran för sidan.");role=null;store.set("dk_sess",null);ui();return;}
+      const v=$("camOnlyVid");v.srcObject=camOnly;v.play().catch(()=>{});
+      $("camOnly").hidden=false;$("sessPanel").hidden=true;$("camOnlyTxt").textContent="Kamera · ansluter till "+code;
+      try{navigator.wakeLock&&navigator.wakeLock.request("screen").catch(()=>{});}catch(e){}
+    }
     peer=new Peer();
     peer.on("open",connect);
-    peer.on("call",call=>{call.answer();call.on("stream",s=>showRemote(s));call.on("close",()=>showRemote(null));});
+    peer.on("call",call=>{if(camOnly){try{call.close();}catch(_){}return;}call.answer();call.on("stream",s=>showRemote(s));call.on("close",()=>showRemote(null));});
     peer.on("error",e=>{
       if(e.type==="peer-unavailable"){setMsg("Hittar ingen session "+code+". Försöker igen…");retry();}
       else if(e.type==="network"||e.type==="server-error"||e.type==="socket-error"){setMsg("Kopplingsservern svarar inte. Försöker igen…");retry();}
@@ -3217,13 +3254,16 @@ const sess=(function(){
   function connect(){
     if(role!=="client"||!peer||peer.destroyed)return;
     hostConn=peer.connect(PFX+code,{reliable:true});
-    hostConn.on("open",()=>{clearTimeout(retryT);setMsg("");hostConn.send({t:"hello",label:devLabel()});ui();});
+    hostConn.on("open",()=>{clearTimeout(retryT);setMsg("");
+      hostConn.send({t:"hello",label:camOnly?"Kamera ("+devLabel()+")":devLabel(),camera:!!camOnly});
+      if(camOnly){peer.call(PFX+code,camOnly);$("camOnlyTxt").textContent="Kamera · skickar till "+code;}
+      ui();});
     hostConn.on("data",onHostMsg);
-    hostConn.on("close",()=>{if(role!=="client")return;setMsg("Tappade kontakten med värden. Återansluter…");showRemote(null);retry();});
+    hostConn.on("close",()=>{if(role!=="client")return;setMsg("Tappade kontakten med värden. Återansluter…");showRemote(null);if(camOnly)$("camOnlyTxt").textContent="Kamera · återansluter till "+code;retry();});
   }
   function retry(){clearTimeout(retryT);retryT=setTimeout(()=>{if(role!=="client")return;if(peer&&peer.disconnected){try{peer.reconnect();}catch(_){}}connect();},3000);}
   function onHostMsg(m){
-    if(!m||typeof m!=="object")return;
+    if(!m||typeof m!=="object"||camOnly)return;
     if(m.t==="state"&&m.G&&Array.isArray(m.G.players)){
       G=m.G;undoN=m.undoN|0;
       if(typeof m.rot==="number"&&m.rot!==remoteRot){remoteRot=m.rot%360;fitRemote();}
@@ -3267,6 +3307,8 @@ const sess=(function(){
     conns.forEach(c=>{try{c.close();}catch(_){}});conns=[];
     if(hostConn){try{hostConn.close();}catch(_){}hostConn=null;}
     if(peer){try{peer.destroy();}catch(_){}peer=null;}
+    if(camOnly){camOnly.getTracks().forEach(t=>t.stop());camOnly=null;$("camOnlyVid").srcObject=null;$("camOnly").hidden=true;}
+    if(extCall){try{extCall.close();}catch(_){}}extCall=null;extStream=null;
     const was=role;role=null;code=null;
     if(!silent){store.set("dk_sess",null);setMsg("");}
     showRemote(null);
@@ -3297,7 +3339,7 @@ const sess=(function(){
         qr.innerHTML=q.createSvgTag({cellSize:6,margin:3,scalable:true});qr.dataset.code=code;
       }
       $("sessLink").textContent=joinUrl();
-      $("tvLink").textContent=tv.url(code);$("tvCast").hidden=!window.PresentationRequest;
+      $("tvLink").textContent=tv.url(code);$("camLink").textContent=location.origin+location.pathname+"#cam-"+code;$("tvCast").hidden=!window.PresentationRequest;
       $("sessDevs").textContent=conns.length?"Anslutna: "+conns.map(c=>c.label||"Enhet").join(", "):"Inga enheter anslutna än. Skanna QR-koden eller ange koden på den andra enheten.";
     }
     if(role==="client")$("sessClientTxt").textContent=hostConn&&hostConn.open?"Ansluten till session "+code+". Poäng du matar in här skickas till värden.":"Ansluter till session "+code+"…";
@@ -3332,8 +3374,10 @@ const sess=(function(){
     if(store.get("dk_tv"))tv.enter();
     const m=location.hash.match(/^#join-([A-Za-z0-9]{4})$/);
     if(m){history.replaceState(null,"",location.pathname);join(m[1]);return;}
+    const k=location.hash.match(/^#cam-([A-Za-z0-9]{4})$/);
+    if(k){history.replaceState(null,"",location.pathname);join(k[1],true);return;}
     const s=store.get("dk_sess");
-    if(s&&s.code){if(s.role==="host")host(s.code);else if(s.role==="client")join(s.code);}
+    if(s&&s.code){if(s.role==="host")host(s.code);else if(s.role==="client")join(s.code,!!s.camera);}
   }
   return {host,join,leave,send,ev,changed,streamChanged,scan,ui,boot,get code(){return code;},
     get role(){return role;},get undoN(){return undoN;},get available(){return ok();}};
@@ -4311,6 +4355,9 @@ const iconNote=(function(){
 /* ---------- "Nytt i den här uppdateringen": shown once per version that has an entry here.
    Small fixes get no entry, so no pop-up. Newest first. ---------- */
 const NEWS=[
+  {v:"2.17.0",items:[
+    "En enhet kan vara enbart kamera: välj Anslut som kamera i den delade sessionen. Bilden skickas till TV-läget och till enheten som räknar poäng."
+  ]},
   {v:"2.16.0",items:[
     "TV-läget med livebild visar kameran i helskärm med poänggrafik i tv-stil: namn, legs, poäng kvar, turens pilar och förslag på utgång.",
     "Automatisk pilavkänning är nu en betafunktion och avstängd från början. Den kan slås på under kamerainställningarna.",
@@ -4611,6 +4658,8 @@ $("tvHere2").addEventListener("click",()=>tv.enter());
 $("tvExit").addEventListener("click",()=>tv.exit());
 $("tvCast").addEventListener("click",()=>tv.cast(sess.code));
 $("sessJoin").addEventListener("click",()=>{usage.ev("session/anslut");sess.join($("sessCode").value);});
+$("sessJoinCam").addEventListener("click",()=>{usage.ev("session/kamera");sess.join($("sessCode").value,true);});
+$("camOnlyStop").addEventListener("click",()=>sess.leave());
 $("sessCode").addEventListener("keydown",e=>{if(e.key==="Enter")sess.join($("sessCode").value);});
 $("sessScan").addEventListener("click",()=>sess.scan());
 $("sessEnd").addEventListener("click",()=>sess.leave());
