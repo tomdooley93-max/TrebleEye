@@ -216,6 +216,15 @@ const team=id=>S.teams.find(t=>t.id===id);
 function player(pid){for(const t of S.teams){const p=t.players.find(p=>p.id===pid);if(p)return{p,t}}return null}
 const pname=pid=>{const x=player(pid);return x?x.p.name:"Okänd"};
 const curMatch=()=>S.matches.find(m=>m.status==="live");
+const FMT_DEF={periods:2,plen:10,otLen:5,tie:"draw",win:3,draw:1,otWin:2,otLoss:1};
+function fmtS(){return Object.assign({},FMT_DEF,S.settings||{})}
+function pStart(m){return m.pStart||0}
+function plenMs(m){const f=fmtS();const L=m.period==="OT"?f.otLen:f.plen;return (+L||0)*60000}
+function pClock(m,t){const L=plenMs(m),el=t-pStart(m);return L?Math.max(0,L-el):el}
+function periodsList(){const n=Math.max(1,Math.min(4,+fmtS().periods||2));return [...Array(n)].map((_,i)=>i+1).concat(["OT"])}
+function isOTWin(m){if(m.status!=="done")return false;const[h,a]=score(m);return !!m.decided||(h!==a&&m.period==="OT")}
+function winnerOf(m){const[h,a]=score(m);if(h>a)return m.home;if(a>h)return m.away;return m.decided?m.decided.team:null}
+function resLabel(m){const[h,a]=score(m);return`${h}–${a}${m.decided?(m.decided.how==="so"?" (str)":" (SD)"):(m.status==="done"&&m.period==="OT"&&h!==a?" (SD)":"")}`}
 function elapsed(m){return m.clock.ms+(m.clock.running?Date.now()-m.clock.since:0)}
 function fmt(ms){const s=Math.floor(ms/1000);return String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0")}
 function schedJager(m){const a=S.settings.jMin*60000,b=S.settings.jMax*60000;m.nextJager=elapsed(m)+a+Math.random()*Math.max(0,b-a)}
@@ -240,7 +249,9 @@ for(const e of m.events){const r=rows[e.team];if(!r)continue;if(e.type==="pen")r
 if(m.status!=="done")continue;
 const[h,a]=score(m),H=rows[m.home],A=rows[m.away];if(!H||!A)continue;
 H.gp++;A.gp++;H.gf+=h;H.ga+=a;A.gf+=a;A.ga+=h;
-if(h>a){H.w++;A.l++;H.pts+=S.settings.win}else if(a>h){A.w++;H.l++;A.pts+=S.settings.win}else{H.d++;A.d++;H.pts+=S.settings.draw;A.pts+=S.settings.draw}
+const f=fmtS(),wid=winnerOf(m),ot=isOTWin(m);
+if(!wid){H.d++;A.d++;H.pts+=+f.draw;A.pts+=+f.draw}
+else{const W=wid===m.home?H:A,L=wid===m.home?A:H;W.w++;L.l++;W.pts+=ot?+f.otWin:+f.win;L.pts+=ot?+f.otLoss:0}
 }
 for(const w of S.warns)if(rows[w.team])rows[w.team].warn++;
 return Object.values(rows).sort((x,y)=>y.pts-x.pts||(y.gf-y.ga)-(x.gf-x.ga)||y.gf-x.gf);
@@ -279,7 +290,7 @@ $("#app").innerHTML=h;
 function teamDot(t){return`<span class="dot" style="background:${esc(t.color)}"></span>`}
 function teamOptions(sel,ex){return S.teams.filter(t=>t.id!==ex).map(t=>`<option value="${t.id}" ${t.id===sel?"selected":""}>${esc(t.name)}</option>`).join("")}
 function vLag(){
-let h=`<h2>Lag &amp; spelare</h2>
+let h=`<h2>Lag &amp; spelare</h2>${vGen()}<div style="height:12px"></div>
 <form class="card row" data-form="addTeam"><input type="text" id="newTeam" placeholder="Nytt lagnamn, t.ex. Svanarna" maxlength="40" style="flex:1"><button class="btn primary">Lägg till lag</button></form>`;
 if(!S.teams.length)return h+`<div class="empty">Inga lag än. Skriv ett lagnamn ovan för att börja.</div>`;
 h+=`<div class="grid2" style="margin-top:12px">`;
@@ -305,7 +316,7 @@ h+=`<form class="card stack" data-form="newMatch">
 <button class="btn primary" style="font-size:18px">Nedsläpp!</button></form>`;
 const done=S.matches.filter(x=>x.status==="done").slice().reverse();
 if(done.length){h+=`<h3>Spelade matcher</h3><div class="stack">`+done.map(x=>{const[s1,s2]=score(x),H=team(x.home),A=team(x.away);
-return`<button class="card matchcard" data-act="openMatch" data-id="${x.id}"><span>${H?teamDot(H):""} ${esc(H?.name)} – ${esc(A?.name)} ${A?teamDot(A):""}</span><span class="res">${s1}–${s2}</span></button>`}).join("")+`</div>`}
+return`<button class="card matchcard" data-act="openMatch" data-id="${x.id}"><span>${H?teamDot(H):""} ${esc(H?.name)} – ${esc(A?.name)} ${A?teamDot(A):""}</span><span class="res">${resLabel(x)}</span></button>`}).join("")+`</div>`}
 return h;
 }
 function board(m,ro){
@@ -314,9 +325,9 @@ const activePens=side=>m.events.filter(e=>e.type==="pen"&&e.team===side&&!done&&
 let x=`<div class="board">
 <div class="teams"><div class="tname" style="color:${esc(H?.color)}">${esc(H?.name)}</div><div></div><div class="tname" style="color:${esc(A?.color)}">${esc(A?.name)}</div>
 <div class="score">${h}</div><div class="mid">–</div><div class="score">${a}</div></div>
-${done?`<div class="clock"><span class="chip">Slutresultat</span></div>`:`<div class="clock"><span class="time" id="clock">${fmt(t)}</span>
-${ro?`<span class="chip">${m.clock.running?"Klockan går":"Klockan står"} · Period ${esc(m.period)}</span>`:`<button class="btn small ${m.clock.running?"":"mint"}" data-act="clock">${m.clock.running?"Pausa klockan":"Starta klockan"}</button>
-<span class="chip">Period <select id="per" data-change="period" style="width:auto;padding:2px 6px;background:transparent;border:0">${[1,2,3,"OT"].map(p=>`<option ${String(m.period)===String(p)?"selected":""}>${p}</option>`).join("")}</select></span>`}</div>
+${done?`<div class="clock"><span class="chip">Slutresultat${m.decided?(m.decided.how==="so"?" efter straffar":" efter förlängning"):""}</span></div>`:`<div class="clock"><span class="time" id="clock">${fmt(pClock(m,t))}</span>
+${ro?`<span class="chip">${m.clock.running?"Klockan går":"Klockan står"} · ${m.period==="OT"?"Förlängning":"Period "+esc(m.period)+" av "+(periodsList().length-1)}</span>`:`<button class="btn small ${m.clock.running?"":"mint"}" data-act="clock">${m.clock.running?"Pausa klockan":"Starta klockan"}</button>
+<span class="chip">Period <select id="per" data-change="period" style="width:auto;padding:2px 6px;background:transparent;border:0">${periodsList().map(p=>`<option ${String(m.period)===String(p)?"selected":""}>${p}</option>`).join("")}</select></span>${plenMs(m)&&pClock(m,t)===0?`<button class="btn small primary" data-act="nextPeriod">Nästa period</button>`:""}`}</div>
 <div class="pens"><div id="penH">${activePens(m.home)}</div><div id="penA">${activePens(m.away)}</div></div>`}
 </div>`;
 return x;
@@ -345,7 +356,7 @@ if(e.type==="goal")d=`<span class="tag t-goal">Mål</span><b>${esc(pname(e.playe
 if(e.type==="pen")d=`<span class="tag t-pen">${e.min} min</span><b>${esc(pname(e.player))}</b> <span class="muted">${esc(e.note)}</span>`;
 if(e.type==="warn")d=`<span class="tag t-warn">Tillsägelse</span><b>${esc(pname(e.player))}</b> <span class="muted">${esc(e.note)}</span>`;
 if(e.type==="jager")d=`<span class="tag t-jager">Jäger</span><b>${esc(pname(e.player))}</b> <span class="muted">tog shoten</span>`;
-return`<li><span class="when">${m?`P${esc(e.per||"")} ${fmt(e.clock||0)}`:esc(e.ctx||"")}</span>${T?teamDot(T):""}<span class="what">${d}</span>${ro?"":`<button class="btn small ghost danger" data-act="arm" data-do="delEv" data-id="${e.id}" aria-label="Ta bort händelse">✕</button>`}</li>`;
+return`<li><span class="when">${m?`${e.per==="OT"?"SD":"P"+esc(e.per||"")} ${fmt(e.pt??e.clock??0)}`:esc(e.ctx||"")}</span>${T?teamDot(T):""}<span class="what">${d}</span>${ro?"":`<button class="btn small ghost danger" data-act="arm" data-do="delEv" data-id="${e.id}" aria-label="Ta bort händelse">✕</button>`}</li>`;
 }
 function historyFor(tid){
 const pens=allPenalties().filter(e=>e.team===tid),ws=allWarns().filter(e=>e.team===tid);
@@ -379,7 +390,7 @@ let h=`<h2>Totalställning</h2><div class="tbl-wrap"><table><thead><tr><th></th>
 ${tot.map((r,i)=>`<tr class="${i===0&&r.total>0?"lead":""}"><td class="rank">${i+1}</td><td class="name">${teamDot(r.t)} ${esc(r.t.name)}</td>${S.settings.useHockey?`<td>${r.h}</td>`:""}<td>${r.fk}</td><td>${r.adj>0?"+":""}${r.adj}</td><td class="pts">${r.total}</td></tr>`).join("")}</tbody></table></div>`;
 h+=`<h2>Hockeytabellen</h2><div class="tbl-wrap"><table><thead><tr><th></th><th>Lag</th><th>M</th><th>V</th><th>O</th><th>F</th><th>Mål</th><th>+/-</th><th>Utv</th><th>Tills.</th><th>P</th></tr></thead><tbody>
 ${ht.map((r,i)=>`<tr class="${i===0&&r.pts>0?"lead":""}"><td class="rank">${i+1}</td><td class="name">${teamDot(r.t)} ${esc(r.t.name)}</td><td>${r.gp}</td><td>${r.w}</td><td>${r.d}</td><td>${r.l}</td><td>${r.gf}–${r.ga}</td><td>${r.gf-r.ga}</td><td class="${r.pim?"flag":""}">${r.pim}</td><td class="${r.warn?"flag":""}">${r.warn}</td><td class="pts">${r.pts}</td></tr>`).join("")}</tbody></table></div>
-<p class="muted">${S.settings.win} p för vinst, ${S.settings.draw} p för oavgjort. Bara avslutade matcher räknas.</p>`;
+<p class="muted">${(f=>`${f.win} p för vinst, ${f.tie==="draw"?f.draw+" p för oavgjort":`${f.otWin} p för vinst och ${f.otLoss} p för förlust efter ${f.tie==="so"?"straffar":"förlängning/straffar"}`}`)(fmtS())}. Bara avslutade matcher räknas.</p>`;
 const top=(arr,f,lab,cls)=>{const l=arr.filter(f.has).sort(f.sort).slice(0,10);return`<div class="card"><h3 style="margin-top:0">${lab}</h3>${l.length?`<div class="tbl-wrap" style="border:0"><table><tbody>${l.map((r,i)=>`<tr><td class="rank">${i+1}</td><td class="name">${teamDot(r.t)} ${esc(r.p.name)}</td><td class="${cls}">${f.val(r)}</td></tr>`).join("")}</tbody></table></div>`:`<p class="muted">Ingen än.</p>`}</div>`};
 h+=`<h2>Ligorna</h2><div class="grid2">
 ${top(ps,{has:r=>r.g||r.a,sort:(a,b)=>(b.g+b.a)-(a.g+a.a)||b.g-a.g,val:r=>`${r.g}+${r.a}`},"Poängligan","pts")}
@@ -405,10 +416,47 @@ const m=curMatch();
 if(m){h+=`<h2>Pågående match</h2>`+board(m,true);const ev=m.events.slice(-5).reverse();if(ev.length)h+=`<ul class="log" style="margin-top:10px">${ev.map(e=>evRow(e,m,true)).join("")}</ul>`}
 h+=vTabell();
 const done=S.matches.filter(x=>x.status==="done").slice().reverse();
-if(done.length)h+=`<h2>Resultat</h2><div class="stack">`+done.map(x=>{const[s1,s2]=score(x),H=team(x.home),A=team(x.away);return`<div class="card matchcard"><span>${H?teamDot(H):""} ${esc(H?.name)} – ${esc(A?.name)} ${A?teamDot(A):""}</span><span class="res">${s1}–${s2}</span></div>`}).join("")+`</div>`;
+if(done.length)h+=`<h2>Resultat</h2><div class="stack">`+done.map(x=>{const[s1,s2]=score(x),H=team(x.home),A=team(x.away);return`<div class="card matchcard"><span>${H?teamDot(H):""} ${esc(H?.name)} – ${esc(A?.name)} ${A?teamDot(A):""}</span><span class="res">${resLabel(x)}</span></div>`}).join("")+`</div>`;
 const fkAny=S.fk.events.some(ev=>Object.values(S.fk.scores[ev.id]||{}).some(v=>v!==""&&v!=null));
 if(fkAny)h+=`<h2>Femkampen gren för gren</h2><div class="tbl-wrap"><table class="fktbl"><thead><tr><th>Gren</th>${S.teams.map(t=>`<th>${esc(t.name)}</th>`).join("")}</tr></thead><tbody>${S.fk.events.map(ev=>`<tr><td class="name">${esc(ev.name)}</td>${S.teams.map(t=>{const v=(S.fk.scores[ev.id]||{})[t.id];return`<td>${v===""||v==null?"–":esc(v)}</td>`}).join("")}</tr>`).join("")}</tbody></table></div>`;
 return h+foot;
+}
+function openDecide(m){
+const H=team(m.home),A=team(m.away),f=fmtS();
+const btn=(t,how,label)=>`<button class="btn" style="justify-content:flex-start;gap:10px" data-act="decide" data-t="${t.id}" data-how="${how}">${teamDot(t)} ${esc(t.name)} ${label}</button>`;
+$("#layer").innerHTML=`<div class="modal" data-act="bg"><div class="sheet" role="dialog" aria-modal="true" aria-label="Avgörande"><h2>Oavgjort! Hur avgjordes det?</h2>
+<p class="muted">Vinst ger ${f.otWin} p, förlust ${f.otLoss} p.</p><div class="stack">
+${f.tie==="ot"?btn(H,"ot","vann i förlängningen")+btn(A,"ot","vann i förlängningen"):""}
+${btn(H,"so","vann på straffar")}${btn(A,"so","vann på straffar")}</div>
+<div class="row" style="margin-top:14px"><button class="btn ghost" data-act="close">Avbryt</button></div></div></div>`;
+}
+const FUN_NAMES=["Svanungarna","Isbjörnarna","Glöggarna","Puckpiraterna","Frostfötterna","Jägarna","Isprinsarna","Bastuklubben","Skridskopiraterna","Snögubbarna","Kalla Fötter","Pucklarna"];
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function genRun(){
+const txt=($("#genList")?.value||"");ui.genText=txt;
+const n=Math.max(2,Math.min(8,+($("#genN")?.value||2)));ui.genN=n;
+const ppl=txt.split(/[\n,;]+/).map(x=>x.trim()).filter(Boolean).map(x=>{const m=x.match(/^(.*?)[\s:]+([1-5])$/);return m?{name:m[1].trim(),lvl:+m[2]}:{name:x,lvl:3}});
+if(ppl.length<n){toast("För få deltagare för "+n+" lag");return}
+const order=shuffle(ppl).sort((a,b)=>b.lvl-a.lvl);
+const teams=shuffle(FUN_NAMES).slice(0,n).map((name,i)=>({name,color:COLORS[i%COLORS.length],players:[],sum:0}));
+order.forEach((p,i)=>{const r=Math.floor(i/n),k=i%n,idx=r%2?n-1-k:k;teams[idx].players.push(p);teams[idx].sum+=p.lvl});
+ui.gen=teams;render();
+}
+function genApply(){
+S.teams=ui.gen.map(t=>({id:uid(),name:t.name,color:t.color,players:t.players.map((p,i)=>({id:uid(),name:p.name,nr:String(i+1)}))}));
+S.matches=[];S.warns=[];S.fk.scores={};S.fk.adj=[];delete S.jagerLive;S.demo=false;ui.gen=null;toast("Lagen är klara. Lycka till!");
+}
+function vGen(){
+const g=ui.gen;
+return`<details class="card" id="genBox" ${g||ui.genOpen||!S.teams.length?"open":""}><summary style="font-weight:800;cursor:pointer;font-size:17px">Laggenerator: slumpa jämna lag</summary>
+<div class="stack" style="margin-top:10px">
+<p class="muted" style="margin:0">Skriv en deltagare per rad. Lägg gärna till en nivå 1–5 efter namnet (t.ex. "Anna 4") så blir lagen jämnare. Utan siffra räknas alla som 3.</p>
+<textarea id="genList" rows="6" placeholder="Anna 4&#10;Bosse 2&#10;Cissi&#10;David 5">${esc(ui.genText||"")}</textarea>
+<div class="row"><label class="row">Antal lag <select id="genN" style="width:auto">${[2,3,4,5,6,7,8].map(n=>`<option ${n===(ui.genN||2)?"selected":""}>${n}</option>`).join("")}</select></label>
+<button class="btn primary" data-act="genRun">${g?"Slumpa igen":"Slumpa lag"}</button>${S.teams.some(t=>t.players.length)?`<button class="btn small ghost" data-act="genFill">Hämta nuvarande spelare</button>`:""}</div>
+${g?`<div class="grid2" style="grid-template-columns:repeat(auto-fit,minmax(170px,1fr))">${g.map(t=>`<div class="card" style="background:var(--bg)"><b class="row">${teamDot(t)} ${esc(t.name)}</b><span class="muted">Nivåsumma ${t.sum}</span><ul style="margin:6px 0 0;padding-left:18px">${t.players.map(p=>`<li>${esc(p.name)}</li>`).join("")}</ul></div>`).join("")}</div>
+<button class="btn mint" data-act="arm" data-do="genApply">Använd de här lagen</button><p class="muted" style="margin:0">Ersätter nuvarande lag. Matcher, tillsägelser och femkampspoäng nollställs.</p>`:""}
+</div></details>`;
 }
 function publicUrl(){return location.origin+location.pathname}
 function qrSvg(url){try{const q=qrcode(0,"M");q.addData(url);q.make();return q.createSvgTag({cellSize:6,margin:2,scalable:true})}catch(e){return`<img alt="QR-kod till resultatlistan" width="280" height="280" style="display:block;width:100%;height:auto" src="https://api.qrserver.com/v1/create-qr-code/?size=400x400&margin=8&data=${encodeURIComponent(url)}">`}}
@@ -424,8 +472,17 @@ return`<h2>QR till resultatlistan</h2><div class="card stack" style="text-align:
 <p class="muted" style="margin:0">Den nya koden gäller för alla i tävlingsledningen. Andra inloggade enheter loggas ut när de sparar nästa gång.</p>
 <div class="row"><button class="btn ghost danger" data-act="logout">Logga ut på den här enheten</button></div></div>
 `+`<h2>Inställningar</h2><div class="card stack">
-<label class="row" style="justify-content:space-between">Poäng för vinst<input type="number" id="s-win" value="${s.win}" data-change="set" data-k="win" style="width:5em"></label>
-<label class="row" style="justify-content:space-between">Poäng för oavgjort<input type="number" id="s-draw" value="${s.draw}" data-change="set" data-k="draw" style="width:5em"></label>
+${(f=>`<h3 style="margin:0">Matchformat</h3>
+<label class="row" style="justify-content:space-between">Antal perioder<select id="s-per" data-change="set" data-k="periods" style="width:5em">${[1,2,3,4].map(n=>`<option ${+f.periods===n?"selected":""}>${n}</option>`).join("")}</select></label>
+<label class="row" style="justify-content:space-between">Periodlängd (min, 0 = klockan räknar uppåt)<input type="number" id="s-plen" value="${f.plen}" min="0" data-change="set" data-k="plen" style="width:5em"></label>
+<label class="row" style="justify-content:space-between">Vid oavgjort<select id="s-tie" data-change="sets" data-k="tie" style="width:auto">${[["draw","Oavgjort står sig"],["ot","Sudden death, sedan straffar"],["so","Straffar direkt"]].map(([v,l])=>`<option value="${v}" ${f.tie===v?"selected":""}>${l}</option>`).join("")}</select></label>
+${f.tie==="ot"?`<label class="row" style="justify-content:space-between">Förlängning (min)<input type="number" id="s-otl" value="${f.otLen}" min="0" data-change="set" data-k="otLen" style="width:5em"></label>`:""}
+<h3 style="margin:8px 0 0">Poäng</h3>
+<label class="row" style="justify-content:space-between">Vinst<input type="number" id="s-win" value="${f.win}" data-change="set" data-k="win" style="width:5em"></label>
+${f.tie==="draw"?`<label class="row" style="justify-content:space-between">Oavgjort<input type="number" id="s-draw" value="${f.draw}" data-change="set" data-k="draw" style="width:5em"></label>`:
+`<label class="row" style="justify-content:space-between">Vinst efter ${f.tie==="so"?"straffar":"förlängning/straffar"}<input type="number" id="s-otw" value="${f.otWin}" data-change="set" data-k="otWin" style="width:5em"></label>
+<label class="row" style="justify-content:space-between">Förlust efter ${f.tie==="so"?"straffar":"förlängning/straffar"}<input type="number" id="s-otl2" value="${f.otLoss}" data-change="set" data-k="otLoss" style="width:5em"></label>`}
+<h3 style="margin:8px 0 0">Övrigt</h3>`)(fmtS())}
 <label class="row" style="justify-content:space-between">Räkna hockeypoängen i totalen<input type="checkbox" id="s-uh" ${s.useHockey?"checked":""} data-change="setb" data-k="useHockey" style="width:24px;height:24px"></label>
 <label class="row" style="justify-content:space-between">Slumpad Jäger-paus under matcherna<input type="checkbox" id="s-aj" ${s.autoJager?"checked":""} data-change="setb" data-k="autoJager" style="width:24px;height:24px"></label>
 <label class="row" style="justify-content:space-between">Jäger-paus tidigast efter (min matchtid)<input type="number" id="s-jmin" value="${s.jMin}" data-change="set" data-k="jMin" style="width:5em"></label>
@@ -469,7 +526,7 @@ $("#layer").innerHTML=h;
 function addEv(e){
 const m=curMatch();e.id=uid();e.t=Date.now();
 if(pick.ctx==="fk"||!m){e.ctx="Femkamp";S.warns.push(e)}
-else{e.clock=elapsed(m);e.per=m.period;m.events.push(e)}
+else{e.clock=elapsed(m);e.per=m.period;e.pt=e.clock-pStart(m);m.events.push(e)}
 save();
 }
 let jagerTimer=null;
@@ -521,10 +578,11 @@ const m=ui.openMatch?S.matches.find(x=>x.id===ui.openMatch):curMatch();
 switch(what){
 case"wipe":S={...demo(),demo:false,teams:[],matches:[],warns:[]};S.fk.scores={};ui={tab:"lag",openMatch:null};toast("Rent bord. Lägg in era lag!");break;
 case"delTeam":S.teams=S.teams.filter(t=>t.id!==id);break;
+case"genApply":if(ui.gen)genApply();break;
 case"delPlayer":for(const t of S.teams)t.players=t.players.filter(p=>p.id!==id);break;
 case"delEv":for(const x of S.matches)x.events=x.events.filter(e=>e.id!==id);S.warns=S.warns.filter(e=>e.id!==id);break;
 case"delMatch":S.matches=S.matches.filter(x=>x!==m);ui.openMatch=null;break;
-case"endMatch":if(m){m.clock.ms=elapsed(m);m.clock.running=false;m.status="done";ui.openMatch=m.id;const[a,b]=score(m);confetti(["#ffc23d","#ff4f9a","#3ee0a8"]);toast(a===b?"Oavgjort!":(a>b?team(m.home):team(m.away))?.name+" vinner!")}break;
+case"endMatch":if(m){const[a0,b0]=score(m);if(a0===b0&&fmtS().tie!=="draw"&&!m.decided){openDecide(m);return}m.clock.ms=elapsed(m);m.clock.running=false;m.status="done";ui.openMatch=m.id;const[a,b]=score(m);confetti(["#ffc23d","#ff4f9a","#3ee0a8"]);toast(winnerOf(m)?team(winnerOf(m))?.name+" vinner!":"Oavgjort!")}break;
 case"delFk":S.fk.events=S.fk.events.filter(e=>e.id!==id);delete S.fk.scores[id];break;
 case"delAdj":S.fk.adj=S.fk.adj.filter(a=>a.id!==id);break;
 }
@@ -545,7 +603,7 @@ case"tab":ui.tab=el.dataset.k;if(ui.tab!=="match")ui.openMatch=null;try{localSto
 case"color":team(id).color=el.dataset.c;save();render();break;
 case"openMatch":ui.openMatch=id;render();break;
 case"closeMatch":ui.openMatch=null;render();break;
-case"reopen":if(curMatch()){toast("Avsluta pågående match först");break}m.status="live";ui.openMatch=null;save();render();break;
+case"reopen":if(curMatch()){toast("Avsluta pågående match först");break}m.status="live";delete m.decided;ui.openMatch=null;save();render();break;
 case"clock":if(m.clock.running){m.clock.ms=elapsed(m);m.clock.running=false}else{m.clock.since=Date.now();m.clock.running=true;if(m.nextJager==null||m.nextJager<elapsed(m))schedJager(m);wake()}save();render();break;
 case"ev":openEvent(el.dataset.type,el.dataset.ctx);break;
 case"pickP":
@@ -559,12 +617,18 @@ case"pickNote":pick.note=el.dataset.n;drawPick();break;
 case"saveDetail":{const txt=$("#noteTxt").value.trim();addEv({type:pick.type,player:pick.player,team:pick.team,min:pick.min,note:txt||pick.note||""});
 const who=pname(pick.player);closeLayer();render();toast(pick.type==="pen"?`${who} till båset`:`${who} har fått en tillsägelse`);break}
 case"close":closeLayer();break;
+case"nextPeriod":{const L=periodsList(),i=L.findIndex(p=>String(p)===String(m.period));const[h,a]=score(m);
+if(i<L.length-2){m.period=L[i+1]}else if(m.period!=="OT"&&h===a&&fmtS().tie==="ot"){m.period="OT"}else{toast("Matchen är slut, tryck Slutsignal");break}
+m.pStart=elapsed(m);save();render();toast(m.period==="OT"?"Sudden death! Nästa mål vinner":"Period "+m.period);break}
+case"decide":{const cm=curMatch();if(!cm)break;cm.decided={team:el.dataset.t,how:el.dataset.how};closeLayer();doArmed("endMatch");break}
+case"genRun":genRun();break;
+case"genFill":ui.genText=S.teams.flatMap(t=>t.players.map(p=>p.name)).join("\n");render();break;
 case"logout":logout("Utloggad");break;
 case"copyUrl":navigator.clipboard?.writeText(publicUrl()).then(()=>toast("Länken är kopierad"),()=>toast(publicUrl()));break;
 case"jagerNow":startJager();break;
 case"jagerAgain":startJager();break;
 case"jagerDone":{const f=pick.jager;const cm=curMatch();delete S.jagerLive;if(!cm)save();
-if(f&&cm){cm.events.push({id:uid(),t:Date.now(),type:"jager",player:f.p.id,team:f.t.id,clock:elapsed(cm),per:cm.period});schedJager(cm);save()}
+if(f&&cm){cm.events.push({id:uid(),t:Date.now(),type:"jager",player:f.p.id,team:f.t.id,clock:elapsed(cm),per:cm.period,pt:elapsed(cm)-pStart(cm)});schedJager(cm);save()}
 closeLayer();render();toast("Skål! Klockan står still tills ni startar den igen");break}
 case"copy":{const t=$("#backup");navigator.clipboard?.writeText(t.value).then(()=>toast("Kopierat"),()=>{t.select();toast("Markerat, kopiera själv")})||(t.select());break}
 case"import":try{const d=JSON.parse($("#backup").value);if(!d.teams)throw 0;S=d;save();render();toast("Inläst")}catch(e){toast("Texten gick inte att läsa in")}break;
@@ -593,18 +657,25 @@ document.addEventListener("change",ev=>{
 const el=ev.target,k=el.dataset.change;if(!k)return;
 const m=curMatch();
 if(k==="teamName"){const v=el.value.trim();if(v)team(el.dataset.id).name=v}
-if(k==="period"&&m)m.period=el.value;
+if(k==="period"&&m){m.period=el.value;m.pStart=elapsed(m);save();render();return}
 if(k==="fkName"){const e=S.fk.events.find(x=>x.id===el.dataset.id);if(e&&el.value.trim())e.name=el.value.trim()}
 if(k==="fkScore"){(S.fk.scores[el.dataset.ev]??={})[el.dataset.t]=el.value===""?"":+el.value;save();return}
 if(k==="set")S.settings[el.dataset.k]=+el.value||0;
 if(k==="setb")S.settings[el.dataset.k]=el.checked;
+if(k==="sets"){S.settings[el.dataset.k]=el.value;save();render();return}
+if(k==="set"&&/^(periods)$/.test(el.dataset.k)){save();render();return}
 save();
 });
+document.addEventListener("input",e=>{if(e.target.id==="genList")ui.genText=e.target.value});
+document.addEventListener("toggle",e=>{if(e.target.id==="genBox")ui.genOpen=e.target.open},true);
 document.addEventListener("keydown",e=>{if(e.key==="Escape"&&$("#layer").innerHTML&&!$("#jg"))closeLayer()});
 setInterval(()=>{
 if(!S)return;const m=curMatch();if(!m||!m.clock.running)return;
 const onBoard=!isAdmin||(ui.tab==="match"&&!ui.openMatch);
-const t=elapsed(m),c=$("#clock");if(c&&onBoard)c.textContent=fmt(t);
+const t=elapsed(m),c=$("#clock");if(c&&onBoard)c.textContent=fmt(pClock(m,t));
+if(isAdmin&&PIN&&plenMs(m)&&pClock(m,t)===0){m.clock.ms=t;m.clock.running=false;save();render();
+const last=String(m.period)===String(periodsList().slice(-2)[0]);const[h,a]=score(m);
+toast(m.period==="OT"?"Förlängningen är slut!":last?(h===a&&fmtS().tie!=="draw"?"Full tid, oavgjort! Dags för "+(fmtS().tie==="so"?"straffar":"förlängning"):"Full tid! Tryck Slutsignal"):"Periodslut! Tryck Nästa period");try{navigator.vibrate&&navigator.vibrate([300,100,300])}catch(e){}return}
 if(onBoard&&$("#penH")){
 const ap=side=>m.events.filter(e=>e.type==="pen"&&e.team===side&&e.clock+e.min*60000>t).map(e=>`${esc(pname(e.player))} ${fmt(e.clock+e.min*60000-t)}`).join("<br>");
 $("#penH").innerHTML=ap(m.home);$("#penA").innerHTML=ap(m.away);
