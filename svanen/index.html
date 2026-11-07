@@ -135,6 +135,10 @@ canvas#fx{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-in
 .qr{background:#fff;border-radius:14px;padding:12px;width:min(280px,100%);margin:0 auto}
 .qr svg{display:block;width:100%;height:auto}
 .foot{text-align:center;margin-top:28px}
+.minibar{position:sticky;top:env(safe-area-inset-top,0px);z-index:15;display:flex;align-items:center;gap:10px;justify-content:space-between;background:#050a14;border:1px solid var(--line);border-radius:14px;padding:8px 10px;margin-bottom:12px;box-shadow:0 10px 24px -12px #000}
+.minibar .mt{font-family:var(--display);font-size:24px;color:var(--mint);font-variant-numeric:tabular-nums}
+.minibar .ms{font-weight:800;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left;flex:1}
+.adj{display:flex;gap:6px;justify-content:center;margin-top:8px;flex-wrap:wrap}
 .emblem{display:block;width:min(66vw,290px);height:auto;margin:-6px auto 8px;filter:drop-shadow(0 10px 24px rgba(0,0,0,.45))}
 .emblem.sm{width:min(42vw,180px)}
 .foot a{color:var(--dim);font-size:13px}
@@ -284,6 +288,8 @@ if(!PIN){$("#nav").hidden=true;$("#app").innerHTML=vLogin();return}
 $("#nav").hidden=false;
 $("#tabs").innerHTML=TABS.map(([k,l,ic])=>`<button data-act="tab" data-k="${k}" ${ui.tab===k?'aria-current="page"':""}>${ic}${l}</button>`).join("");
 let h=S.demo?`<div class="banner"><span>Det här är exempellag så att du ser hur allt fungerar. Deltagarna ser ingenting förrän du rensar och lägger in era egna lag.</span><button class="btn small" data-act="arm" data-do="wipe">Rensa och börja på riktigt</button></div>`:"";
+{const cm=curMatch();if(cm&&!(ui.tab==="match"&&!ui.openMatch)){const H=team(cm.home),A=team(cm.away),[a1,b1]=score(cm);
+h+=`<div class="minibar"><button class="ms" data-act="tab" data-k="match" style="all:unset;cursor:pointer;font-weight:800;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(H?.name)} ${a1}–${b1} ${esc(A?.name)}</button><span class="mt" id="mclock">${fmt(pClock(cm,elapsed(cm)))}</span><button class="btn small ${cm.clock.running?"":"mint"}" data-act="clock">${cm.clock.running?"Paus":"Start"}</button></div>`}}
 h+=({lag:vLag,match:vMatch,femkamp:vFem,tabell:vTabell,mer:vMer}[ui.tab]||vMatch)();
 $("#app").innerHTML=h;
 }
@@ -328,6 +334,7 @@ let x=`<div class="board">
 ${done?`<div class="clock"><span class="chip">Slutresultat${m.decided?(m.decided.how==="so"?" efter straffar":" efter förlängning"):""}</span></div>`:`<div class="clock"><span class="time" id="clock">${fmt(pClock(m,t))}</span>
 ${ro?`<span class="chip">${m.clock.running?"Klockan går":"Klockan står"} · ${m.period==="OT"?"Förlängning":"Period "+esc(m.period)+" av "+(periodsList().length-1)}</span>`:`<button class="btn small ${m.clock.running?"":"mint"}" data-act="clock">${m.clock.running?"Pausa klockan":"Starta klockan"}</button>
 <span class="chip">Period <select id="per" data-change="period" style="width:auto;padding:2px 6px;background:transparent;border:0">${periodsList().map(p=>`<option ${String(m.period)===String(p)?"selected":""}>${p}</option>`).join("")}</select></span>${plenMs(m)&&pClock(m,t)===0?`<button class="btn small primary" data-act="nextPeriod">Nästa period</button>`:""}`}</div>
+${ro?"":`<div class="adj">${[[-10000,"−10 s"],[-1000,"−1 s"],[1000,"+1 s"],[10000,"+10 s"]].map(([d,l])=>`<button class="btn small ghost" data-act="adjClock" data-d="${d}" aria-label="Justera klockan ${l}">${l}</button>`).join("")}</div>`}
 <div class="pens"><div id="penH">${activePens(m.home)}</div><div id="penA">${activePens(m.away)}</div></div>`}
 </div>`;
 return x;
@@ -364,10 +371,34 @@ const lines=[...pens.map(e=>`<li><span class="tag t-pen">${e.min} min</span>${es
 ...ws.map(e=>`<li><span class="tag t-warn">Tills.</span>${esc(pname(e.player))} <span class="muted">${esc(e.note)}${e.match?"":" (femkamp)"}</span></li>`)];
 return lines.length?`<ul class="log" style="font-size:14px">${lines.join("")}</ul>`:`<p class="muted">Inga synder. Änglar.</p>`;
 }
+/* Stoppur / nedräkning för femkampen (sparas bara på den här enheten) */
+let SW={mode:"up",running:false,ms:0,since:0,down:60000,laps:[]};
+try{const x=JSON.parse(localStorage.getItem(KEY+"-sw")||"null");if(x)SW=Object.assign(SW,x)}catch(e){}
+const swSave=()=>lsSet(KEY+"-sw",JSON.stringify(SW));
+const swEl=()=>SW.ms+(SW.running?Date.now()-SW.since:0);
+const swShown=()=>SW.mode==="down"?Math.max(0,SW.down-swEl()):swEl();
+function fmtT(ms){const t=Math.floor(ms/100);return String(Math.floor(t/600)).padStart(2,"0")+":"+String(Math.floor(t/10)%60).padStart(2,"0")+"."+(t%10)}
+let audio=null;function beep(){try{audio=audio||new (window.AudioContext||window.webkitAudioContext)();[0,.35,.7].forEach(d=>{const o=audio.createOscillator(),g=audio.createGain();o.frequency.value=d>.6?1320:880;o.connect(g);g.connect(audio.destination);g.gain.setValueAtTime(.4,audio.currentTime+d);g.gain.exponentialRampToValueAtTime(.001,audio.currentTime+d+.3);o.start(audio.currentTime+d);o.stop(audio.currentTime+d+.32)})}catch(e){}}
+function vSW(){
+const opts=S.teams.map(t=>`<optgroup label="${esc(t.name)}">${t.players.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join("")}</optgroup>`).join("");
+const laps=SW.laps.slice().sort((a,b)=>a.t-b.t);
+return`<h2>Tidtagning</h2><div class="card stack" style="text-align:center">
+<div class="row" style="justify-content:center"><button class="btn small ${SW.mode==="up"?"primary":""}" data-act="swMode" data-m="up">Stoppur</button><button class="btn small ${SW.mode==="down"?"primary":""}" data-act="swMode" data-m="down">Nedräkning</button></div>
+${SW.mode==="down"?`<div class="row" style="justify-content:center">${[[30,"30 s"],[60,"1 min"],[120,"2 min"],[180,"3 min"],[300,"5 min"]].map(([v,l])=>`<button class="btn small ${SW.down===v*1000?"mint":""}" data-act="swPreset" data-v="${v}">${l}</button>`).join("")}</div>`:""}
+<div id="swTime" style="font-family:var(--display);font-size:clamp(48px,15vw,84px);line-height:1;color:var(--mint);text-shadow:0 0 16px rgba(62,224,168,.5);font-variant-numeric:tabular-nums">${fmtT(swShown())}</div>
+<div class="row" style="justify-content:center"><button class="btn ${SW.running?"":"mint"}" data-act="swGo" style="min-width:8em">${SW.running?"Stoppa":(swEl()>0&&!(SW.mode==="down"&&swShown()===0)?"Fortsätt":"Start")}</button>
+${SW.mode==="up"?`<button class="btn primary" data-act="swLap" style="min-width:8em">Tid!</button>`:""}
+<button class="btn ghost" data-act="swReset">Nollställ</button></div>
+${SW.mode==="up"?`<label class="row" style="justify-content:center">Vem kom i mål? <select id="swWho" style="width:auto;max-width:60vw"><option value="">Välj vid behov</option>${opts}</select></label>
+<p class="muted" style="margin:0">Tryck "Tid!" varje gång någon går i mål. Klockan fortsätter gå.</p>`:""}
+${laps.length?`<div class="tbl-wrap" style="text-align:left"><table><tbody>${laps.map((l,i)=>{const x=l.who?player(l.who):null;return`<tr><td class="rank">${i+1}</td><td class="name">${x?teamDot(x.t)+" "+esc(x.p.name):`<select data-change="swWho" data-id="${l.id}" style="width:auto;padding:4px 6px"><option value="">Vem?</option>${opts}</select>`}</td><td class="pts">${fmtT(l.t)}</td><td><button class="btn small ghost danger" data-act="swDel" data-id="${l.id}" aria-label="Ta bort tid">✕</button></td></tr>`}).join("")}</tbody></table></div>
+<button class="btn small ghost danger" data-act="arm" data-do="swClear">Rensa alla tider</button>`:""}
+</div>`;
+}
 function vFem(){
 if(!S.teams.length)return`<h2>Femkamp</h2><div class="empty">Lägg in lag först.</div>`;
 const tot=fkTotals();
-let h=`<h2>Femkamp</h2><p class="muted">Skriv in poängen per gren. Lagens tidigare utvisningar och tillsägelser syns nedanför, så att tävlingsledningen kan göra justeringar.</p>`;
+let h=vSW()+`<h2>Femkamp</h2><p class="muted">Skriv in poängen per gren. Lagens tidigare utvisningar och tillsägelser syns nedanför, så att tävlingsledningen kan göra justeringar.</p>`;
 for(const ev of S.fk.events){
 const sc=S.fk.scores[ev.id]||{};
 h+=`<div class="card stack" style="margin-top:10px"><div class="row" style="justify-content:space-between"><input type="text" id="fe-${ev.id}" value="${esc(ev.name)}" data-change="fkName" data-id="${ev.id}" style="font-weight:800;flex:1"><button class="btn small ghost danger" data-act="arm" data-do="delFk" data-id="${ev.id}">Ta bort</button></div>
@@ -579,6 +610,7 @@ switch(what){
 case"wipe":S={...demo(),demo:false,teams:[],matches:[],warns:[]};S.fk.scores={};ui={tab:"lag",openMatch:null};toast("Rent bord. Lägg in era lag!");break;
 case"delTeam":S.teams=S.teams.filter(t=>t.id!==id);break;
 case"genApply":if(ui.gen)genApply();break;
+case"swClear":SW.laps=[];swSave();break;
 case"delPlayer":for(const t of S.teams)t.players=t.players.filter(p=>p.id!==id);break;
 case"delEv":for(const x of S.matches)x.events=x.events.filter(e=>e.id!==id);S.warns=S.warns.filter(e=>e.id!==id);break;
 case"delMatch":S.matches=S.matches.filter(x=>x!==m);ui.openMatch=null;break;
@@ -617,6 +649,13 @@ case"pickNote":pick.note=el.dataset.n;drawPick();break;
 case"saveDetail":{const txt=$("#noteTxt").value.trim();addEv({type:pick.type,player:pick.player,team:pick.team,min:pick.min,note:txt||pick.note||""});
 const who=pname(pick.player);closeLayer();render();toast(pick.type==="pen"?`${who} till båset`:`${who} har fått en tillsägelse`);break}
 case"close":closeLayer();break;
+case"adjClock":{if(!m||m.status!=="live")break;const d=+el.dataset.d,down=plenMs(m)>0;const cur=elapsed(m);let ne=cur+(down?-d:d);ne=Math.max(pStart(m),down?Math.min(ne,pStart(m)+plenMs(m)):ne);m.clock.ms+=ne-cur;save();render();break}
+case"swMode":if(SW.running)break;SW.mode=el.dataset.m;SW.ms=0;swSave();render();break;
+case"swPreset":if(SW.running)break;SW.down=+el.dataset.v*1000;SW.ms=0;swSave();render();break;
+case"swGo":if(SW.running){SW.ms=swEl();SW.running=false}else{if(SW.mode==="down"&&swShown()===0)SW.ms=0;SW.since=Date.now();SW.running=true;try{audio=audio||new (window.AudioContext||window.webkitAudioContext)();audio.resume()}catch(e){}wake()}swSave();render();break;
+case"swLap":{if(!SW.running&&!swEl()){toast("Starta klockan först");break}const w=$("#swWho")?.value||"";SW.laps.push({id:uid(),t:swEl(),who:w});swSave();render();toast(fmtT(swEl())+(w?" "+pname(w):""));break}
+case"swReset":SW.running=false;SW.ms=0;swSave();render();break;
+case"swDel":SW.laps=SW.laps.filter(l=>l.id!==id);swSave();render();break;
 case"nextPeriod":{const L=periodsList(),i=L.findIndex(p=>String(p)===String(m.period));const[h,a]=score(m);
 if(i<L.length-2){m.period=L[i+1]}else if(m.period!=="OT"&&h===a&&fmtS().tie==="ot"){m.period="OT"}else{toast("Matchen är slut, tryck Slutsignal");break}
 m.pStart=elapsed(m);save();render();toast(m.period==="OT"?"Sudden death! Nästa mål vinner":"Period "+m.period);break}
@@ -662,6 +701,7 @@ if(k==="fkName"){const e=S.fk.events.find(x=>x.id===el.dataset.id);if(e&&el.valu
 if(k==="fkScore"){(S.fk.scores[el.dataset.ev]??={})[el.dataset.t]=el.value===""?"":+el.value;save();return}
 if(k==="set")S.settings[el.dataset.k]=+el.value||0;
 if(k==="setb")S.settings[el.dataset.k]=el.checked;
+if(k==="swWho"){const l=SW.laps.find(x=>x.id===el.dataset.id);if(l){l.who=el.value;swSave();render()}return}
 if(k==="sets"){S.settings[el.dataset.k]=el.value;save();render();return}
 if(k==="set"&&/^(periods)$/.test(el.dataset.k)){save();render();return}
 save();
@@ -673,6 +713,7 @@ setInterval(()=>{
 if(!S)return;const m=curMatch();if(!m||!m.clock.running)return;
 const onBoard=!isAdmin||(ui.tab==="match"&&!ui.openMatch);
 const t=elapsed(m),c=$("#clock");if(c&&onBoard)c.textContent=fmt(pClock(m,t));
+const mc=$("#mclock");if(mc)mc.textContent=fmt(pClock(m,t));
 if(isAdmin&&PIN&&plenMs(m)&&pClock(m,t)===0){m.clock.ms=t;m.clock.running=false;save();render();
 const last=String(m.period)===String(periodsList().slice(-2)[0]);const[h,a]=score(m);
 toast(m.period==="OT"?"Förlängningen är slut!":last?(h===a&&fmtS().tie!=="draw"?"Full tid, oavgjort! Dags för "+(fmtS().tie==="so"?"straffar":"förlängning"):"Full tid! Tryck Slutsignal"):"Periodslut! Tryck Nästa period");try{navigator.vibrate&&navigator.vibrate([300,100,300])}catch(e){}return}
@@ -682,6 +723,8 @@ $("#penH").innerHTML=ap(m.home);$("#penA").innerHTML=ap(m.away);
 }
 if(isAdmin&&PIN&&S.settings.autoJager&&m.nextJager!=null&&t>=m.nextJager&&!$("#layer").innerHTML){m.nextJager=null;startJager()}
 },500);
+setInterval(()=>{if(!SW.running)return;const e=$("#swTime");if(e)e.textContent=fmtT(swShown());
+if(SW.mode==="down"&&swShown()===0){SW.ms=SW.down;SW.running=false;swSave();beep();try{navigator.vibrate&&navigator.vibrate([400,150,400])}catch(x){}toast("TID!");if(ui.tab==="femkamp"&&!isBusy())render()}},100);
 let lock=null;async function wake(){try{if(!lock&&navigator.wakeLock)lock=await navigator.wakeLock.request("screen");lock?.addEventListener("release",()=>lock=null)}catch(e){}}
 document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"&&curMatch()?.clock.running)wake()});
 addEventListener("resize",()=>{if(raf){cv.width=innerWidth*devicePixelRatio;cv.height=innerHeight*devicePixelRatio}});
