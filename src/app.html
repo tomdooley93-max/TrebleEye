@@ -159,7 +159,17 @@ html.tv:has(#remoteBox:not([hidden])) #tvGfx:not([hidden]){display:block;positio
 .tvgfx .gt .gsum{margin-left:auto;min-width:2em;text-align:right;font-size:1.15em}
 .tvgfx .gt .gsum.max{color:var(--acc)}
 .tvgfx .gt .gsum.bust{color:var(--red)}
-.tvgfx .gt .gco{margin-left:.6em;padding-left:.6em;border-left:1px solid var(--line2);color:var(--acc);font-size:.85em;white-space:nowrap}
+.tvgfx .gc{display:flex;align-items:center;gap:.6em;background:rgba(16,20,17,.92);border-top:1px solid rgba(255,255,255,.08);font-size:clamp(15px,2.8vh,34px);font-weight:700;padding:.3em .6em;border-radius:0 0 6px 6px;flex-wrap:wrap}
+.tvgfx .gc .gk{color:var(--mut);text-transform:uppercase;font-size:.8em;letter-spacing:.06em;white-space:nowrap}
+.tvgfx .gc .gk b{color:#fff;font-size:1.25em;margin-left:.2em}
+.tvgfx .gc .gr2{margin-left:auto;display:flex;gap:.3em;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+.tvgfx .gc .gr2 i{font-style:normal;background:var(--acc);color:var(--acc-ink);border-radius:4px;padding:0 .35em;min-width:2.2em;text-align:center}
+.tvgfx .gc .gr2 i.d{background:#fff}
+.tvgfx .gc .gr2 em{font-style:normal;color:var(--mut);font-size:.8em}
+.tvgfx .gc .gm{font-weight:600;font-size:.8em;color:#fff}
+.tvgfx .gt:has(+.gc){border-radius:0}
+.tvgfx.mode .gh,.tvgfx.mode .gr{grid-template-columns:1.2em minmax(4.5em,auto) minmax(0,1fr) 3.8em}
+.tvgfx .gr .c.sub{font-size:.55em;white-space:nowrap;min-width:0;overflow:hidden;text-overflow:ellipsis;text-align:right;justify-self:stretch}
 .tvgfx .gt.win{justify-content:center;color:var(--acc);text-transform:uppercase;letter-spacing:.04em}
 .place{margin:10px 0;padding:12px;border:1px solid var(--line);border-radius:var(--r);background:var(--bg2)}
 .place ul{list-style:none;margin:8px 0 0;padding:0;display:flex;flex-direction:column;gap:6px;font-size:14px}
@@ -422,6 +432,31 @@ html.tv .bar,html.tv .backdrop{display:none!important}
   .gcard{padding:12px 16px 14px;gap:8px}.gcard h2{font-size:24px}.gbody{font-size:16px}
   .gnav{bottom:-14px;margin:0 -16px -14px;padding:8px 16px 14px}.gnav button{padding:10px}
 }
+/* Tablets and laptops: the game screen fits the screen without scrolling. The board takes the free height on the
+   right, the live picture from a camera device takes the free height on the left and always scales to fit. */
+@media (min-width:700px) and (min-height:600px){
+  html:not(.tv) .wrap:has(#scrGame.active){padding-block:12px}
+  html:not(.tv) #scrGame.active{display:flex;flex-direction:column;height:calc(100dvh - 24px - env(safe-area-inset-top,0px))}
+  html:not(.tv) #scrGame>.bar{flex:none}
+  html:not(.tv) #scrGame .grid{flex:1;min-height:0;align-items:stretch}
+  html:not(.tv) #scrGame .grid>div:first-child{display:flex;flex-direction:column;min-height:0;overflow:auto}
+  html:not(.tv) #scrGame .grid>.panel{display:flex;flex-direction:column;min-height:0;overflow:auto}
+  html:not(.tv) #paneMan:not([hidden]){flex:1;min-height:0;display:flex;flex-direction:column}
+  html:not(.tv) #board{flex:1 1 0;min-height:200px;height:auto;width:100%;max-width:none}
+  html:not(.tv) #remoteBox:not([hidden]){flex:1 1 0;min-height:180px;display:flex;flex-direction:column}
+  html:not(.tv) #remoteWrap{flex:1;min-height:0;position:relative;margin-top:8px}
+  html:not(.tv) #remoteVid{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
+  html:not(.tv) #scrGame .log{max-height:4.5em;overflow:auto}
+}
+/* portrait tablet: the columns are narrow, so the picture keeps its own shape and the board sits with its keypad */
+@media (min-width:700px) and (min-height:600px) and (orientation:portrait){
+  html:not(.tv) #scrGame .grid>.panel{justify-content:center}
+  html:not(.tv) #paneMan:not([hidden]){flex:0 1 auto}
+  html:not(.tv) #board{flex:0 1 auto;aspect-ratio:1;min-height:0}
+  html:not(.tv) #remoteBox:not([hidden]){flex:0 1 auto}
+  html:not(.tv) #remoteWrap{flex:0 1 auto}
+  html:not(.tv) #remoteVid{position:static;height:auto;max-height:55vh}
+}
 /* ===== Tournament (cup) =====
    The stage is the big-screen picture: on a laptop it is shown as a 16:9 preview, in big-screen mode it fills
    the display. Cards use container units so text scales with the card. Each board card is a broadcast
@@ -635,7 +670,7 @@ html.cupbig .queue{font-size:min(1.15cqw,2.05cqh)}
     <header class="home-head">
       <h1 class="logo"><img src="icons/wordmark.webp" alt="TrebleEye" width="980" height="556"></h1>
       <div class="byline">by T.Henriksson</div>
-      <div class="meta"><span id="appVer">v2.17.1</span></div>
+      <div class="meta"><span id="appVer">v2.18.0</span></div>
     </header>
     <div class="home">
       <button class="pri big" id="btnSettings">Nytt spel</button>
@@ -941,6 +976,9 @@ html.cupbig .queue{font-size:min(1.15cqw,2.05cqh)}
       <label class="opt-rounds" hidden>Rundor
         <select id="selRounds"><option value="5">5</option><option value="10" selected>10</option><option value="20">20</option></select>
       </label>
+      <label class="opt-team" hidden>Spelform
+        <select id="selTeam"><option value="0" selected>Var för sig mot tavlan</option><option value="1">Lag mot tavlan</option></select>
+      </label>
       <label class="opt-x01">Spel
         <select id="selStart"><option>301</option><option selected>501</option><option>701</option></select>
       </label>
@@ -990,7 +1028,7 @@ html.cupbig .queue{font-size:min(1.15cqw,2.05cqh)}
     </div>
 
     <div class="panel">
-      <div class="tabs" role="tablist">
+      <div class="tabs" role="tablist" id="camTabs">
         <button role="tab" id="tabMan" aria-selected="true">Manuell</button>
         <button role="tab" id="tabCam" aria-selected="false">Kamera</button>
       </div>
@@ -1563,46 +1601,54 @@ const MODES={
   },
   c170:{
     label:"170",
-    init(p){p.left=170;p.visitStart=170;p.visit=0;p.pts=0;p.rounds=0;p.roundDone=false;},
-    start(p){p.left=170;p.visitStart=170;p.visit=0;p.roundDone=false;},
+    // solo: every player plays their own rounds against the board. team: the players share one 170 and take one visit each in turn
+    init(p){p.left=170;p.visitStart=170;p.visit=0;p.pts=0;p.rounds=0;p.roundDone=false;p.hits=0;},
+    setup(){if(G.cfg.team)G.team={left:170,visitStart:170,visit:0,pts:0,rounds:0,roundDone:false};},
+    start(p){const S=c170S(p);if(G.cfg.team&&!S.roundDone&&S.visit>0)return;S.left=170;S.visitStart=170;S.visit=0;S.roundDone=false;},
     dart(p,d,t){
-      const rest=p.left-d.v;
-      if(rest===0&&d.m===2){p.left=0;p.pts++;p.rounds++;p.roundDone=true;t.result="hit";t.done=true;}
-      else if(rest<2){p.left=p.visitStart;t.result="bust";t.done=true;}
-      else p.left=rest;
+      const S=c170S(p),rest=S.left-d.v;
+      if(rest===0&&d.m===2){S.left=0;S.pts++;S.rounds++;S.roundDone=true;p.hits++;t.result="hit";t.done=true;}
+      else if(rest<2){S.left=S.visitStart;t.result="bust";t.done=true;}
+      else S.left=rest;
     },
     // nine darts = three visits; after the third visit without a finish the board takes the point
     turnEnd(p,t){
-      if(p.roundDone)return;
-      p.visit++;
-      if(p.visit>=3){G.board=(G.board||0)+1;p.rounds++;p.roundDone=true;t.result="fail";}
-      else p.visitStart=p.left;
+      const S=c170S(p);
+      if(S.roundDone)return;
+      S.visit++;
+      if(S.visit>=3){G.board=(G.board||0)+1;S.rounds++;S.roundDone=true;t.result="fail";}
+      else S.visitStart=S.left;
     },
-    keepTurn:p=>!p.roundDone,
+    keepTurn:p=>!G.cfg.team&&!p.roundDone,
     winner(){
       const n=G.cfg.rounds||10;
+      if(G.cfg.team)return G.team.rounds>=n?0:null;
       if(!G.players.every(p=>p.rounds>=n))return null;
       let w=0;G.players.forEach((p,i)=>{if(p.pts>G.players[w].pts)w=i;});return w;
     },
-    big:p=>String(p.left),
-    sub:p=>"Poäng "+p.pts+" · Tavlan "+(G.board||0)+" · runda "+Math.min(p.rounds+1,G.cfg.rounds||10)+"/"+(G.cfg.rounds||10),
+    big:p=>String(c170S(p).left),
+    sub:p=>{const S=c170S(p),n=G.cfg.rounds||10;return (G.cfg.team?"Laget "+S.pts+" · Tavlan "+(G.board||0)+" · utgångar "+p.hits:"Poäng "+S.pts+" · Tavlan "+(G.board||0))+" · runda "+Math.min(S.rounds+(S.roundDone&&!G.cfg.team?0:1),n)+"/"+n;},
     msg(p,t){
-      if(t.result==="hit")return '<span class="label">Utgång! Poäng till '+esc(p.name)+'.</span>';
+      const S=c170S(p);
+      if(t.result==="hit")return '<span class="label">Utgång! Poäng till '+(G.cfg.team?"laget ("+esc(p.name)+")":esc(p.name))+'.</span>';
       if(t.result==="fail")return '<span class="label">Nio pilar utan utgång. Tavlan får poängen.</span>';
-      const dartsLeft=9-p.visit*3-t.darts.length;
-      const co=checkout(p.left,3-t.darts.length,true);
-      return '<span class="label">'+(t.result==="bust"?"Bust! Tillbaka till "+p.left+". ":"")+'Pil '+(10-dartsLeft)+' av 9 · </span>'+
+      const dartsLeft=9-S.visit*3-t.darts.length;
+      const co=checkout(S.left,3-t.darts.length,true);
+      return '<span class="label">'+(t.result==="bust"?"Bust! Tillbaka till "+S.left+". ":"")+'Pil '+(10-dartsLeft)+' av 9 · </span>'+
         (co?co.map((d,k)=>'<span class="chip'+(k===0?" nx":"")+(d.m===2?" d":"")+'">'+d.label+'</span>').join(""):'<span class="label">sätt upp nästa besök</span>');
     },
-    stat:p=>({name:p.name,pts:p.pts,rounds:p.rounds,board:G.board||0}),
-    statCols:[["Spelare",r=>r.name],["Poäng",r=>String(r.pts),"big"],["Tavlan",r=>String(r.board)],["Rundor",r=>String(r.rounds)]],
+    stat:p=>({name:p.name,pts:c170S(p).pts,rounds:c170S(p).rounds,board:G.board||0,hits:p.hits||0,team:!!G.cfg.team}),
+    statCols:[["Spelare",r=>r.name],["Poäng",r=>String(r.pts)+(r.team?" (lag)":""),"big"],["Tavlan",r=>String(r.board)],["Egna utgångar",r=>String(r.hits==null?"–":r.hits)],["Rundor",r=>String(r.rounds)]],
     summary:r=>r.pts+"–"+r.board+" mot tavlan"
   }
 };
+function c170S(p){return G.cfg.team&&G.team?G.team:p;}
+// the result line for a finished game; a 170 team game is the team against the board
+function teamResult(){const T=G.team,b=G.board||0;return T.pts>b?"Laget vinner "+T.pts+"–"+b+" mot tavlan":T.pts<b?"Tavlan vinner "+b+"–"+T.pts:"Oavgjort "+T.pts+"–"+b+" mot tavlan";}
 const MODE_LABEL=m=>m==="x01"?"X01":(MODES[m]||{}).label||m;
 function newModeGame(cfg){
   const M=MODES[cfg.mode];
-  G={mode:cfg.mode,board:0,cfg:{mode:cfg.mode,range:cfg.range||"61-100",rounds:cfg.rounds||10,lives:cfg.lives||3,pick:cfg.pick||"random",names:cfg.names},id:Date.now().toString(36),date:new Date().toISOString(),
+  G={mode:cfg.mode,board:0,cfg:{mode:cfg.mode,range:cfg.range||"61-100",rounds:cfg.rounds||10,lives:cfg.lives||3,pick:cfg.pick||"random",team:!!(cfg.team&&cfg.mode==="c170"&&cfg.names.length>1),names:cfg.names},id:Date.now().toString(36),date:new Date().toISOString(),
      cur:0,winner:null,matchWinner:null,log:[],fmt:{legs:1,sets:0},players:cfg.names.map(n=>({name:n,darts:0}))};
   G.players.forEach(p=>M.init(p));
   if(M.setup)M.setup();
@@ -1648,7 +1694,7 @@ function modeNext(){
 function saveModeHistory(){
   if(sess.role==="client")return;
   const M=MODES[G.mode],h=matchHistory().filter(m=>m.id!==G.id);
-  h.unshift({id:G.id,date:G.date,mode:G.mode,winner:G.players[G.matchWinner].name,players:G.players.map(M.stat)});
+  h.unshift({id:G.id,date:G.date,mode:G.mode,winner:G.cfg.team?(G.team.pts>(G.board||0)?"Laget":G.team.pts<(G.board||0)?"Tavlan":"Oavgjort"):G.players[G.matchWinner].name,players:G.players.map(M.stat)});
   store.set("dk_history",h.slice(0,200));
 }
 function renderMode(){
@@ -1657,7 +1703,7 @@ function renderMode(){
   const pl=$("players");pl.innerHTML="";
   G.players.forEach((p,i)=>{
     const el=document.createElement("div");
-    el.className="pl"+(i===G.cur&&G.matchWinner===null?" on":"")+(G.matchWinner===i?" won":"");
+    el.className="pl"+(i===G.cur&&G.matchWinner===null?" on":"")+(G.matchWinner===i&&!G.cfg.team?" won":"");
     el.title="Tryck för att ändra namn eller bild";
     el.innerHTML='<div class="nm"><span class="who"><span class="av"></span><span class="pn"></span></span>'+(i===G.cur&&G.matchWinner===null?'<span class="dot" title="Kastar"></span>':"")+'</div>'+
       '<div class="sc"></div><div class="st"><span class="msub"></span></div>';
@@ -1673,7 +1719,7 @@ function renderMode(){
   const sum=document.createElement("div");sum.className="slot sum";sum.innerHTML="<small>Pilar</small>"+t.darts.length+"/3";sl.appendChild(sum);
   const m=$("msg");m.className="msg co";
   const solo=G.players.length===1;
-  if(G.matchWinner!==null){m.className="msg win";m.textContent=solo?"Klart! Se statistiken eller tryck Kör igen.":G.players[G.matchWinner].name+" vinner! Se statistiken eller tryck Revansch.";}
+  if(G.matchWinner!==null){m.className="msg win";m.textContent=G.cfg.team?teamResult()+". Se statistiken eller tryck Revansch.":solo?"Klart! Se statistiken eller tryck Kör igen.":G.players[G.matchWinner].name+" vinner! Se statistiken eller tryck Revansch.";}
   else m.innerHTML=M.msg(p,t);
   $("modeBox").innerHTML=M.table?M.table():"";$("modeBox").hidden=!M.table;
   $("btnNext").textContent=G.matchWinner!==null?(solo?"Kör igen":"Revansch"):(solo?"Nästa runda":"Nästa spelare");
@@ -2046,6 +2092,7 @@ const caller=(function(){
       call("s"+sum,sum===0?"No score":en(sum),sum===0?"Inga poäng":String(sum),{rate:sum>=100?0.88:0.95,pitch:sum>=100?1.05:1,e:sum>=140?0.7:sum>=100?0.45:sum>=60?0.15:0});
     },
     modeWin(p){
+      if(G.cfg&&G.cfg.team){const r=teamResult();fx.gameShot(G.team.pts>=(G.board||0)?"Laget":"Tavlan",MODE_LABEL(G.mode).toUpperCase());if(fxOn())audio.sfx("win");call("gameshot",r,r,{e:0.85});return;}
       fx.gameShot(p.name,MODE_LABEL(G.mode).toUpperCase());
       if(fxOn())audio.sfx("win");
       call("gameshot","Game shot, "+p.name+"!","Vinst för "+p.name+"!",{e:0.85});
@@ -2085,12 +2132,12 @@ function renderStats(){
     head.textContent=G.start+" · "+fmtText(G.fmt)+(G.matchWinner!=null?" · Vinnare: "+G.players[G.matchWinner].name:" · pågår");
     body.appendChild(head);
     body.appendChild(statTable([["Spelare",r=>r.name],["Snitt",r=>f1(r.avg),"big"],["First 9",r=>f1(r.f9)],["180",r=>f0(r.c180)],["140+",r=>f0(r.c140)],["100+",r=>f0(r.c100)],
-      ["Högsta utg.",r=>f0(r.hiCo)],["Utgång %",r=>r.coPct==null?"–":r.coPct.toFixed(0)+"% ("+r.coHit+"/"+r.coTry+")"],["Bästa leg",r=>r.best?r.best+" pilar":"–"],["Legs",r=>String(r.legs)]],G.players.map(statRow)));
+      ["Högsta utg.",r=>f0(r.hiCo)],["Dubbel %",r=>r.coPct==null?"–":r.coPct.toFixed(0)+"% ("+r.coHit+"/"+r.coTry+")"],["Bästa leg",r=>r.best?r.best+" pilar":"–"],["Legs",r=>String(r.legs)]],G.players.map(statRow)));
   }else if(statTab==="hist"){
     const c=careers();
     if(!c.length){body.innerHTML='<p class="help">Inga avslutade matcher än. Statistiken sparas när en match är klar.</p>';return;}
     body.appendChild(statTable([["Spelare",r=>r.name],["Matcher",r=>String(r.matches)],["Vinster",r=>r.wins+" ("+Math.round(r.wins/r.matches*100)+"%)"],["Snitt",r=>f1(r.darts?r.pts/r.darts*3:null),"big"],
-      ["180",r=>f0(r.c180)],["140+",r=>f0(r.c140)],["Högsta utg.",r=>f0(r.hiCo)],["Utgång %",r=>r.coTry?(r.coHit/r.coTry*100).toFixed(0)+"%":"–"],["Bästa leg",r=>r.best?r.best+" pilar":"–"]],c));
+      ["180",r=>f0(r.c180)],["140+",r=>f0(r.c140)],["Högsta utg.",r=>f0(r.hiCo)],["Dubbel %",r=>r.coTry?(r.coHit/r.coTry*100).toFixed(0)+"% ("+r.coHit+"/"+r.coTry+")":"–"],["Bästa leg",r=>r.best?r.best+" pilar":"–"]],c));
   }else{
     const h=matchHistory();
     if(!h.length){body.innerHTML='<p class="help">Inga avslutade matcher än.</p>';return;}
@@ -2309,7 +2356,7 @@ function render(){
     const tally=G.fmt.sets>1?'<span class="tally">Set '+p.sets+' · Leg '+p.legs+'</span>':'<span class="tally">Legs '+p.legs+'</span>';
     el.title="Tryck för att ändra namn eller bild";
     el.innerHTML='<div class="nm"><span class="who"><span class="av"></span><span class="pn"></span></span>'+(i===G.cur&&G.winner===null?'<span class="dot" title="Kastar"></span>':"")+'</div>'+
-      '<div class="sc">'+p.score+'</div><div class="st">'+tally+'<span>Snitt '+avg+'</span>'+(p.st&&p.st.c180?'<span>180 ×'+p.st.c180+'</span>':'')+'</div>'+coLine(p,i);
+      '<div class="sc">'+p.score+'</div><div class="st">'+tally+'<span>Snitt '+avg+'</span>'+(G.dbl&&p.st&&p.st.coTry?'<span>Dubbel '+Math.round(p.st.coHit/p.st.coTry*100)+'% ('+p.st.coHit+'/'+p.st.coTry+')</span>':'')+(p.st&&p.st.c180?'<span>180 ×'+p.st.c180+'</span>':'')+'</div>'+coLine(p,i);
     el.querySelector(".pn").textContent=p.name;
     fillAv(el.querySelector(".av"),p.name,profiles()[p.name]);
     el.addEventListener("click",()=>openEdit(i));
@@ -2341,26 +2388,36 @@ function render(){
   G.log.forEach(l=>{const d=document.createElement("div");d.textContent=l;$("log").appendChild(d);});
   drawMarkers();renderGfx();
 }
-// TV graphics over the live camera: score bug with names, legs, remaining score, this turn and the checkout
+// TV graphics over the live camera: score bug with names, score, this turn and what is left with the recommended finish
 function renderGfx(){
   const el=$("tvGfx");if(!el)return;
-  if(!G||G.mode!=="x01"){el.hidden=true;return;}
+  if(!G||!G.players||!G.players.length){el.hidden=true;return;}
   el.hidden=false;
-  const sets=G.fmt.sets>1,t=G.turn,p=G.players[G.cur];
-  el.className="tvgfx"+(sets?" sets":"");
-  let h='<div class="gh"><span>'+esc(G.start+" · "+fmtText(G.fmt))+'</span>'+(sets?'<span class="c">S</span>':'')+'<span class="c">L</span><span></span></div>';
+  const x01=G.mode==="x01",M=x01?null:MODES[G.mode],sets=x01&&G.fmt.sets>1,t=G.turn,p=G.players[G.cur];
+  const done=x01?G.matchWinner!==null||G.winner!==null:G.matchWinner!==null;
+  el.className="tvgfx"+(sets?" sets":"")+(x01?"":" mode");
+  let h='<div class="gh"><span>'+esc(x01?G.start+" · "+fmtText(G.fmt):$("gameMeta").textContent+(G.cfg&&G.cfg.team&&G.team?" · laget "+G.team.pts:""))+'</span>'+(x01?(sets?'<span class="c">S</span>':'')+'<span class="c">L</span>':'<span></span>')+'<span></span></div>';
   G.players.forEach((q,i)=>{
-    const on=i===G.cur&&G.winner===null;
-    h+='<div class="gr'+(on?" on":"")+(G.matchWinner===i||G.winner===i?" won":"")+'"><span class="gp">'+(on?"<i></i>":"")+'</span><span class="gn">'+esc(q.name)+'</span>'+
-      (sets?'<span class="c">'+q.sets+'</span>':'')+'<span class="c">'+q.legs+'</span><span class="gsc">'+q.score+'</span></div>';
+    const on=i===G.cur&&!done,won=(G.matchWinner===i&&!(G.cfg&&G.cfg.team))||(x01&&G.winner===i);
+    const mid=x01?(sets?'<span class="c">'+q.sets+'</span>':'')+'<span class="c">'+q.legs+'</span>':'<span class="c sub">'+esc(G.cfg&&G.cfg.team?"utgångar "+q.hits:M.sub(q))+'</span>';
+    h+='<div class="gr'+(on?" on":"")+(won?" won":"")+'"><span class="gp">'+(on?"<i></i>":"")+'</span><span class="gn">'+esc(q.name)+'</span>'+mid+'<span class="gsc">'+esc(x01?q.score:M.big(q))+'</span></div>';
   });
-  if(G.matchWinner!==null)h+='<div class="gt win">'+esc(G.players[G.matchWinner].name)+' vinner matchen</div>';
-  else if(G.winner!==null)h+='<div class="gt win">'+esc(G.players[G.winner].name)+(G.setWon?' vinner setet':' vinner leget')+'</div>';
+  if(G.matchWinner!==null&&G.cfg&&G.cfg.team)h+='<div class="gt win">'+esc(teamResult())+'</div>';
+  else if(G.matchWinner!==null)h+='<div class="gt win">'+esc(G.players[G.matchWinner].name)+(G.players.length>1?' vinner matchen':' är klar')+'</div>';
+  else if(x01&&G.winner!==null)h+='<div class="gt win">'+esc(G.players[G.winner].name)+(G.setWon?' vinner setet':' vinner leget')+'</div>';
   else{
-    const sum=t.darts.reduce((a,d)=>a+d.v,0),co=!t.done&&!t.bust?checkout(p.score,3-t.darts.length,G.dbl):null;
+    const sum=t.darts.reduce((a,d)=>a+d.v,0);
     h+='<div class="gt"><span class="gw">'+esc(p.name)+'</span>';
     for(let i=0;i<3;i++)h+='<span class="gd">'+(t.darts[i]?esc(t.darts[i].label):"")+'</span>';
-    h+='<span class="gsum'+(t.bust?" bust":sum===180?" max":"")+'">'+(t.bust?"BUST":sum)+'</span>'+(co?'<span class="gco">'+co.map(d=>esc(d.label)).join(" ")+'</span>':'')+'</div>';
+    h+=x01?'<span class="gsum'+(t.bust?" bust":sum===180?" max":"")+'">'+(t.bust?"BUST":sum)+'</span></div>':'<span class="gsum">'+t.darts.length+'/3</span></div>';
+    // the line under the turn: what is left and the recommended way out (same tables as the scoring screen)
+    if(x01&&!G.sd){
+      const left=t.done?3:3-t.darts.length,co=t.bust?null:checkout(p.score,left,G.dbl),su=co||t.bust?null:setupShot(p.score,left,G.dbl);
+      h+='<div class="gc"><span class="gk">Kvar <b>'+p.score+'</b></span>'+(co?'<span class="gr2">'+co.map(d=>'<i'+(d.m===2?' class="d"':'')+'>'+esc(d.label)+'</i>').join("")+'</span>':su?'<span class="gr2"><i>'+esc(su.d.label)+'</i><em>ställ upp '+su.rest+'</em></span>':'')+'</div>';
+    }else if(!x01){
+      const tmp=document.createElement("div");tmp.innerHTML=(M.msg(p,t)||"").replace(/<\/span>\s*<span/g,"</span> <span");const txt=tmp.textContent.replace(/\s+/g," ").trim();
+      if(txt)h+='<div class="gc"><span class="gm">'+esc(txt)+'</span></div>';
+    }
   }
   el.innerHTML=h;
 }
@@ -3301,6 +3358,8 @@ const sess=(function(){
   window.addEventListener("resize",fitRemote);
   function showRemote(stream){
     const box=$("remoteBox"),v=$("remoteVid");
+    // a camera device supplies the picture: this device scores by hand only, so the Kamera tab goes away
+    const ext=!!stream&&stream===extStream;$("camTabs").hidden=ext;if(ext&&!$("paneCam").hidden)$("tabMan").click();
     if(stream){v.srcObject=stream;box.hidden=false;v.onloadedmetadata=v.onresize=fitRemote;v.play().catch(()=>{});setTimeout(fitRemote,300);}
     else{v.srcObject=null;box.hidden=true;}
   }
@@ -4001,12 +4060,12 @@ const cup=(function(){
       s:[x.m,x.w,x.lw,x.ll,fx1(avg3(x.pts,x.darts)),fx1(avg3(x.f9p,x.f9d)),x.c180,x.c140,x.c100,x.hc,x.coT?Math.round(x.coH/x.coT*100)+"% ("+x.coH+"/"+x.coT+")":"–",x.best],
       ms:x.ms};
   }
-  const COLS=["Matcher","Vunna","Legs vunna","Legs förlorade","Snitt","Första 9","180","140+","100+","Högsta utgång","Utgång %","Bästa leg (pilar)"];
+  const COLS=["Matcher","Vunna","Legs vunna","Legs förlorade","Snitt","Första 9","180","140+","100+","Högsta utgång","Dubbel %","Bästa leg (pilar)"];
   function renderCupStats(){
     const box=$("cupStats");if(!C){box.innerHTML="";return;}
     const rows=playerStats().filter(x=>x.m);
     $("cupStatsBox").hidden=!rows.length;if(!rows.length)return;
-    let h='<table class="crt cupst"><tr><th>Spelare</th><th>Placering</th><th>V–F</th><th>Legs</th><th>Snitt</th><th>180</th><th>Högsta utg.</th><th>Utgång %</th></tr>';
+    let h='<table class="crt cupst"><tr><th>Spelare</th><th>Placering</th><th>V–F</th><th>Legs</th><th>Snitt</th><th>180</th><th>Högsta utg.</th><th>Dubbel %</th></tr>';
     rows.forEach(x=>{const o=summary(x).s;
       h+='<tr data-n="'+esc(x.n)+'"><td class="n">'+esc(x.n)+'</td><td class="n">'+esc(place(x))+'</td><td>'+x.w+'–'+(x.m-x.w)+'</td><td>'+x.lw+'–'+x.ll+'</td><td>'+o[4]+'</td><td>'+(x.c180||"–")+'</td><td>'+(x.hc||"–")+'</td><td>'+o[10].replace(/ \(.*/,"")+'</td></tr>';});
     box.innerHTML=h+'</table>';
@@ -4366,6 +4425,12 @@ const iconNote=(function(){
 /* ---------- "Nytt i den här uppdateringen": shown once per version that has an entry here.
    Small fixes get no entry, so no pop-up. Newest first. ---------- */
 const NEWS=[
+  {v:"2.18.0",items:[
+    "Tv-grafiken visar vad spelaren har kvar och rekommenderad utgång, och fungerar i alla spellägen.",
+    "170 kan spelas i lag: två eller tre spelare delar på samma 170 mot tavlan.",
+    "Statistiken visar dubbelprocent (träffar av försök på dubbel).",
+    "Surfplattor: spelsidan anpassar sig till skärmen utan att skrolla, och livebilden skalas alltid till rätt storlek."
+  ]},
   {v:"2.17.0",items:[
     "En enhet kan vara enbart kamera: välj Anslut som kamera i den delade sessionen. Bilden skickas till TV-läget och till enheten som räknar poäng."
   ]},
@@ -4612,14 +4677,14 @@ $("stTabMatch").addEventListener("click",()=>openStats("match"));
 $("stTabHist").addEventListener("click",()=>openStats("hist"));
 $("stTabList").addEventListener("click",()=>openStats("list"));
 $("btnCancel").addEventListener("click",()=>showScreen("home"));
-$("selN").addEventListener("change",buildNames);
+$("selN").addEventListener("change",()=>{buildNames();modeOpts();});
 const MODE_HELP={
   x01:"Räkna ner till noll. Med dubbel ut måste sista pilen vara en dubbel eller bull.",
   cricket:"Stäng 15–20 och bull med tre träffar var (dubbel = 2, trippel = 3). Fler träffar på en stängd siffra ger poäng tills motståndarna stänger den. Den som stänger allt och har minst lika många poäng vinner.",
   atc:"Träffa 1 till 20 i tur och ordning och sist bull. Alla delar av siffran räknas. Först runt vinner.",
   checkout:"Varje runda får ett slumpat utgångsmål. Du har tre pilar på dig att gå ut med en dubbel. Appen visar proffsvägen.",
   killer:"Alla får en egen siffra, genom att kasta med fel hand eller genom lottning. Fyll din siffra med streck för att bli killer: singel ger 1, dubbel 2 och trippel 3. Som killer tar du streck från den vars siffra du träffar, men din egen siffra kostar dig streck. Den som hamnar under noll är ute. Sist kvar vinner. Minst två spelare.",
-  c170:"Varje runda börjar på 170 och du har nio pilar (tre besök) på dig att gå ut med en dubbel. Lyckas du får du poängen, annars får tavlan den. Bust ger tillbaka poängen från besökets början.",
+  c170:"Varje runda börjar på 170 och du har nio pilar (tre besök) på dig att gå ut med en dubbel. Lyckas du får du poängen, annars får tavlan den. Bust ger tillbaka poängen från besökets början. I lag delar ni på samma 170 och kastar ett besök var i tur och ordning.",
   bobs27:"Börja på 27 poäng. Kasta tre pilar på D1, sedan D2 och så vidare till bull. Varje träff ger dubbelns värde, ingen träff drar av det. Under noll är du ute."
 };
 function modeOpts(){
@@ -4628,6 +4693,7 @@ function modeOpts(){
   document.querySelectorAll(".opt-range").forEach(el=>el.hidden=m!=="checkout");
   document.querySelectorAll(".opt-rounds").forEach(el=>el.hidden=!["checkout","c170"].includes(m));
   document.querySelectorAll(".opt-lives").forEach(el=>el.hidden=m!=="killer");
+  document.querySelectorAll(".opt-team").forEach(el=>el.hidden=m!=="c170"||+$("selN").value<2);
   if(m==="killer"&&+$("selN").value<2){$("selN").value="2";buildNames();}
   $("modeHelp").textContent=MODE_HELP[m]||"";
 }
@@ -4655,7 +4721,7 @@ $("btnStart").addEventListener("click",()=>{
   for(let i=0;i<n;i++)names.push(($("name"+i).value||"").trim()||"Spelare "+(i+1));
   const mode=$("selMode").value;
   const cfg=mode==="x01"?{mode,start:+$("selStart").value,dbl:$("chkDbl").checked,names,fmt:{legs:+$("selLegs").value,sets:+$("selSets").value}}
-    :{mode,names,range:$("selRange").value,rounds:+$("selRounds").value,lives:+$("selLives").value,pick:$("selPick").value};
+    :{mode,names,range:$("selRange").value,rounds:+$("selRounds").value,lives:+$("selLives").value,pick:$("selPick").value,team:mode==="c170"&&n>1&&$("selTeam").value==="1"};
   showScreen("game");
   if(sess.role==="client"){sess.send({a:"newgame",cfg});return;}
   newGame(cfg);cam.onNewTurn();caller.gameOn();
