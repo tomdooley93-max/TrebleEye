@@ -246,9 +246,9 @@ if(e.type==="pen")r.pim+=e.min;if(e.type==="warn")r.w++;if(e.type==="jager")r.j+
 for(const w of S.warns)if(st[w.player])st[w.player].w++;
 return Object.values(st);
 }
-function hockeyTable(){
-const rows={};for(const t of S.teams)rows[t.id]={t,gp:0,w:0,d:0,l:0,gf:0,ga:0,pim:0,warn:0,pts:0};
-for(const m of S.matches){
+function hockeyTable(teamIds,matchFilter){
+const rows={};for(const t of S.teams)if(!teamIds||teamIds.includes(t.id))rows[t.id]={t,gp:0,w:0,d:0,l:0,gf:0,ga:0,pim:0,warn:0,pts:0};
+for(const m of S.matches){if(matchFilter&&!matchFilter(m))continue;
 for(const e of m.events){const r=rows[e.team];if(!r)continue;if(e.type==="pen")r.pim+=e.min;if(e.type==="warn")r.warn++}
 if(m.status!=="done")continue;
 const[h,a]=score(m),H=rows[m.home],A=rows[m.away];if(!H||!A)continue;
@@ -257,7 +257,7 @@ const f=fmtS(),wid=winnerOf(m),ot=isOTWin(m);
 if(!wid){H.d++;A.d++;H.pts+=+f.draw;A.pts+=+f.draw}
 else{const W=wid===m.home?H:A,L=wid===m.home?A:H;W.w++;L.l++;W.pts+=ot?+f.otWin:+f.win;L.pts+=ot?+f.otLoss:0}
 }
-for(const w of S.warns)if(rows[w.team])rows[w.team].warn++;
+if(!matchFilter)for(const w of S.warns)if(rows[w.team])rows[w.team].warn++;
 return Object.values(rows).sort((x,y)=>y.pts-x.pts||(y.gf-y.ga)-(x.gf-x.ga)||y.gf-x.gf);
 }
 function fkTotals(){
@@ -311,17 +311,68 @@ h+=`<div class="card stack">
 }
 return h+`</div>`;
 }
+/* ---- Spelschema ---- */
+const FORMATS={rr:"Alla möter alla",rrf:"Alla möter alla + final (1:an mot 2:an)",rrsf:"Alla möter alla + semifinal + final",grp:"Två grupper + semifinal + final"};
+function suggestFmt(n){return n<=2?"rr":n===3?"rrf":n<=5?"rrsf":"grp"}
+function fmtAllowed(n){return Object.keys(FORMATS).filter(k=>k==="rr"||(k==="rrf"&&n>=3)||(k==="rrsf"&&n>=4)||(k==="grp"&&n>=6))}
+function roundRobin(ids){const t=ids.slice();if(t.length%2)t.push(null);const n=t.length,rounds=[];
+for(let r=0;r<n-1;r++){const rd=[];for(let i=0;i<n/2;i++){const a=t[i],b=t[n-1-i];if(a&&b)rd.push(r%2?[b,a]:[a,b])}rounds.push(rd);t.splice(1,0,t.pop())}return rounds}
+function makeSchedule(fmt,meet){
+const ids=shuffle(S.teams.map(t=>t.id));const fx=[];let n=0;const add=(stage,g,home,away)=>fx.push({id:uid(),no:++n,stage,g,home,away,matchId:null});
+const rrInto=(teamIds,g,stage)=>{let rounds=[];for(let k=0;k<meet;k++)rounds=rounds.concat(roundRobin(teamIds).map(rd=>rd.map(([a,b])=>k%2?[b,a]:[a,b])));return rounds.map(rd=>rd.map(([a,b])=>({stage,g,home:a,away:b})))};
+if(fmt==="grp"){const A=ids.filter((_,i)=>i%2===0),B=ids.filter((_,i)=>i%2===1);const ra=rrInto(A,"A","Grupp A"),rb=rrInto(B,"B","Grupp B");
+for(let i=0;i<Math.max(ra.length,rb.length);i++){for(const f of (ra[i]||[]))add(f.stage,f.g,f.home,f.away);for(const f of (rb[i]||[]))add(f.stage,f.g,f.home,f.away)}
+const s1=n+1,s2=n+2;add("Semifinal",null,{g:"A",pos:1},{g:"B",pos:2});add("Semifinal",null,{g:"B",pos:1},{g:"A",pos:2});add("Final",null,{w:s1},{w:s2})}
+else{for(const rd of rrInto(ids,"*","Gruppspel"))for(const f of rd)add(f.stage,f.g,f.home,f.away);
+if(fmt==="rrf")add("Final",null,{g:"*",pos:1},{g:"*",pos:2});
+if(fmt==="rrsf"){const s1=n+1,s2=n+2;add("Semifinal",null,{g:"*",pos:1},{g:"*",pos:4});add("Semifinal",null,{g:"*",pos:2},{g:"*",pos:3});add("Final",null,{w:s1},{w:s2})}}
+S.sched={fmt,meet,fixtures:fx};
+}
+const fxMatch=f=>f.matchId?S.matches.find(m=>m.id===f.matchId):null;
+const fxDone=f=>{const m=fxMatch(f);return !!m&&m.status==="done"};
+function groupIds(g){const set=new Set();for(const f of S.sched.fixtures)if(f.g===g){set.add(f.home);set.add(f.away)}return [...set]}
+function groupTable(g){const fx=S.sched.fixtures.filter(f=>f.g===g),ids=new Set(fx.map(f=>f.matchId).filter(Boolean));return hockeyTable(groupIds(g),m=>ids.has(m.id))}
+function resolveRef(r){if(typeof r==="string")return r;if(!S.sched)return null;
+if(r.g){const fx=S.sched.fixtures.filter(f=>f.g===r.g);if(!fx.every(fxDone))return null;const t=groupTable(r.g)[r.pos-1];return t?t.t.id:null}
+if(r.w){const f=S.sched.fixtures.find(x=>x.no===r.w);const m=f&&fxMatch(f);return m&&m.status==="done"?winnerOf(m):null}return null}
+function refLabel(r){if(typeof r==="string")return esc(team(r)?.name||"?");if(r.g)return r.g==="*"?`${r.pos}:an i gruppspelet`:`${r.pos}:an grupp ${r.g}`;return`Vinnare match ${r.w}`}
+function fxRow(f,ro){const h=resolveRef(f.home),a=resolveRef(f.away),m=fxMatch(f),live=m&&m.status==="live";
+const nm=(id,ref)=>id?`${teamDot(team(id))} ${esc(team(id)?.name)}`:`<span class="muted">${refLabel(ref)}</span>`;
+const right=m&&m.status==="done"?`<span class="res">${resLabel(m)}</span>`:live?`<span class="live">PÅGÅR</span>`:(!ro&&h&&a&&!curMatch()?`<button class="btn small mint" data-act="playFx" data-id="${f.id}">Spela</button>`:`<span class="muted">${f.no}</span>`);
+return`<div class="card matchcard" style="padding:10px 12px"><span style="min-width:0"><span class="muted" style="font-size:12px;display:block">${f.no}. ${esc(f.stage)}</span>${nm(h,f.home)} – ${nm(a,f.away)}</span>${right}</div>`}
+function vSched(ro){
+if(!S.sched){if(ro)return"";const n=S.teams.length,al=fmtAllowed(n),sg=suggestFmt(n);
+return`<h2>Spelschema</h2><form class="card stack" data-form="mkSched"><p class="muted" style="margin:0">${n} lag. Välj format så slumpas ordningen fram.</p>
+<label class="row">Format <select id="schFmt" style="flex:1">${al.map(k=>`<option value="${k}" ${k===sg?"selected":""}>${FORMATS[k]}</option>`).join("")}</select></label>
+<label class="row">Antal möten i gruppspelet <select id="schMeet" style="width:auto">${[1,2,3].map(k=>`<option ${k===(n===2?3:1)?"selected":""}>${k}</option>`).join("")}</select></label>
+<button class="btn primary">Skapa spelschema</button></form>`}
+const fx=S.sched.fixtures,left=fx.filter(f=>!fxDone(f)).length;
+let h=`<h2>Spelschema</h2><p class="muted" style="margin-top:-4px">${esc(FORMATS[S.sched.fmt])} · ${fx.length-left} av ${fx.length} spelade</p>`;
+if(S.sched.fmt==="grp"&&ro!=="list")h+=`<div class="grid2">${["A","B"].map(g=>`<div><h3 style="margin-top:0">Grupp ${g}</h3>${miniTable(groupTable(g))}</div>`).join("")}</div>`;
+h+=`<div class="stack" style="margin-top:10px">${fx.map(f=>fxRow(f,ro)).join("")}</div>`;
+if(!ro)h+=`<div class="row" style="margin-top:10px"><button class="btn small ghost danger" data-act="arm" data-do="delSched">Ta bort spelschemat</button></div>`;
+const fin=fx.find(f=>f.stage==="Final"),fm=fin&&fxMatch(fin);
+if(fm&&fm.status==="done"&&winnerOf(fm))h=`<div class="jalert" style="background:radial-gradient(circle at 30% 30%,#6b520f,#281d06);border-color:var(--amber)"><div class="k">MÄSTARE!</div><div class="who" style="font-size:clamp(24px,7.5vw,48px);overflow-wrap:normal;word-break:normal">${esc(team(winnerOf(fm))?.name)}</div></div>`+h;
+else if(!fin&&left===0&&fx.length){const t=(S.sched.fmt==="grp"?null:groupTable("*")[0]);if(t)h=`<div class="jalert" style="background:radial-gradient(circle at 30% 30%,#6b520f,#281d06);border-color:var(--amber)"><div class="k">MÄSTARE!</div><div class="who" style="font-size:clamp(24px,7.5vw,48px);overflow-wrap:normal;word-break:normal">${esc(t.t.name)}</div></div>`+h}
+return h;
+}
+function miniTable(rows){return`<div class="tbl-wrap"><table><thead><tr><th></th><th>Lag</th><th>M</th><th>+/-</th><th>P</th></tr></thead><tbody>${rows.map((r,i)=>`<tr><td class="rank">${i+1}</td><td class="name">${teamDot(r.t)} ${esc(r.t.name)}</td><td>${r.gp}</td><td>${r.gf-r.ga}</td><td class="pts">${r.pts}</td></tr>`).join("")}</tbody></table></div>`}
+function randomPair(){const gp={};for(const t of S.teams)gp[t.id]=0;for(const m of S.matches)if(m.status==="done"){gp[m.home]=(gp[m.home]||0)+1;gp[m.away]=(gp[m.away]||0)+1}
+const met={};for(const m of S.matches){const k=[m.home,m.away].sort().join();met[k]=(met[k]||0)+1}
+let best=null,bs=1e9;for(const a of S.teams)for(const b of S.teams){if(a.id>=b.id)continue;const sc=(gp[a.id]+gp[b.id])*10+(met[[a.id,b.id].sort().join()]||0)*25+Math.random()*5;if(sc<bs){bs=sc;best=Math.random()<.5?[a.id,b.id]:[b.id,a.id]}}return best}
+function startMatch(h,a,fxId){const m={id:uid(),home:h,away:a,status:"live",period:1,events:[],clock:{ms:0,running:false,since:0},nextJager:null};if(fxId)m.fx=fxId;S.matches.push(m);ui.openMatch=null;return m}
 function vMatch(){
 const m=ui.openMatch?S.matches.find(x=>x.id===ui.openMatch):curMatch();
 if(m)return vLive(m);
-let h=`<h2>Ny match</h2>`;
+let h=(S.sched&&S.teams.length>=2?vSched(false):"")+`<h2>${S.sched?"Fri match":"Ny match"}</h2>`;
 if(S.teams.length<2)return h+`<div class="empty">Lägg in minst två lag under <b>Lag</b> först.</div>`;
-const a=S.teams[0].id,b=S.teams[1].id;
+const a=ui.pair?ui.pair[0]:S.teams[0].id,b=ui.pair?ui.pair[1]:S.teams[1].id;
 h+=`<form class="card stack" data-form="newMatch">
 <div class="row" style="flex-wrap:nowrap"><select id="mh">${teamOptions(a)}</select><span class="mid" style="font-family:var(--display);color:var(--dim)">VS</span><select id="ma">${teamOptions(b)}</select></div>
-<button class="btn primary" style="font-size:18px">Nedsläpp!</button></form>`;
-const done=S.matches.filter(x=>x.status==="done").slice().reverse();
-if(done.length){h+=`<h3>Spelade matcher</h3><div class="stack">`+done.map(x=>{const[s1,s2]=score(x),H=team(x.home),A=team(x.away);
+<div class="row" style="flex-wrap:nowrap"><button type="button" class="btn" data-act="randPair" style="flex:1">Slumpa match</button><button class="btn primary" style="font-size:18px;flex:2">Nedsläpp!</button></div></form>`;
+if(!S.sched)h+=vSched(false);
+const done=S.matches.filter(x=>x.status==="done"&&!(S.sched&&x.fx)).slice().reverse();
+if(done.length){h+=`<h3>${S.sched?"Fria matcher":"Spelade matcher"}</h3><div class="stack">`+done.map(x=>{const[s1,s2]=score(x),H=team(x.home),A=team(x.away);
 return`<button class="card matchcard" data-act="openMatch" data-id="${x.id}"><span>${H?teamDot(H):""} ${esc(H?.name)} – ${esc(A?.name)} ${A?teamDot(A):""}</span><span class="res">${resLabel(x)}</span></button>`}).join("")+`</div>`}
 return h;
 }
@@ -417,7 +468,7 @@ return h+`</div>`;
 }
 function vTabell(){
 const ht=hockeyTable(),tot=fkTotals(),ps=playerStats();
-let h=`<h2>Totalställning</h2><div class="tbl-wrap"><table><thead><tr><th></th><th>Lag</th>${S.settings.useHockey?"<th>Hockey</th>":""}<th>Femkamp</th><th>Just.</th><th>Totalt</th></tr></thead><tbody>
+let h=(S.sched?vSched(true):"")+`<h2>Totalställning</h2><div class="tbl-wrap"><table><thead><tr><th></th><th>Lag</th>${S.settings.useHockey?"<th>Hockey</th>":""}<th>Femkamp</th><th>Just.</th><th>Totalt</th></tr></thead><tbody>
 ${tot.map((r,i)=>`<tr class="${i===0&&r.total>0?"lead":""}"><td class="rank">${i+1}</td><td class="name">${teamDot(r.t)} ${esc(r.t.name)}</td>${S.settings.useHockey?`<td>${r.h}</td>`:""}<td>${r.fk}</td><td>${r.adj>0?"+":""}${r.adj}</td><td class="pts">${r.total}</td></tr>`).join("")}</tbody></table></div>`;
 h+=`<h2>Hockeytabellen</h2><div class="tbl-wrap"><table><thead><tr><th></th><th>Lag</th><th>M</th><th>V</th><th>O</th><th>F</th><th>Mål</th><th>+/-</th><th>Utv</th><th>Tills.</th><th>P</th></tr></thead><tbody>
 ${ht.map((r,i)=>`<tr class="${i===0&&r.pts>0?"lead":""}"><td class="rank">${i+1}</td><td class="name">${teamDot(r.t)} ${esc(r.t.name)}</td><td>${r.gp}</td><td>${r.w}</td><td>${r.d}</td><td>${r.l}</td><td>${r.gf}–${r.ga}</td><td>${r.gf-r.ga}</td><td class="${r.pim?"flag":""}">${r.pim}</td><td class="${r.warn?"flag":""}">${r.warn}</td><td class="pts">${r.pts}</td></tr>`).join("")}</tbody></table></div>
@@ -475,7 +526,7 @@ ui.gen=teams;render();
 }
 function genApply(){
 S.teams=ui.gen.map(t=>({id:uid(),name:t.name,color:t.color,players:t.players.map((p,i)=>({id:uid(),name:p.name,nr:String(i+1)}))}));
-S.matches=[];S.warns=[];S.fk.scores={};S.fk.adj=[];delete S.jagerLive;S.demo=false;ui.gen=null;toast("Lagen är klara. Lycka till!");
+S.matches=[];S.warns=[];S.fk.scores={};S.fk.adj=[];delete S.jagerLive;delete S.sched;S.demo=false;ui.gen=null;toast("Lagen är klara. Lycka till!");
 }
 function vGen(){
 const g=ui.gen;
@@ -610,11 +661,12 @@ switch(what){
 case"wipe":S={...demo(),demo:false,teams:[],matches:[],warns:[]};S.fk.scores={};ui={tab:"lag",openMatch:null};toast("Rent bord. Lägg in era lag!");break;
 case"delTeam":S.teams=S.teams.filter(t=>t.id!==id);break;
 case"genApply":if(ui.gen)genApply();break;
+case"delSched":delete S.sched;break;
 case"swClear":SW.laps=[];swSave();break;
 case"delPlayer":for(const t of S.teams)t.players=t.players.filter(p=>p.id!==id);break;
 case"delEv":for(const x of S.matches)x.events=x.events.filter(e=>e.id!==id);S.warns=S.warns.filter(e=>e.id!==id);break;
-case"delMatch":S.matches=S.matches.filter(x=>x!==m);ui.openMatch=null;break;
-case"endMatch":if(m){const[a0,b0]=score(m);if(a0===b0&&fmtS().tie!=="draw"&&!m.decided){openDecide(m);return}m.clock.ms=elapsed(m);m.clock.running=false;m.status="done";ui.openMatch=m.id;const[a,b]=score(m);confetti(["#ffc23d","#ff4f9a","#3ee0a8"]);toast(winnerOf(m)?team(winnerOf(m))?.name+" vinner!":"Oavgjort!")}break;
+case"delMatch":S.matches=S.matches.filter(x=>x!==m);if(S.sched)for(const f of S.sched.fixtures)if(f.matchId===m?.id)f.matchId=null;ui.openMatch=null;break;
+case"endMatch":if(m){const[a0,b0]=score(m);const po=m.fx&&S.sched&&S.sched.fixtures.some(f=>f.id===m.fx&&!f.g);if(a0===b0&&(fmtS().tie!=="draw"||po)&&!m.decided){openDecide(m);return}m.clock.ms=elapsed(m);m.clock.running=false;m.status="done";ui.openMatch=m.id;const[a,b]=score(m);confetti(["#ffc23d","#ff4f9a","#3ee0a8"]);toast(winnerOf(m)?team(winnerOf(m))?.name+" vinner!":"Oavgjort!")}break;
 case"delFk":S.fk.events=S.fk.events.filter(e=>e.id!==id);delete S.fk.scores[id];break;
 case"delAdj":S.fk.adj=S.fk.adj.filter(a=>a.id!==id);break;
 }
@@ -649,6 +701,8 @@ case"pickNote":pick.note=el.dataset.n;drawPick();break;
 case"saveDetail":{const txt=$("#noteTxt").value.trim();addEv({type:pick.type,player:pick.player,team:pick.team,min:pick.min,note:txt||pick.note||""});
 const who=pname(pick.player);closeLayer();render();toast(pick.type==="pen"?`${who} till båset`:`${who} har fått en tillsägelse`);break}
 case"close":closeLayer();break;
+case"randPair":{if(S.teams.length<2)break;ui.pair=randomPair();render();const[x,y]=ui.pair;toast(team(x).name+" mot "+team(y).name+"!");break}
+case"playFx":{if(curMatch()){toast("En match pågår redan");break}const f=S.sched?.fixtures.find(x=>x.id===id);if(!f)break;const h=resolveRef(f.home),a=resolveRef(f.away);if(!h||!a)break;const mm=startMatch(h,a,f.id);f.matchId=mm.id;save();render();scrollTo(0,0);toast(f.stage+": nedsläpp!");break}
 case"adjClock":{if(!m||m.status!=="live")break;const d=+el.dataset.d,down=plenMs(m)>0;const cur=elapsed(m);let ne=cur+(down?-d:d);ne=Math.max(pStart(m),down?Math.min(ne,pStart(m)+plenMs(m)):ne);m.clock.ms+=ne-cur;save();render();break}
 case"swMode":if(SW.running)break;SW.mode=el.dataset.m;SW.ms=0;swSave();render();break;
 case"swPreset":if(SW.running)break;SW.down=+el.dataset.v*1000;SW.ms=0;swSave();render();break;
@@ -687,7 +741,8 @@ rpc("svanen_set_pin",{p_old:PIN,p_new:n}).then(()=>{PIN=n.toLowerCase();lsSet(KE
 if(k==="addTeam"){const v=$("#newTeam").value.trim();if(!v)return;S.teams.push({id:uid(),name:v,color:COLORS[S.teams.length%COLORS.length],players:[]})}
 if(k==="addPlayer"){const n=$("#pn-"+id).value.trim();if(!n)return;team(id).players.push({id:uid(),name:n,nr:$("#pnr-"+id).value.trim()});save();render();$("#pn-"+id)?.focus();return}
 if(k==="newMatch"){const h=$("#mh").value,a=$("#ma").value;if(h===a){toast("Välj två olika lag");return}if(curMatch()){toast("En match pågår redan");return}
-const m={id:uid(),home:h,away:a,status:"live",period:1,events:[],clock:{ms:0,running:false,since:0},nextJager:null};S.matches.push(m);ui.openMatch=null;toast("Nedsläpp!")}
+startMatch(h,a);ui.pair=null;toast("Nedsläpp!")}
+if(k==="mkSched"){makeSchedule($("#schFmt").value,+$("#schMeet").value||1);toast("Spelschemat är klart!")}
 if(k==="addFk"){const v=$("#newFk").value.trim();if(!v)return;S.fk.events.push({id:uid(),name:v})}
 if(k==="addAdj"){const p=+$("#ap-"+id).value;if(!p){toast("Skriv antal poäng, t.ex. -2");return}S.fk.adj.push({id:uid(),team:id,pts:p,note:$("#an-"+id).value.trim()||"Justering"})}
 save();render();
