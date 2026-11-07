@@ -361,6 +361,30 @@ html.tv .bar,html.tv .backdrop{display:none!important}
 .nums{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
 .nums button{padding:10px 0;font-family:var(--f-num);font-size:20px;font-weight:700;background:var(--bg2);border-color:var(--line)}
 .nums button:hover{background:var(--panel2)}
+/* the interactive board can be hidden in favour of a bigger keypad (saved per device) */
+.bdbar{display:flex;justify-content:flex-end;margin:-4px 0 4px}
+.bdtoggle{padding:5px 10px;font-size:12px;background:transparent}
+html.nobrd #board{display:none!important}
+html.nobrd #paneMan:not([hidden]){display:flex!important;flex-direction:column}
+html.nobrd .mult{margin:4px 0 10px;gap:8px}
+html.nobrd .mult button{padding:16px 4px;font-size:20px}
+html.nobrd .nums{gap:8px;grid-template-columns:repeat(5,1fr)}
+html.nobrd .nums button{padding:20px 0;font-size:34px;min-height:64px}
+html.nobrd #paneMan:not([hidden])>*{width:100%;box-sizing:border-box}
+@media (orientation:landscape) and (max-height:540px){
+  html.nobrd .mult button{padding:8px 4px;font-size:16px}
+  html.nobrd .nums{gap:5px;grid-template-columns:repeat(8,1fr)}
+  html.nobrd .nums button{padding:8px 0;font-size:24px;min-height:44px}
+}
+@media (min-width:700px) and (min-height:600px){
+  html.nobrd:not(.tv) #paneMan:not([hidden]) .nums{flex:1;min-height:0;grid-auto-rows:1fr;grid-template-columns:repeat(6,1fr)}
+  html.nobrd:not(.tv) .nums button{padding:0;font-size:clamp(28px,4.5vh,48px)}
+}
+@media (min-width:700px) and (min-height:600px) and (orientation:portrait){
+  html.nobrd:not(.tv) #scrGame .grid>.panel{justify-content:flex-start}
+  html.nobrd:not(.tv) #paneMan:not([hidden]){flex:1 1 auto}
+  html.nobrd:not(.tv) #paneMan:not([hidden]) .nums{grid-template-columns:repeat(4,1fr)}
+}
 .nums .w2{grid-column:span 2}
 
 /* Camera */
@@ -688,7 +712,7 @@ html.cupbig .queue{font-size:min(1.15cqw,2.05cqh)}
     <header class="home-head">
       <h1 class="logo"><img src="icons/wordmark.webp" alt="TrebleEye" width="980" height="556"></h1>
       <div class="byline">by T.Henriksson</div>
-      <div class="meta"><span id="appVer">v2.18.3</span></div>
+      <div class="meta"><span id="appVer">v2.19.0</span></div>
     </header>
     <div class="home">
       <button class="pri big" id="btnSettings">Nytt spel</button>
@@ -1052,6 +1076,7 @@ html.cupbig .queue{font-size:min(1.15cqw,2.05cqh)}
       </div>
 
       <div id="paneMan">
+        <div class="bdbar"><button class="bdtoggle" id="btnBoardToggle" aria-pressed="false">Dölj tavlan</button></div>
         <svg id="board" viewBox="-210 -210 420 420" aria-label="Darttavla, tryck där pilen sitter"></svg>
         <div class="mult" id="mult">
           <button aria-pressed="true" data-m="1">Singel</button>
@@ -4474,6 +4499,9 @@ const iconNote=(function(){
 /* ---------- "Nytt i den här uppdateringen": shown once per version that has an entry here.
    Small fixes get no entry, so no pop-up. Newest first. ---------- */
 const NEWS=[
+  {v:"2.19.0",items:[
+    "Du kan dölja den interaktiva tavlan (Dölj tavlan) och få en större knappsats för poängen. Valet sparas på enheten."
+  ]},
   {v:"2.18.0",items:[
     "Tv-grafiken visar vad spelaren har kvar och rekommenderad utgång, och fungerar i alla spellägen.",
     "170 kan spelas i lag: två eller tre spelare delar på samma 170 mot tavlan.",
@@ -4809,6 +4837,9 @@ let camWasOn=false;
 // automatic dart detection is a beta: off unless the user turned it on
 $("chkAuto").checked=!!store.get("dk_autodet");
 $("chkAuto").addEventListener("change",e=>store.set("dk_autodet",e.target.checked));
+function boardPref(hide){document.documentElement.classList.toggle("nobrd",hide);const b=$("btnBoardToggle");b.textContent=hide?"Visa tavlan":"Dölj tavlan";b.setAttribute("aria-pressed",String(hide));}
+boardPref(!!store.get("dk_nobrd"));
+$("btnBoardToggle").addEventListener("click",()=>{const h=!document.documentElement.classList.contains("nobrd");store.set("dk_nobrd",h);boardPref(h);});
 $("tabMan").addEventListener("click",()=>{tab(false);if(cam.live){camWasOn=true;clearProp();stopLive();}});
 $("tabCam").addEventListener("click",()=>{tab(true);if(camWasOn&&!cam.live){camWasOn=false;startLive();}});
 $("btnLive").addEventListener("click",startLive);
