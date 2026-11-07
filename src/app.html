@@ -126,6 +126,35 @@ html.tv #turnLabel{font-size:clamp(14px,1.3vw,22px)}
 html.tv .msg{font-size:clamp(18px,2vw,34px)}
 html.tv .chip{font-size:clamp(24px,2.8vw,52px);padding:4px 16px}
 html.tv #remoteVid{max-height:80vh;object-fit:contain}
+/* broadcast look: TV mode with the live camera fills the screen, score graphics on top */
+.tvgfx{display:none}
+html.tv:has(#tvGfx:not([hidden])) #remoteBox:not([hidden]){position:fixed;inset:0;z-index:5;margin:0;padding:0;border:0;border-radius:0;background:#000;display:flex;align-items:center;justify-content:center}
+html.tv:has(#tvGfx:not([hidden])) #remoteBox:not([hidden])>.label{display:none}
+html.tv:has(#tvGfx:not([hidden])) #remoteWrap{width:100%;height:100%;display:flex;align-items:center;justify-content:center}
+html.tv:has(#tvGfx:not([hidden])) #remoteVid{width:100%;height:100%;max-height:none;object-fit:contain}
+html.tv:has(#remoteBox:not([hidden])) #tvGfx:not([hidden]){display:block;position:fixed;left:2.5vw;bottom:5vh;z-index:6;font-family:var(--f-num);color:#fff;
+  width:clamp(320px,36vw,760px);filter:drop-shadow(0 .8vh 2vh rgba(0,0,0,.55));font-variant-numeric:tabular-nums}
+.tvgfx .gh,.tvgfx .gr{display:grid;grid-template-columns:1.2em 1fr 2.2em 3.4em;align-items:center;column-gap:.5em;padding:0 0 0 .6em}
+.tvgfx.sets .gh,.tvgfx.sets .gr{grid-template-columns:1.2em 1fr 2.2em 2.2em 3.4em}
+.tvgfx .gh{background:var(--acc);color:var(--acc-ink);font-size:clamp(12px,1.9vh,22px);font-weight:700;letter-spacing:.08em;text-transform:uppercase;height:2.1em;border-radius:6px 6px 0 0}
+.tvgfx .gh span:first-child{grid-column:1/3}
+.tvgfx .gh .c{text-align:center}
+.tvgfx .gr{background:rgba(16,20,17,.92);font-size:clamp(20px,4.2vh,52px);font-weight:700;height:1.5em;border-top:1px solid rgba(255,255,255,.08)}
+.tvgfx .gr .gn{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-transform:uppercase;letter-spacing:.02em}
+.tvgfx .gr .c{text-align:center;color:var(--mut);font-size:.8em}
+.tvgfx .gr .gsc{background:#fff;color:#101411;height:100%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:1.05em}
+.tvgfx .gr.on .gsc{background:var(--acc)}
+.tvgfx .gr .gp i{display:block;width:.42em;height:.42em;border-radius:50%;background:var(--acc);margin:auto}
+.tvgfx .gr.won .gn{color:var(--acc)}
+.tvgfx .gt{display:flex;align-items:center;gap:.35em;background:rgba(16,20,17,.92);border-top:2px solid var(--acc);font-size:clamp(16px,3.1vh,38px);font-weight:700;padding:.3em .6em;border-radius:0 0 6px 6px;min-height:1.6em}
+.tvgfx .gt .gw{color:var(--mut);text-transform:uppercase;font-size:.75em;letter-spacing:.06em;margin-right:.2em}
+.tvgfx .gt .gd{min-width:2.4em;text-align:center;background:rgba(255,255,255,.08);border-radius:4px;padding:0 .2em}
+.tvgfx .gt .gd:empty::after{content:"·";color:var(--dim)}
+.tvgfx .gt .gsum{margin-left:auto;min-width:2em;text-align:right;font-size:1.15em}
+.tvgfx .gt .gsum.max{color:var(--acc)}
+.tvgfx .gt .gsum.bust{color:var(--red)}
+.tvgfx .gt .gco{margin-left:.6em;padding-left:.6em;border-left:1px solid var(--line2);color:var(--acc);font-size:.85em;white-space:nowrap}
+.tvgfx .gt.win{justify-content:center;color:var(--acc);text-transform:uppercase;letter-spacing:.04em}
 .place{margin:10px 0;padding:12px;border:1px solid var(--line);border-radius:var(--r);background:var(--bg2)}
 .place ul{list-style:none;margin:8px 0 0;padding:0;display:flex;flex-direction:column;gap:6px;font-size:14px}
 .place li{padding-left:22px;position:relative}
@@ -600,7 +629,7 @@ html.cupbig .queue{font-size:min(1.15cqw,2.05cqh)}
     <header class="home-head">
       <h1 class="logo"><img src="icons/wordmark.webp" alt="TrebleEye" width="980" height="556"></h1>
       <div class="byline">by T.Henriksson</div>
-      <div class="meta"><span id="appVer">v2.15.3</span></div>
+      <div class="meta"><span id="appVer">v2.16.0</span></div>
     </header>
     <div class="home">
       <button class="pri big" id="btnSettings">Nytt spel</button>
@@ -686,6 +715,11 @@ html.cupbig .queue{font-size:min(1.15cqw,2.05cqh)}
       <div class="label">Säkerhetskopia</div>
       <p class="help" style="margin:4px 0 8px">Sparar historik, spelare, klubbkod och inställningar i en fil som kan läsas in på en annan telefon. GitHub-nyckeln tas inte med.</p>
       <div class="row"><button id="atExport">Spara säkerhetskopia</button><span class="filebtn"><button tabindex="-1">Läs in säkerhetskopia</button><input type="file" id="atImport" accept="application/json,.json" aria-label="Läs in säkerhetskopia"></span></div>
+    </div>
+    <div class="admsec">
+      <div class="label">Testinspelning av kameran</div>
+      <p class="help" style="margin:4px 0 8px">Sparar en bild före och efter varje pil tillsammans med poängen du matar in och kalibreringen. Mata in pilarna för hand medan inspelningen pågår, ladda sedan ner filen och skicka den för analys. Inspelningen försvinner om appen laddas om.</p>
+      <div class="row"><button class="pri" id="atRec">Starta inspelning</button><button id="atRecSave" disabled>Ladda ner (0 pilar)</button><button id="atRecClear">Rensa</button></div>
     </div>
     <div class="admsec">
       <div class="label">Betafunktioner</div>
@@ -938,6 +972,7 @@ html.cupbig .queue{font-size:min(1.15cqw,2.05cqh)}
         <div class="label">Livebild från kameran</div>
         <div class="rwrap" id="remoteWrap"><video id="remoteVid" playsinline autoplay muted></video></div>
       </div>
+      <div class="tvgfx" id="tvGfx" hidden></div>
     </div>
 
     <div class="panel">
@@ -995,7 +1030,7 @@ html.cupbig .queue{font-size:min(1.15cqw,2.05cqh)}
             </select>
           </label>
           <label>Känslighet <input type="range" id="rngThr" min="10" max="80" value="30"></label>
-          <label class="ck"><input type="checkbox" id="chkAuto" checked> Upptäck pilar automatiskt</label>
+          <label class="ck"><input type="checkbox" id="chkAuto"> Upptäck pilar automatiskt (beta)</label>
           <label class="ck"><input type="checkbox" id="chkAutoAccept" checked> Godkänn efter 2 s</label>
           <label class="ck"><input type="checkbox" id="chkAutoNext" checked> Byt spelare när pilarna dras ut</label>
         </div>
@@ -1231,6 +1266,7 @@ function save(){if(sess.role==="client")return;store.set("dk_game",G);sess.chang
 const onDouble=s=>s===50||(s>=2&&s<=40&&s%2===0);
 
 function addDart(d,pos,fromCam){
+  if(sess.role!=="client")rec.dart(d,fromCam,pos);
   if(sess.role==="client"){sess.send({a:"dart",d:{m:d.m,n:d.n},pos:pos||null});return;}
   if(G&&G.ended)return;
   if(G&&G.mode!=="x01"){modeDart(d,pos);if(!fromCam)cam.afterManual();return;}
@@ -2248,7 +2284,7 @@ function closeSheets(){["newsNote","iconNote","editPl","voiceAdmin","adminTools"
 
 /* ---------- Render ---------- */
 function render(){
-  if(G.mode!=="x01"){renderMode();return;}
+  if(G.mode!=="x01"){renderMode();renderGfx();return;}
   $("modeBox").hidden=true;
   $("gameMeta").textContent=(G.cup?"Bana "+G.cup.board+(G.cup.round?" · "+G.cup.round:"")+" · ":"")+G.start+" · "+(G.dbl?"dubbel ut":"rak ut")+" · "+fmtText(G.fmt);
   const pl=$("players");pl.innerHTML="";
@@ -2289,7 +2325,30 @@ function render(){
   $("btnUndo").disabled=sess.role==="client"?!sess.undoN:!undo.length;
   $("log").innerHTML="";
   G.log.forEach(l=>{const d=document.createElement("div");d.textContent=l;$("log").appendChild(d);});
-  drawMarkers();
+  drawMarkers();renderGfx();
+}
+// TV graphics over the live camera: score bug with names, legs, remaining score, this turn and the checkout
+function renderGfx(){
+  const el=$("tvGfx");if(!el)return;
+  if(!G||G.mode!=="x01"){el.hidden=true;return;}
+  el.hidden=false;
+  const sets=G.fmt.sets>1,t=G.turn,p=G.players[G.cur];
+  el.className="tvgfx"+(sets?" sets":"");
+  let h='<div class="gh"><span>'+esc(G.start+" · "+fmtText(G.fmt))+'</span>'+(sets?'<span class="c">S</span>':'')+'<span class="c">L</span><span></span></div>';
+  G.players.forEach((q,i)=>{
+    const on=i===G.cur&&G.winner===null;
+    h+='<div class="gr'+(on?" on":"")+(G.matchWinner===i||G.winner===i?" won":"")+'"><span class="gp">'+(on?"<i></i>":"")+'</span><span class="gn">'+esc(q.name)+'</span>'+
+      (sets?'<span class="c">'+q.sets+'</span>':'')+'<span class="c">'+q.legs+'</span><span class="gsc">'+q.score+'</span></div>';
+  });
+  if(G.matchWinner!==null)h+='<div class="gt win">'+esc(G.players[G.matchWinner].name)+' vinner matchen</div>';
+  else if(G.winner!==null)h+='<div class="gt win">'+esc(G.players[G.winner].name)+(G.setWon?' vinner setet':' vinner leget')+'</div>';
+  else{
+    const sum=t.darts.reduce((a,d)=>a+d.v,0),co=!t.done&&!t.bust?checkout(p.score,3-t.darts.length,G.dbl):null;
+    h+='<div class="gt"><span class="gw">'+esc(p.name)+'</span>';
+    for(let i=0;i<3;i++)h+='<span class="gd">'+(t.darts[i]?esc(t.darts[i].label):"")+'</span>';
+    h+='<span class="gsum'+(t.bust?" bust":sum===180?" max":"")+'">'+(t.bust?"BUST":sum)+'</span>'+(co?'<span class="gco">'+co.map(d=>esc(d.label)).join(" ")+'</span>':'')+'</div>';
+  }
+  el.innerHTML=h;
 }
 
 /* ---------- SVG board ---------- */
@@ -2385,6 +2444,38 @@ const cam={rot:store.get("dk_camrot")||0,W:480,H:360,src:null,live:false,looping
   ref:null,emptyRef:null,rgba:null,prop:null,timer:null,lastGray:null,moving:false,lastMove:0,lastTick:0,lastCheck:0,
   badChecks:0,needRef:true,waitSince:0,dirty:false,busy:false,wl:null,zoomed:false};
 
+/* Test recording (admin): before/after picture for every dart, with the score entered by hand and the calibration */
+const rec={on:false,list:[],last:null,c:null,
+  snap(){
+    if(!cam.src||!cam.live)return null;
+    if(!rec.c)rec.c=document.createElement("canvas");
+    if(rec.c.width!==cam.W||rec.c.height!==cam.H){rec.c.width=cam.W;rec.c.height=cam.H;}
+    paintSrc(rec.c.getContext("2d"));
+    try{return rec.c.toDataURL("image/jpeg",0.88);}catch(e){return null;}
+  },
+  ref(){if(rec.on)rec.last=rec.snap();},
+  dart(d,fromCam,pos){
+    if(!rec.on||!cam.live)return;
+    const after=rec.snap();if(!after)return;
+    if(rec.list.length<150)rec.list.push({t:Date.now(),before:rec.last,after,dart:{m:d.m,n:d.n,label:d.label,v:d.v},
+      H:cam.Hm,W:cam.W,Ht:cam.H,rot:cam.rot,foot:cam.foot||null,noise:cam.noise||0,thr:+$("rngThr").value,
+      fromCam:!!fromCam,pos:pos||null,turn:G.turn.darts.length});
+    rec.last=after;rec.ui();
+  },
+  ui(){
+    const b=$("atRec");if(!b)return;
+    b.textContent=rec.on?"Stoppa inspelning":"Starta inspelning";b.className=rec.on?"dng":"pri";
+    $("atRecSave").disabled=!rec.list.length;$("atRecSave").textContent="Ladda ner ("+rec.list.length+" pilar)";
+  },
+  async save(){
+    const txt=JSON.stringify({app:$("appVer").textContent,ua:navigator.userAgent,made:new Date().toISOString(),list:rec.list});
+    const fname="trebleeye-inspelning-"+new Date().toISOString().slice(0,16).replace(/[:T]/g,"-")+".json";
+    try{const file=new File([txt],fname,{type:"application/json"});
+      if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title:"TrebleEye inspelning"});return;}}catch(e){if(e&&e.name==="AbortError")return;}
+    const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([txt],{type:"application/json"}));
+    a.download=fname;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1000);
+  }
+};
 function status(t,cls){const s=$("camStatus");s.textContent=t;s.className="status"+(cls?" "+cls:"");}
 function calKey(){return "dk_cal_"+(cam.live?(cam.deviceId||"std"):"photo")+(cam.rot?"_r"+cam.rot:"");}
 // size of the picture after the user's rotation (phone on its side, rotation lock on)
@@ -2731,7 +2822,7 @@ function changed(a,b){
   for(let i=0;i<n;i++)if(cam.mask[i]&&Math.abs(a[i]-b[i]*k)>thr)c++;
   return c;
 }
-function takeRef(g){cam.ref=g;cam.emptyRef=g;cam.needRef=false;cam.waitSince=0;}
+function takeRef(g){cam.ref=g;cam.emptyRef=g;cam.needRef=false;cam.waitSince=0;rec.ref();}
 function setRefNow(){
   if(!cam.src){status("Starta kameran eller ta ett foto först.","w");return;}
   takeRef(grab());clearProp();status("Referens tagen. Kasta!");
@@ -4189,6 +4280,13 @@ const adminTools=(function(){
   $("atDiagCopy").addEventListener("click",async()=>{const t=await diagText();try{await navigator.clipboard.writeText(t);say("Diagnosen är kopierad.");}catch(e){say("Kunde inte kopiera. Markera texten och kopiera själv.","e");}});
   $("atErrClear").addEventListener("click",()=>{store.set("dk_errlog",[]);diag();});
   $("atExport").addEventListener("click",()=>exportData());
+  $("atRec").addEventListener("click",()=>{
+    if(!rec.on&&!cam.live){say("Starta kameran och kalibrera först.","e");return;}
+    rec.on=!rec.on;if(rec.on)rec.last=rec.snap();rec.ui();
+    say(rec.on?"Inspelningen pågår. Mata in varje pil för hand.":"Inspelningen är stoppad.");
+  });
+  $("atRecSave").addEventListener("click",()=>rec.save());
+  $("atRecClear").addEventListener("click",()=>{rec.list=[];rec.ui();});
   $("atImport").addEventListener("change",e=>{importData(e.target.files[0]);e.target.value="";});
   return {open,exportData,importData};
 })();
@@ -4213,6 +4311,11 @@ const iconNote=(function(){
 /* ---------- "Nytt i den här uppdateringen": shown once per version that has an entry here.
    Small fixes get no entry, so no pop-up. Newest first. ---------- */
 const NEWS=[
+  {v:"2.16.0",items:[
+    "TV-läget med livebild visar kameran i helskärm med poänggrafik i tv-stil: namn, legs, poäng kvar, turens pilar och förslag på utgång.",
+    "Automatisk pilavkänning är nu en betafunktion och avstängd från början. Den kan slås på under kamerainställningarna.",
+    "Adminverktygen har en testinspelning som sparar bilder av varje pil, för att förbättra avkänningen."
+  ]},
   {v:"2.15.2",items:[
     "En ansluten enhet kommer direkt in i matchen och har alltid knappen Fortsätt spelet på startsidan.",
     "Om kameran har flyttats kalibrerar appen om efter 5 sekunder, i stället för att vänta på att pilarna dras ut."
@@ -4520,6 +4623,9 @@ function tab(cam_){
 }
 // manual entry turns the camera off (no feed, no detection); back on the camera tab it starts again
 let camWasOn=false;
+// automatic dart detection is a beta: off unless the user turned it on
+$("chkAuto").checked=!!store.get("dk_autodet");
+$("chkAuto").addEventListener("change",e=>store.set("dk_autodet",e.target.checked));
 $("tabMan").addEventListener("click",()=>{tab(false);if(cam.live){camWasOn=true;clearProp();stopLive();}});
 $("tabCam").addEventListener("click",()=>{tab(true);if(camWasOn&&!cam.live){camWasOn=false;startLive();}});
 $("btnLive").addEventListener("click",startLive);
