@@ -600,7 +600,7 @@ html.cupbig .queue{font-size:min(1.15cqw,2.05cqh)}
     <header class="home-head">
       <h1 class="logo"><img src="icons/wordmark.webp" alt="TrebleEye" width="980" height="556"></h1>
       <div class="byline">by T.Henriksson</div>
-      <div class="meta"><span id="appVer">v2.14.3</span></div>
+      <div class="meta"><span id="appVer">v2.15.0</span></div>
     </header>
     <div class="home">
       <button class="pri big" id="btnSettings">Nytt spel</button>
@@ -2431,9 +2431,23 @@ function colorOf(d,i){
   if(g>35&&g-r>Math.max(16,0.3*g)&&g>=0.8*b)return 2;
   return 0;
 }
+// where the camera stands, as a point on the board plane (mm): a dart sticks out toward the camera,
+// so its tip is the end nearest this point. Focal length from the homography, centre of the picture assumed.
+function camFoot(H,W,Hh){
+  const cx=W/2,cy=Hh/2;
+  const a=[H[0]-cx*H[6],H[3]-cy*H[6],H[6]],b=[H[1]-cx*H[7],H[4]-cy*H[7],H[7]],c=[H[2]-cx*H[8],H[5]-cy*H[8],H[8]];
+  const ok=f2=>f2>0&&Math.sqrt(f2)>W*0.3&&Math.sqrt(f2)<W*6;
+  let f2=-(a[0]*b[0]+a[1]*b[1])/(a[2]*b[2]);
+  if(!ok(f2))f2=(b[0]*b[0]+b[1]*b[1]-a[0]*a[0]-a[1]*a[1])/(a[2]*a[2]-b[2]*b[2]);
+  if(!ok(f2))f2=(W*0.9)**2;
+  const f=Math.sqrt(f2),n=v=>[v[0]/f,v[1]/f,v[2]],r1=n(a),r2=n(b),t=n(c);
+  const l=2/(Math.hypot(...r1)+Math.hypot(...r2)),dot=(u,v)=>u[0]*v[0]+u[1]*v[1]+u[2]*v[2];
+  return [-dot(r1,t)*l*l,-dot(r2,t)*l*l];
+}
 function setH(H,silent){
   cam.Hm=H;cam.Hi=inv3(H);
   const W=cam.W,Ht=cam.H,n=W*Ht;
+  try{cam.foot=camFoot(H,W,Ht);if(!cam.foot.every(isFinite))cam.foot=null;}catch(e){cam.foot=null;}
   cam.mask=new Uint8Array(n);cam.bx=new Float32Array(n);cam.by=new Float32Array(n);cam.maskN=0;
   for(let y=0;y<Ht;y++)for(let x=0;x<W;x++){
     const i=y*W+x,[bx,by]=ap(cam.Hi,x+.5,y+.5);cam.bx[i]=bx;cam.by[i]=by;
@@ -2704,9 +2718,16 @@ function startCalib(){
 }
 
 /* Reference, detection, proposals */
+// brightness ratio cur/ref on the board (median), so auto-exposure and a person near the board do not count as change
+function gainOf(cur,ref){
+  const n=cam.W*cam.H,rs=[];
+  for(let i=0;i<n;i+=7)if(cam.mask[i]&&ref[i]>25&&ref[i]<235)rs.push(cur[i]/ref[i]);
+  if(rs.length<50)return 1;rs.sort((a,b)=>a-b);const g=rs[rs.length>>1];
+  return Math.abs(g-1)<0.03?1:Math.min(1.6,Math.max(0.6,g));
+}
 function changed(a,b){
-  const thr=+$("rngThr").value,n=cam.W*cam.H;let c=0;
-  for(let i=0;i<n;i++)if(cam.mask[i]&&Math.abs(a[i]-b[i])>thr)c++;
+  const thr=Math.max(+$("rngThr").value,Math.round((cam.noise||0)*3+6)),n=cam.W*cam.H,k=gainOf(a,b);let c=0;
+  for(let i=0;i<n;i++)if(cam.mask[i]&&Math.abs(a[i]-b[i]*k)>thr)c++;
   return c;
 }
 function takeRef(g){cam.ref=g;cam.emptyRef=g;cam.needRef=false;cam.waitSince=0;}
@@ -2718,13 +2739,13 @@ function detect(cur){
   const W=cam.W,H=cam.H,n=W*H,ref=cam.ref;
   // never go below the measured camera noise, so grain and flicker are not taken for a dart
   const thr=Math.max(+$("rngThr").value,Math.round((cam.noise||0)*3+6));
-  const raw=new Uint8Array(n);
+  const raw=new Uint8Array(n),k=gainOf(cur,ref);
   for(let i=0;i<n;i++){
     if(!cam.mask[i])continue;
-    const dg=cur[i]-ref[i],ag=dg<0?-dg:dg,d1=Math.abs(cur[n+i]-ref[n+i]),d2=Math.abs(cur[2*n+i]-ref[2*n+i]);
+    const dg=cur[i]-ref[i]*k,ag=dg<0?-dg:dg,d1=Math.abs(cur[n+i]-ref[n+i]),d2=Math.abs(cur[2*n+i]-ref[2*n+i]);
     if(ag<=thr&&d1*2<=thr&&d2*2<=thr)continue;
     // a shadow only darkens: same colour, moderate drop in brightness
-    if(dg<0&&ag<thr*3&&d1*3<thr&&d2*3<thr&&ref[i]>30&&cur[i]>ref[i]*0.5)continue;
+    if(dg<0&&ag<thr*3&&d1*3<thr&&d2*3<thr&&ref[i]>30&&cur[i]>ref[i]*k*0.5)continue;
     raw[i]=1;
   }
   // drop isolated specks: keep pixels with at least two changed neighbours
@@ -2735,7 +2756,7 @@ function detect(cur){
   const dil=new Uint8Array(n);
   for(let y=1;y<H-1;y++)for(let x=1;x<W-1;x++){const i=y*W+x;
     if(clean[i]||clean[i-1]||clean[i+1]||clean[i-W]||clean[i+W]||clean[i-W-1]||clean[i-W+1]||clean[i+W-1]||clean[i+W+1])dil[i]=1;}
-  const seen=new Uint8Array(n);let best=null,total=0;
+  const seen=new Uint8Array(n),comps=[];let best=null,total=0;
   for(let i=0;i<n;i++){
     if(!dil[i]||seen[i])continue;
     const comp=[],st=[i];seen[i]=1;
@@ -2744,8 +2765,19 @@ function detect(cur){
       if(x<W-1&&dil[k+1]&&!seen[k+1]){seen[k+1]=1;st.push(k+1);}
       if(k>=W&&dil[k-W]&&!seen[k-W]){seen[k-W]=1;st.push(k-W);}
       if(k<n-W&&dil[k+W]&&!seen[k+W]){seen[k+W]=1;st.push(k+W);}}
-    total+=comp.length;
+    total+=comp.length;if(comp.length>=4)comps.push(comp);
     if(!best||comp.length>best.length)best=comp;
+  }
+  // a thin grey shaft is often only partly seen: join pieces lying close to the biggest one (flight)
+  if(best&&comps.length>1){
+    const gap=Math.max(8,Math.round(W/35)),pick=(c,k)=>c.filter((_,j)=>j%Math.ceil(c.length/k)===0);
+    let joined=best.slice(),grew=true;
+    while(grew){grew=false;const pts=pick(joined,250);
+      for(let c=comps.length-1;c>=0;c--){const cp=comps[c];if(cp===best)continue;
+        const sm=pick(cp,60);let near=false;
+        for(const a of sm){const ax=a%W,ay=(a/W)|0;for(const b of pts){const dx=ax-b%W,dy=ay-((b/W)|0);if(dx*dx+dy*dy<=gap*gap){near=true;break;}}if(near)break;}
+        if(near){joined=joined.concat(cp);comps.splice(c,1);grew=true;}}}
+    best=joined;
   }
   if(!best||best.length<10)return {err:"Ingen pil hittades. Höj känsligheten eller mata in manuellt.",cur};
   if(total>cam.maskN*0.12)return {err:"big",cur};
@@ -2768,6 +2800,11 @@ function findTip(blob){
   const endA=pr.filter(o=>o.t<=tmin+band),endB=pr.filter(o=>o.t>=tmax-band);
   const wA=spread(endA),wB=spread(endB),dir=$("selDir").value;
   const endPt=(end,sign)=>avg(end.slice().sort((a,b)=>sign*(a.t-b.t)).slice(0,3).map(o=>o.i));
+  if(dir==="auto"&&cam.foot&&elong>=1.6&&L>=6){
+    const pa=endPt(endA,1),pb=endPt(endB,-1),f=cam.foot;
+    const da=Math.hypot(pa.x-f[0],pa.y-f[1]),db=Math.hypot(pb.x-f[0],pb.y-f[1]);
+    if(Math.abs(da-db)>4)return Object.assign(da<db?pa:pb,{how:"vinkel"});
+  }
   if(dir==="auto"&&elong>=1.8&&L>=8&&(wA<wB*0.8||wB<wA*0.8)){
     let tipA=wA<wB;
     const pa=endPt(endA,1),pb=endPt(endB,-1),ra=Math.hypot(pa.x,pa.y),rb=Math.hypot(pb.x,pb.y);
@@ -2877,13 +2914,14 @@ function autoTick(t){
   if(cam.lastGray){
     const thr=+$("rngThr").value;let c=0,nd=[];
     for(let i=0;i<cam.W*cam.H;i+=2)if(cam.mask[i]){const dd=Math.abs(g[i]-cam.lastGray[i]);if(dd>thr)c++;if((i&62)===0)nd.push(dd);}
-    if(c>15){cam.moving=true;cam.lastMove=t;cam.still=[];}
+    const still=c<=Math.max(15,cam.maskN*0.0008);
+    if(!still){cam.moving=true;cam.lastMove=t;cam.still=[];}
     else{
       cam.still=(cam.still||[]).concat([g]).slice(-3);
       if(nd.length){nd.sort((a,b)=>a-b);const med=nd[nd.length>>1];cam.noise=cam.noise==null?med:cam.noise*0.9+med*0.1;}
     }
     if(t-(cam.lastPlace||0)>1500){cam.lastPlace=t;renderPlacement();}
-    if(c<=15&&t-cam.lastMove>800){
+    if(still&&t-cam.lastMove>800){
       if(cam.moving||cam.dirty||cam.needRef||!cam.ref){cam.moving=false;cam.dirty=false;onSettled(steady(g),t);}
       else if(t-cam.lastCheck>4000){cam.lastCheck=t;driftCheck();}
     }
@@ -2894,7 +2932,7 @@ function onSettled(g,t){
   if(cam.prop){cam.dirty=true;return;}
   if(!cam.ref||cam.needRef){
     // wait until the board looks empty again (darts pulled), max 20 s
-    if(cam.emptyRef&&G.turn.darts.length===0&&changed(g,cam.emptyRef)>60){
+    if(cam.emptyRef&&G.turn.darts.length===0&&changed(g,cam.emptyRef)>Math.max(60,cam.maskN*0.003)){
       if(!cam.waitSince)cam.waitSince=t;
       if(t-cam.waitSince<20000){cam.dirty=true;status("Dra ut pilarna från tavlan.");return;}
     }
@@ -2902,7 +2940,7 @@ function onSettled(g,t){
   }
   if(!$("chkAuto").checked)return;
   const turn=G.turn;
-  if(cam.emptyRef&&turn.darts.length>0&&changed(g,cam.emptyRef)<40){
+  if(cam.emptyRef&&turn.darts.length>0&&changed(g,cam.emptyRef)<Math.max(40,cam.maskN*0.002)){
     takeRef(g);
     if($("chkAutoNext").checked&&G.winner===null){nextPlayer();cam.needRef=false;status("Pilarna utdragna. "+G.players[G.cur].name+" kastar.");}
     return;
@@ -4148,6 +4186,11 @@ const iconNote=(function(){
 /* ---------- "Nytt i den här uppdateringen": shown once per version that has an entry here.
    Small fixes get no entry, so no pop-up. Newest first. ---------- */
 const NEWS=[
+  {v:"2.15.0",items:[
+    "Pilavkänningen hittar spetsen bättre: appen räknar ut var kameran står och väljer den ände av pilen som sitter i tavlan, inte fjädern.",
+    "Tunna, grå skaft som bara syns i bitar fogas ihop med fjädern.",
+    "Mindre falsklarm när ljuset ändras, till exempel när någon går fram till tavlan."
+  ]},
   {v:"2.14.3",items:[
     "Ny logga och ny appikon.",
     "Loggan syns också i turneringsläget: på storskärmen, i publikvyn, på vinnarbilden och på de utskrivna bankoderna.",
