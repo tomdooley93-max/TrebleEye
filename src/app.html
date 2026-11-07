@@ -2927,6 +2927,9 @@ function autoTick(t){
       else if(!cam.checkedStill&&cam.ref&&!cam.prop&&t-cam.lastMove>1500){
         // safety net: a small dart can land without counting as motion, so compare with the reference once per still period
         cam.checkedStill=true;const sg=steady(g);if(changed(sg,cam.ref)>=20)onSettled(sg,t);}
+      else if(t-(cam.lastRecal||0)>30000&&cam.ref&&!cam.prop&&G.turn.darts.length===0&&!G.turn.done){
+        // every 30 s while waiting for a throw: fine-tune the calibration (the board or camera may have shifted a little)
+        cam.lastRecal=t;const sg=steady(g);if(changed(sg,cam.ref)<20&&refineCalib())takeRef(sg);}
       else if(t-cam.lastCheck>4000){cam.lastCheck=t;driftCheck();}
     }
   }
@@ -2954,6 +2957,14 @@ function onSettled(g,t){
   if(!r.err)propose(r,false);
   else if(r.err!=="big")status("Ingen pil hittades. Höj känsligheten, flytta kameran närmare eller mata in manuellt.","w");
   else if(r.err==="big")status("Stor förändring i bilden. Väntar på stilla bild.","w");
+}
+// silent auto-calibration that is kept only if it fits the board better than the current one
+function refineCalib(){
+  if(!cam.live||!cam.Hm||cam.calib||cam.busy)return false;
+  const oldH=cam.Hm.slice(),oldSc=boardScore(oldH),r=autoCalibrate(true);
+  if(r.ok&&r.score>=oldSc+0.02)return true;
+  if(cam.Hm!==oldH&&r.ok){setH(oldH);cam.base=oldSc;}
+  return r.ok;
 }
 function driftCheck(){
   if(!cam.live||!cam.Hm||cam.base<0.4||cam.prop)return;
@@ -4191,6 +4202,10 @@ const iconNote=(function(){
 /* ---------- "Nytt i den här uppdateringen": shown once per version that has an entry here.
    Small fixes get no entry, so no pop-up. Newest first. ---------- */
 const NEWS=[
+  {v:"2.15.1",items:[
+    "Kalibreringen finjusteras automatiskt var 30:e sekund medan appen väntar på ett kast, om tavlan eller kameran har rört sig lite.",
+    "Pilar registreras igen även när tavlan är liten i bilden."
+  ]},
   {v:"2.15.0",items:[
     "Pilavkänningen hittar spetsen bättre: appen räknar ut var kameran står och väljer den ände av pilen som sitter i tavlan, inte fjädern.",
     "Tunna, grå skaft som bara syns i bitar fogas ihop med fjädern.",
