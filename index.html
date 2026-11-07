@@ -712,7 +712,7 @@ html.cupbig .queue{font-size:min(1.15cqw,2.05cqh)}
     <header class="home-head">
       <h1 class="logo"><img src="icons/wordmark.webp" alt="TrebleEye" width="980" height="556"></h1>
       <div class="byline">by T.Henriksson</div>
-      <div class="meta"><span id="appVer">v2.21.0</span></div>
+      <div class="meta"><span id="appVer">v2.21.1</span></div>
     </header>
     <div class="home">
       <button class="pri big" id="btnSettings">Nytt spel</button>
@@ -3584,7 +3584,7 @@ const sess=(function(){
   function stopScan(){clearInterval(scanTimer);if(scanStream)scanStream.getTracks().forEach(t=>t.stop());scanStream=null;$("scanBox").hidden=true;$("sessScan").textContent="Skanna QR";}
 
   function wrapCaller(){
-    ["dart","turnDone","turnStart","gameOn"].forEach(k=>{const f=caller[k].bind(caller);orig[k]=f;caller[k]=(...a)=>{ev(k,a);return f(...a);};});
+    ["dart","turnDone","turnStart","gameOn","mock","modeWin"].forEach(k=>{const f=caller[k].bind(caller);orig[k]=f;caller[k]=(...a)=>{ev(k,a);return f(...a);};});
   }
   function boot(){
     wrapCaller();
