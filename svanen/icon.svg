@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="35%" r="75%">
+      <stop offset="0" stop-color="#24497f"/><stop offset="1" stop-color="#0b1424"/>
+    </radialGradient>
+  </defs>
+  <rect width="512" height="512" fill="url(#bg)"/>
+  <circle cx="256" cy="256" r="190" fill="none" stroke="#ff4f9a" stroke-width="10" opacity=".35"/>
+  <line x1="0" y1="256" x2="512" y2="256" stroke="#ff4f9a" stroke-width="10" opacity=".25"/>
+  <!-- confetti -->
+  <g opacity=".95">
+    <rect x="70" y="70" width="22" height="12" rx="3" fill="#ffc23d" transform="rotate(-25 81 76)"/>
+    <rect x="410" y="95" width="22" height="12" rx="3" fill="#3ee0a8" transform="rotate(30 421 101)"/>
+    <rect x="440" y="300" width="20" height="11" rx="3" fill="#ff4f9a" transform="rotate(-40 450 305)"/>
+    <rect x="60" y="300" width="20" height="11" rx="3" fill="#3ee0a8" transform="rotate(20 70 305)"/>
+    <circle cx="330" cy="80" r="7" fill="#ff4f9a"/><circle cx="110" cy="190" r="6" fill="#ffc23d"/>
+  </g>
+  <!-- stick -->
+  <path d="M410 120 L318 420" stroke="#e9b45a" stroke-width="24" stroke-linecap="round"/>
+  <path d="M410 120 L392 178" stroke="#111" stroke-width="26" stroke-linecap="round"/>
+  <path d="M322 408 Q314 438 286 440 L196 440" stroke="#e9b45a" stroke-width="28" stroke-linecap="round" fill="none"/>
+  <path d="M250 440 L200 440" stroke="#111" stroke-width="30" stroke-linecap="round"/>
+  <!-- swan body -->
+  <path d="M168 330 C168 290 205 278 250 296 C290 312 330 300 370 262 C380 300 392 330 380 360 C366 396 320 408 260 408 C200 408 168 375 168 330 Z" fill="#fff"/>
+  <path d="M230 330 C270 345 320 340 352 310 C350 350 320 372 270 372 C246 372 232 356 230 330 Z" fill="#dfe8f6"/>
+  <!-- neck -->
+  <path d="M212 318 C170 280 165 230 196 190 C222 156 214 126 188 118" stroke="#fff" stroke-width="40" stroke-linecap="round" fill="none"/>
+  <!-- head -->
+  <circle cx="180" cy="122" r="32" fill="#fff"/>
+  <path d="M150 116 L104 136 L152 140 Z" fill="#ff8a3d"/>
+  <path d="M152 112 C146 122 146 132 152 142" stroke="#111" stroke-width="10" stroke-linecap="round" fill="none"/>
+  <circle cx="178" cy="126" r="6.5" fill="#111"/>
+  <!-- helmet -->
+  <path d="M146 108 A36 36 0 0 1 216 104 L216 110 L146 112 Z" fill="#ffc23d"/>
+  <path d="M180 76 L180 108" stroke="#ff4f9a" stroke-width="8"/>
+  <path d="M212 106 L228 112" stroke="#ffc23d" stroke-width="8" stroke-linecap="round"/>
+  <!-- puck -->
+  <ellipse cx="150" cy="446" rx="38" ry="14" fill="#000"/>
+  <rect x="112" y="430" width="76" height="16" fill="#000"/>
+  <ellipse cx="150" cy="430" rx="38" ry="14" fill="#2a2f3a"/>
+  <path d="M84 436 L56 436 M90 452 L66 458 M90 420 L70 412" stroke="#9fd8ff" stroke-width="6" stroke-linecap="round"/>
+</svg>
