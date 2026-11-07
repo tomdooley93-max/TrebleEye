@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="sv"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#0b1424">
+<meta name="theme-color" content="#071229">
 <title>Svanen Hockey Games</title>
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
@@ -15,8 +15,8 @@
 <style>
 /* Layout: arenans resultattavla – mörk is-natt, en stor tavla överst, tumvänlig flikrad i botten */
 :root{
---bg:#0b1424; --ice:#13213a; --ice2:#1b2d4d; --line:#2a4068;
---fg:#eef4ff; --dim:#9fb1d1; --amber:#ffc23d; --pink:#ff4f9a; --mint:#3ee0a8; --red:#ff5d5d;
+--bg:#071229; --ice:#0e1f40; --ice2:#16305c; --line:#26487e;
+--fg:#f5f8fd; --dim:#a9bbd8; --amber:#e8283c; --pink:#4f8fe8; --mint:#ffffff; --red:#ff6b6b; --on:#ffffff; --onm:#071229;
 --display:"Bungee","Arial Black",Impact,sans-serif;
 --body:"Rubik",system-ui,-apple-system,"Segoe UI",sans-serif;
 color-scheme:dark;
@@ -27,12 +27,12 @@ color-scheme:dark;
 html,body{min-height:100%}
 body{margin:0}
 body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;
-background-image:radial-gradient(1200px 500px at 50% -200px,#1d3a6b 0%,transparent 70%);
+background-image:radial-gradient(1200px 500px at 50% -200px,#1b3f80 0%,transparent 70%);
 background-attachment:fixed}
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
 button,input,select,textarea{font:inherit;color:inherit}
 button{cursor:pointer;border:0;background:none}
-:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
+:focus-visible{outline:3px solid #fff;outline-offset:2px}
 .wrap{max-width:980px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:14px 110px}
 header.top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
 .brand{font-family:var(--display);font-size:clamp(20px,5vw,30px);line-height:1;letter-spacing:.5px}
@@ -49,31 +49,31 @@ input[type=text],input[type=number],select,textarea{background:var(--bg);border:
 input[type=number]{font-variant-numeric:tabular-nums}
 .btn{text-decoration:none;color:inherit;display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:12px 16px;border-radius:12px;font-weight:700;background:var(--ice2);border:1px solid var(--line);min-height:46px;transition:transform .08s}
 .btn:active{transform:scale(.96)}
-.btn.primary{background:var(--amber);color:#1a1200;border-color:transparent}
+.btn.primary{background:var(--amber);color:var(--on);border-color:transparent}
 .btn.pink{background:var(--pink);color:#fff;border-color:transparent}
-.btn.mint{background:var(--mint);color:#00261a;border-color:transparent}
+.btn.mint{background:var(--mint);color:var(--onm);border-color:transparent}
 .btn.ghost{background:transparent}
 .btn.small{min-height:36px;padding:6px 11px;font-size:14px;border-radius:9px}
 .btn.danger{color:var(--red)}
 .btn.armed{background:var(--red);color:#fff}
 .chip{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:99px;background:var(--ice2);font-size:13px;font-weight:600;white-space:nowrap}
 .dot{width:12px;height:12px;border-radius:50%;flex:none;display:inline-block}
-.banner{background:linear-gradient(90deg,var(--pink),#a34bff);color:#fff;border-radius:12px;padding:10px 14px;display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:12px;font-weight:600}
+.banner{background:linear-gradient(90deg,#c8102e,#1d4fa8);color:#fff;border-radius:12px;padding:10px 14px;display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:12px;font-weight:600}
 /* Flikar */
-nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:20;background:rgba(9,16,30,.94);backdrop-filter:blur(8px);border-top:1px solid var(--line);
+nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:20;background:rgba(5,12,28,.95);backdrop-filter:blur(8px);border-top:1px solid var(--line);
 padding:6px max(8px,env(safe-area-inset-right,0px)) calc(6px + env(safe-area-inset-bottom,0px)) max(8px,env(safe-area-inset-left,0px));display:flex;justify-content:center}
 nav.tabs .in{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;width:100%;max-width:620px}
 nav.tabs button{padding:8px 2px;border-radius:10px;font-size:12px;font-weight:700;color:var(--dim);display:flex;flex-direction:column;align-items:center;gap:3px}
 nav.tabs button svg{width:24px;height:24px}
-nav.tabs button[aria-current=page]{color:var(--bg);background:var(--amber)}
+nav.tabs button[aria-current=page]{color:#fff;background:var(--amber)}
 /* Tavlan */
 .board{background:linear-gradient(180deg,#0a1222,#050a14);border:2px solid #000;border-radius:18px;padding:16px;box-shadow:0 0 0 1px var(--line),0 20px 50px -20px #000 inset}
 .board .teams{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;text-align:center}
 .board .tname{font-weight:800;font-size:clamp(15px,3.6vw,22px);text-transform:uppercase;letter-spacing:1px;overflow-wrap:anywhere}
-.board .score{font-family:var(--display);font-size:clamp(56px,15vw,110px);line-height:1;color:var(--amber);text-shadow:0 0 18px rgba(255,194,61,.55);font-variant-numeric:tabular-nums}
+.board .score{font-family:var(--display);font-size:clamp(56px,15vw,110px);line-height:1;color:var(--amber);text-shadow:0 0 18px rgba(232,40,60,.7);font-variant-numeric:tabular-nums}
 .board .mid{font-family:var(--display);color:var(--dim);font-size:28px}
 .board .clock{display:flex;justify-content:center;align-items:center;gap:10px;margin-top:10px;flex-wrap:wrap}
-.board .time{font-family:var(--display);font-size:34px;color:var(--mint);text-shadow:0 0 14px rgba(62,224,168,.5);font-variant-numeric:tabular-nums;min-width:4.2em;text-align:center}
+.board .time{font-family:var(--display);font-size:34px;color:var(--mint);text-shadow:0 0 14px rgba(255,255,255,.35);font-variant-numeric:tabular-nums;min-width:4.2em;text-align:center}
 .board .pens{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px;font-size:13px;color:var(--pink)}
 .board .pens div:last-child{text-align:right}
 .actions{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px}
@@ -85,7 +85,7 @@ nav.tabs button[aria-current=page]{color:var(--bg);background:var(--amber)}
 .log .when{font-variant-numeric:tabular-nums;color:var(--dim);font-size:13px;min-width:56px}
 .log .what{flex:1;min-width:0}
 .tag{font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;padding:2px 7px;border-radius:6px;margin-right:6px}
-.t-goal{background:var(--amber);color:#1a1200}.t-pen{background:var(--pink);color:#fff}.t-warn{background:#ffe9a8;color:#3b2a00}.t-jager{background:var(--mint);color:#00261a}.t-adj{background:#a34bff;color:#fff}
+.t-goal{background:var(--amber);color:var(--on)}.t-pen{background:var(--pink);color:#fff}.t-warn{background:#ffe9a8;color:#3b2a00}.t-jager{background:#3ee0a8;color:#00261a}.t-adj{background:#a34bff;color:#fff}
 /* Tabeller */
 .tbl-wrap{overflow-x:auto;border-radius:14px;border:1px solid var(--line)}
 table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums;background:var(--ice)}
@@ -110,18 +110,18 @@ padding:18px max(16px,env(safe-area-inset-right,0px)) calc(20px + env(safe-area-
 .pbtn{padding:12px;border-radius:10px;background:var(--bg);border:1px solid var(--line);text-align:left;font-weight:600;overflow-wrap:anywhere;display:flex;gap:8px;align-items:center}
 .pbtn .nr{font-family:var(--display);color:var(--dim);min-width:1.8em}
 .pbtn .hist{margin-left:auto;font-size:12px;color:var(--pink)}
-.pbtn.sel{border-color:var(--amber);background:#2a2410}
+.pbtn.sel{border-color:var(--amber);background:#3a1220}
 /* Jäger */
 .jager{position:fixed;inset:0;z-index:60;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:18px;padding:24px;
 background:radial-gradient(circle at 50% 40%,#0f6b4c 0%,#06281d 55%,#020c08 100%)}
-.jager .k{font-family:var(--display);color:var(--amber);font-size:clamp(28px,8vw,56px);line-height:1;animation:pulse 0.9s ease-in-out infinite alternate}
+.jager .k{font-family:var(--display);color:#ffc23d;font-size:clamp(28px,8vw,56px);line-height:1;animation:pulse 0.9s ease-in-out infinite alternate}
 .jager .who{font-family:var(--display);font-size:clamp(38px,12vw,96px);line-height:1.05;color:#fff;overflow-wrap:anywhere;max-width:100%}
 .jager .team{font-weight:800;letter-spacing:3px;text-transform:uppercase}
 .jager.rolling .who{opacity:.85;filter:blur(.5px)}
 @keyframes pulse{from{transform:scale(1)}to{transform:scale(1.08)}}
 canvas#fx{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:70}
-.toast{position:fixed;left:50%;bottom:calc(90px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:80;background:var(--amber);color:#1a1200;font-weight:800;padding:10px 18px;border-radius:99px;box-shadow:0 8px 30px rgba(0,0,0,.4)}
-.goalflash{position:fixed;inset:0;z-index:65;display:flex;align-items:center;justify-content:center;pointer-events:none;font-family:var(--display);font-size:clamp(70px,22vw,200px);color:var(--amber);text-shadow:0 0 40px rgba(255,194,61,.8);animation:gf 1.4s ease-out forwards}
+.toast{position:fixed;left:50%;bottom:calc(90px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:80;background:var(--amber);color:var(--on);font-weight:800;padding:10px 18px;border-radius:99px;box-shadow:0 8px 30px rgba(0,0,0,.4)}
+.goalflash{position:fixed;inset:0;z-index:65;display:flex;align-items:center;justify-content:center;pointer-events:none;font-family:var(--display);font-size:clamp(70px,22vw,200px);color:var(--amber);text-shadow:0 0 40px rgba(232,40,60,.85);animation:gf 1.4s ease-out forwards}
 @keyframes gf{0%{transform:scale(.3);opacity:0}25%{transform:scale(1.1);opacity:1}70%{opacity:1}100%{transform:scale(1.3);opacity:0}}
 @media (prefers-reduced-motion:reduce){.jager .k,.goalflash{animation:none}.btn{transition:none}}
 .fk-in{width:5.5em!important;text-align:center}
@@ -129,8 +129,8 @@ canvas#fx{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-in
 .matchcard .res{font-family:var(--display);color:var(--amber);font-size:22px;font-variant-numeric:tabular-nums}
 .live{color:var(--mint);font-weight:800;font-size:12px;letter-spacing:2px}
 .empty{padding:28px 16px;text-align:center;color:var(--dim)}
-.jalert{background:radial-gradient(circle at 30% 30%,#0f6b4c,#06281d);border:2px solid var(--mint);border-radius:16px;padding:16px;text-align:center;margin-bottom:12px}
-.jalert .k{font-family:var(--display);color:var(--amber);font-size:22px}
+.jalert{background:radial-gradient(circle at 30% 30%,#0f6b4c,#06281d);border:2px solid #3ee0a8;border-radius:16px;padding:16px;text-align:center;margin-bottom:12px}
+.jalert .k{font-family:var(--display);color:#ffc23d;font-size:22px}
 .jalert .who{font-family:var(--display);font-size:clamp(30px,9vw,54px);line-height:1.1;overflow-wrap:anywhere}
 .qr{background:#fff;border-radius:14px;padding:12px;width:min(280px,100%);margin:0 auto}
 .qr svg{display:block;width:100%;height:auto}
@@ -143,6 +143,27 @@ canvas#fx{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-in
 .emblem.sm{width:min(42vw,180px)}
 .foot a{color:var(--dim);font-size:13px}
 .fktbl td:first-child{white-space:normal}
+.cer{background:radial-gradient(circle at 50% 35%,#1b3f80 0%,#0a1a3a 55%,#030814 100%);overflow:auto}
+.cer .who{overflow-wrap:normal;word-break:normal;text-wrap:balance}
+.cer .sub{font-weight:700;color:var(--dim);font-size:18px}
+.cer .emblem{margin:0 auto}
+.podium{display:flex;align-items:flex-end;justify-content:center;gap:10px;width:min(560px,100%)}
+.pod{flex:1;min-width:0;text-align:center}
+.pod .pn{font-weight:800;overflow-wrap:anywhere;margin-bottom:6px}
+.pod .pb{border-radius:10px 10px 0 0;font-family:var(--display);font-size:34px;color:#071229;display:flex;justify-content:center;padding-top:8px}
+.p1 .pb{height:150px}.p2 .pb{height:110px}.p3 .pb{height:80px}
+.pod .pp{font-weight:700;margin-top:6px}
+#print{display:none}
+@media print{@page{size:A4;margin:12mm}
+body.printing{background:#fff!important;color:#071229}
+body.printing>*:not(#print){display:none!important}
+body.printing::before{display:none}
+body.printing #print{display:flex;flex-direction:column;align-items:center;text-align:center;gap:6mm;font-family:var(--body)}
+#print .pe{width:92mm;height:auto}
+#print .pt{font-family:var(--display);font-size:32pt;color:#c8102e;line-height:1.1}
+#print .pq{width:105mm}#print .pq svg,#print .pq img{width:100%;height:auto;display:block}
+#print .pu{font-size:12pt;font-weight:700;word-break:break-all}
+#print .ps{font-size:15pt;color:#22324f}}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
 </head><body>
@@ -220,6 +241,7 @@ const team=id=>S.teams.find(t=>t.id===id);
 function player(pid){for(const t of S.teams){const p=t.players.find(p=>p.id===pid);if(p)return{p,t}}return null}
 const pname=pid=>{const x=player(pid);return x?x.p.name:"Okänd"};
 const curMatch=()=>S.matches.find(m=>m.status==="live");
+const isPO=m=>!!(m&&m.fx&&S.sched&&S.sched.fixtures.some(f=>f.id===m.fx&&!f.g));
 const FMT_DEF={periods:2,plen:10,otLen:5,tie:"draw",win:3,draw:1,otWin:2,otLoss:1};
 function fmtS(){return Object.assign({},FMT_DEF,S.settings||{})}
 function pStart(m){return m.pStart||0}
@@ -251,6 +273,7 @@ const rows={};for(const t of S.teams)if(!teamIds||teamIds.includes(t.id))rows[t.
 for(const m of S.matches){if(matchFilter&&!matchFilter(m))continue;
 for(const e of m.events){const r=rows[e.team];if(!r)continue;if(e.type==="pen")r.pim+=e.min;if(e.type==="warn")r.warn++}
 if(m.status!=="done")continue;
+if(!matchFilter&&isPO(m))continue;
 const[h,a]=score(m),H=rows[m.home],A=rows[m.away];if(!H||!A)continue;
 H.gp++;A.gp++;H.gf+=h;H.ga+=a;A.gf+=a;A.ga+=h;
 const f=fmtS(),wid=winnerOf(m),ot=isOTWin(m);
@@ -430,13 +453,42 @@ const swEl=()=>SW.ms+(SW.running?Date.now()-SW.since:0);
 const swShown=()=>SW.mode==="down"?Math.max(0,SW.down-swEl()):swEl();
 function fmtT(ms){const t=Math.floor(ms/100);return String(Math.floor(t/600)).padStart(2,"0")+":"+String(Math.floor(t/10)%60).padStart(2,"0")+"."+(t%10)}
 let audio=null;function beep(){try{audio=audio||new (window.AudioContext||window.webkitAudioContext)();[0,.35,.7].forEach(d=>{const o=audio.createOscillator(),g=audio.createGain();o.frequency.value=d>.6?1320:880;o.connect(g);g.connect(audio.destination);g.gain.setValueAtTime(.4,audio.currentTime+d);g.gain.exponentialRampToValueAtTime(.001,audio.currentTime+d+.3);o.start(audio.currentTime+d);o.stop(audio.currentTime+d+.32)})}catch(e){}}
+function ac(){try{audio=audio||new (window.AudioContext||window.webkitAudioContext)();if(audio.state==="suspended")audio.resume()}catch(e){}return audio}
+const SND={mode:lsGet(KEY+"-jsnd")||"jingle",off:+(lsGet(KEY+"-jsoff")||0),name:lsGet(KEY+"-jsname")||""};
+let sndBuf=null,sndSrc=null,sndGain=null,sndT=0,noiseB=null;
+function idb(){return new Promise((res,rej)=>{const r=indexedDB.open("svanen-snd",1);r.onupgradeneeded=()=>r.result.createObjectStore("f");r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)})}
+async function idbPut(v){const db=await idb();return new Promise((res,rej)=>{const tx=db.transaction("f","readwrite");tx.objectStore("f").put(v,"jager");tx.oncomplete=()=>res();tx.onerror=()=>rej(tx.error)})}
+async function idbGet(){const db=await idb();return new Promise((res,rej)=>{const q=db.transaction("f").objectStore("f").get("jager");q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error)})}
+async function loadSnd(){try{const ab=await idbGet();const c=ac();if(ab&&c)sndBuf=await new Promise((res,rej)=>c.decodeAudioData(ab.slice(0),res,rej));else sndBuf=null}catch(e){sndBuf=null}}
+function noise(c){if(noiseB)return noiseB;const b=c.createBuffer(1,Math.floor(c.sampleRate*1.6),c.sampleRate),d=b.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;return noiseB=b}
+function stopSnd(fade){clearTimeout(sndT);if(!sndSrc)return;const g=sndGain,src=sndSrc;sndSrc=null;try{const t=audio.currentTime,f=fade??.8;g.gain.cancelScheduledValues(t);g.gain.setValueAtTime(g.gain.value,t);g.gain.linearRampToValueAtTime(0,t+f);src.stop(t+f+.05)}catch(e){}}
+function drumroll(c,dur){const t0=c.currentTime+.02,m=c.createGain();m.gain.value=.55;m.connect(c.destination);
+const f=c.createBiquadFilter();f.type="bandpass";f.frequency.value=1700;f.Q.value=.6;f.connect(m);
+for(let t=0;t<dur;t+=.045){const s=c.createBufferSource();s.buffer=noise(c);const g=c.createGain(),v=.12+.6*(t/dur);g.gain.setValueAtTime(v,t0+t);g.gain.exponentialRampToValueAtTime(.001,t0+t+.06);s.connect(g);g.connect(f);s.start(t0+t,Math.random());s.stop(t0+t+.07)}
+sndSrc={stop(){}};sndGain=m}
+function fanfare(c){const t0=c.currentTime+.02,m=c.createGain();m.gain.value=.26;m.connect(c.destination);
+const lp=c.createBiquadFilter();lp.type="lowpass";lp.frequency.value=2600;lp.connect(m);
+for(const[fq,st,d]of[[392,0,.14],[523.25,.16,.14],[659.25,.32,.14],[783.99,.48,.42],[659.25,.94,.14],[783.99,1.1,.95]])for(const[type,det]of[["sawtooth",0],["square",7]]){const o=c.createOscillator(),g=c.createGain();o.type=type;o.frequency.value=fq;o.detune.value=det;g.gain.setValueAtTime(0,t0+st);g.gain.linearRampToValueAtTime(.5,t0+st+.02);g.gain.setValueAtTime(.5,t0+st+d-.05);g.gain.linearRampToValueAtTime(0,t0+st+d);o.connect(g);g.connect(lp);o.start(t0+st);o.stop(t0+st+d+.02)}
+const s=c.createBufferSource(),hp=c.createBiquadFilter(),g=c.createGain();s.buffer=noise(c);hp.type="highpass";hp.frequency.value=5000;g.gain.setValueAtTime(.5,t0);g.gain.exponentialRampToValueAtTime(.001,t0+1.5);s.connect(hp);hp.connect(g);g.connect(c.destination);s.start(t0);s.stop(t0+1.55)}
+function jSound(){if(!isAdmin)return;stopSnd(0);if(SND.mode==="off")return;const c=ac();if(!c)return;
+if(SND.mode==="file"&&sndBuf){const g=c.createGain();g.connect(c.destination);const s=c.createBufferSource();s.buffer=sndBuf;s.connect(g);s.start(0,Math.min(+SND.off||0,Math.max(0,sndBuf.duration-1)));sndSrc=s;sndGain=g;return}
+drumroll(c,3.3)}
+function jReveal(){if(isAdmin&&SND.mode!=="off"&&!(SND.mode==="file"&&sndBuf)){const c=ac();if(c)fanfare(c)}}
+function vSnd(){return`<h2>Ljud vid Jäger-paus</h2><div class="card stack">
+<p class="muted" style="margin:0">Ljudet spelas från den här enheten, så koppla gärna in en högtalare. Deltagarnas mobiler är tysta. En iPhone på ljudlöst spelar inget.</p>
+<div class="row">${[["jingle","Trumvirvel + fanfar"],["file","Egen låt"],["off","Av"]].map(([v,l])=>`<button class="btn small ${SND.mode===v?"primary":""}" data-act="sndMode" data-m="${v}">${l}</button>`).join("")}</div>
+${SND.mode==="file"?`<label class="btn" style="cursor:pointer">${SND.name?"Byt låt":"Välj ljudfil"}<input type="file" id="sndFile" accept="audio/*" hidden></label>
+<p class="muted" style="margin:0">${SND.name?"Vald: <b>"+esc(SND.name)+"</b>"+(sndBuf?"":" (kunde inte läsas, välj igen)"):"Ingen låt vald än. Välj en mp3 eller liknande, den sparas bara på den här enheten."}</p>
+<label class="row" style="justify-content:space-between">Börja vid sekund<input type="number" id="sndOff" value="${esc(SND.off)}" min="0" data-change="sndOff" style="width:5em"></label>
+<p class="muted" style="margin:0">Låten spelar tills ni trycker Skål, och tonar då ut.</p>`:""}
+${SND.mode!=="off"?`<div class="row"><button class="btn small" data-act="sndTest">Provspela</button><button class="btn small ghost" data-act="sndStop">Stoppa</button></div>`:""}</div>`}
 function vSW(){
 const opts=S.teams.map(t=>`<optgroup label="${esc(t.name)}">${t.players.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join("")}</optgroup>`).join("");
 const laps=SW.laps.slice().sort((a,b)=>a.t-b.t);
 return`<h2>Tidtagning</h2><div class="card stack" style="text-align:center">
 <div class="row" style="justify-content:center"><button class="btn small ${SW.mode==="up"?"primary":""}" data-act="swMode" data-m="up">Stoppur</button><button class="btn small ${SW.mode==="down"?"primary":""}" data-act="swMode" data-m="down">Nedräkning</button></div>
 ${SW.mode==="down"?`<div class="row" style="justify-content:center">${[[30,"30 s"],[60,"1 min"],[120,"2 min"],[180,"3 min"],[300,"5 min"]].map(([v,l])=>`<button class="btn small ${SW.down===v*1000?"mint":""}" data-act="swPreset" data-v="${v}">${l}</button>`).join("")}</div>`:""}
-<div id="swTime" style="font-family:var(--display);font-size:clamp(48px,15vw,84px);line-height:1;color:var(--mint);text-shadow:0 0 16px rgba(62,224,168,.5);font-variant-numeric:tabular-nums">${fmtT(swShown())}</div>
+<div id="swTime" style="font-family:var(--display);font-size:clamp(48px,15vw,84px);line-height:1;color:var(--mint);text-shadow:0 0 16px rgba(255,255,255,.35);font-variant-numeric:tabular-nums">${fmtT(swShown())}</div>
 <div class="row" style="justify-content:center"><button class="btn ${SW.running?"":"mint"}" data-act="swGo" style="min-width:8em">${SW.running?"Stoppa":(swEl()>0&&!(SW.mode==="down"&&swShown()===0)?"Fortsätt":"Start")}</button>
 ${SW.mode==="up"?`<button class="btn primary" data-act="swLap" style="min-width:8em">Tid!</button>`:""}
 <button class="btn ghost" data-act="swReset">Nollställ</button></div>
@@ -468,11 +520,11 @@ return h+`</div>`;
 }
 function vTabell(){
 const ht=hockeyTable(),tot=fkTotals(),ps=playerStats();
-let h=(S.sched?vSched(true):"")+`<h2>Totalställning</h2><div class="tbl-wrap"><table><thead><tr><th></th><th>Lag</th>${S.settings.useHockey?"<th>Hockey</th>":""}<th>Femkamp</th><th>Just.</th><th>Totalt</th></tr></thead><tbody>
+let h=(isAdmin&&S.teams.length?`<div class="card row" style="justify-content:space-between;margin-top:8px"><span><b>Prisutdelning</b><br><span class="muted">Avslöja priserna ett i taget i helskärm.</span></span><button class="btn primary" data-act="cer">Starta</button></div>`:"")+(S.sched?vSched(true):"")+`<h2>Totalställning</h2><div class="tbl-wrap"><table><thead><tr><th></th><th>Lag</th>${S.settings.useHockey?"<th>Hockey</th>":""}<th>Femkamp</th><th>Just.</th><th>Totalt</th></tr></thead><tbody>
 ${tot.map((r,i)=>`<tr class="${i===0&&r.total>0?"lead":""}"><td class="rank">${i+1}</td><td class="name">${teamDot(r.t)} ${esc(r.t.name)}</td>${S.settings.useHockey?`<td>${r.h}</td>`:""}<td>${r.fk}</td><td>${r.adj>0?"+":""}${r.adj}</td><td class="pts">${r.total}</td></tr>`).join("")}</tbody></table></div>`;
 h+=`<h2>Hockeytabellen</h2><div class="tbl-wrap"><table><thead><tr><th></th><th>Lag</th><th>M</th><th>V</th><th>O</th><th>F</th><th>Mål</th><th>+/-</th><th>Utv</th><th>Tills.</th><th>P</th></tr></thead><tbody>
 ${ht.map((r,i)=>`<tr class="${i===0&&r.pts>0?"lead":""}"><td class="rank">${i+1}</td><td class="name">${teamDot(r.t)} ${esc(r.t.name)}</td><td>${r.gp}</td><td>${r.w}</td><td>${r.d}</td><td>${r.l}</td><td>${r.gf}–${r.ga}</td><td>${r.gf-r.ga}</td><td class="${r.pim?"flag":""}">${r.pim}</td><td class="${r.warn?"flag":""}">${r.warn}</td><td class="pts">${r.pts}</td></tr>`).join("")}</tbody></table></div>
-<p class="muted">${(f=>`${f.win} p för vinst, ${f.tie==="draw"?f.draw+" p för oavgjort":`${f.otWin} p för vinst och ${f.otLoss} p för förlust efter ${f.tie==="so"?"straffar":"förlängning/straffar"}`}`)(fmtS())}. Bara avslutade matcher räknas.</p>`;
+<p class="muted">${(f=>`${f.win} p för vinst, ${f.tie==="draw"?f.draw+" p för oavgjort":`${f.otWin} p för vinst och ${f.otLoss} p för förlust efter ${f.tie==="so"?"straffar":"förlängning/straffar"}`}`)(fmtS())}. Bara avslutade matcher räknas.${S.sched&&S.sched.fixtures.some(f=>!f.g)?" Slutspelet avgör hockeymästaren och ger inga tabellpoäng.":""}</p>`;
 const top=(arr,f,lab,cls)=>{const l=arr.filter(f.has).sort(f.sort).slice(0,10);return`<div class="card"><h3 style="margin-top:0">${lab}</h3>${l.length?`<div class="tbl-wrap" style="border:0"><table><tbody>${l.map((r,i)=>`<tr><td class="rank">${i+1}</td><td class="name">${teamDot(r.t)} ${esc(r.p.name)}</td><td class="${cls}">${f.val(r)}</td></tr>`).join("")}</tbody></table></div>`:`<p class="muted">Ingen än.</p>`}</div>`};
 h+=`<h2>Ligorna</h2><div class="grid2">
 ${top(ps,{has:r=>r.g||r.a,sort:(a,b)=>(b.g+b.a)-(a.g+a.a)||b.g-a.g,val:r=>`${r.g}+${r.a}`},"Poängligan","pts")}
@@ -481,6 +533,32 @@ ${top(ps,{has:r=>r.j,sort:(a,b)=>b.j-a.j,val:r=>`${r.j} st`},"Jägerligan","pts"
 </div>`;
 return h;
 }
+function champion(){if(!S.sched)return null;const fx=S.sched.fixtures,fin=fx.find(f=>f.stage==="Final"),fm=fin&&fxMatch(fin);
+if(fin)return fm&&fm.status==="done"?winnerOf(fm):null;
+if(S.sched.fmt!=="grp"&&fx.length&&fx.every(fxDone)){const t=groupTable("*")[0];return t?t.t.id:null}return null}
+function awards(){const ps=playerStats(),out=[];
+const best=(f,k,sub)=>{const l=ps.filter(r=>f(r)>0).sort((a,b)=>f(b)-f(a));if(!l.length)return;const ws=l.filter(r=>f(r)===f(l[0]));out.push({k,who:ws.map(r=>r.p.name).join(" & "),team:ws.length===1?ws[0].t:null,sub:sub(l[0])})};
+best(r=>r.g,"Skyttekung",r=>r.g+" mål");
+best(r=>r.g+r.a,"Poängkung",r=>`${r.g} mål + ${r.a} assist`);
+best(r=>r.pim+r.w*2,"Årets syndabock",r=>`${r.pim} utvisningsminuter och ${r.w} tillsägelser`);
+best(r=>r.j,"Jägerkung",r=>r.j+(r.j===1?" shot":" shots"));
+return out}
+function cerSteps(){const st=awards();const ch=champion();if(ch&&team(ch))st.push({k:"Hockeymästare",who:team(ch).name,team:team(ch),sub:"vann hockeyturneringen"});
+const tot=fkTotals(),lab=["Vinnare av Svanen Hockey Games","2:a plats totalt","3:e plats totalt"];
+for(let i=Math.min(3,tot.length)-1;i>=0;i--)st.push({k:lab[i],who:tot[i].t.name,team:tot[i].t,sub:tot[i].total+" poäng",place:i+1});return st}
+function drawCer(){const c=ui.cer;if(!c)return;let h,b;
+if(c.i>=c.steps.length){const tot=fkTotals();
+h=`<div class="k">Pallen</div><div class="podium">${[1,0,2].filter(i=>tot[i]).map(i=>`<div class="pod p${i+1}"><div class="pn">${esc(tot[i].t.name)}</div><div class="pb" style="background:${esc(tot[i].t.color)}">${i+1}</div><div class="pp">${tot[i].total} p</div></div>`).join("")}</div>`;
+b=`<button class="btn primary" data-act="close" style="font-size:18px">Stäng</button>`}
+else{const s=c.steps[c.i],w=Math.max(6,...String(s.who).split(/\s+/).map(x=>x.length));
+h=`<div class="k">${esc(s.k)}</div><div class="who" style="font-size:min(84px,${Math.round(130/w)}vw)">${c.shown?esc(s.who):c.rolling?"…":"?"}</div>${c.shown?`${s.team&&s.team.name!==s.who?`<div class="team" style="color:${esc(s.team.color)}">${esc(s.team.name)}</div>`:""}<div class="sub">${esc(s.sub)}</div>`:""}`;
+b=`<button class="btn ghost" data-act="close">Stäng</button>${c.shown?`<button class="btn primary" data-act="cerNext" style="font-size:18px">Nästa</button>`:`<button class="btn primary" data-act="cerShow" style="font-size:18px" ${c.rolling?"disabled":""}>Avslöja!</button>`}`}
+$("#layer").innerHTML=`<div class="jager cer" id="cer" role="dialog" aria-modal="true" aria-label="Prisutdelning"><img class="emblem sm" src="emblem.webp" alt="" width="640" height="640">${h}<div class="row" style="justify-content:center">${b}</div>${c.i<c.steps.length?`<p class="muted" style="margin:0">${c.i+1} av ${c.steps.length}</p>`:""}</div>`}
+function printSign(){let d=$("#print");if(!d){d=document.createElement("div");d.id="print";document.body.appendChild(d)}
+d.innerHTML=`<img class="pe" src="emblem.webp" alt="Svanen Hockey Games Ludvika"><div class="pt">Följ turneringen live!</div><div class="pq">${qrSvg(publicUrl())}</div><div class="ps">Scanna med mobilkameran och se ställning, resultat och Jäger-pauser i realtid.</div><div class="pu">${esc(publicUrl())}</div>`;
+const img=d.querySelector("img"),go=()=>{document.body.classList.add("printing");setTimeout(()=>{try{window.print()}catch(e){toast("Utskrift fungerar inte här, prova från en dator")}},60)};
+if(img.complete)go();else{img.onload=img.onerror=go}}
+addEventListener("afterprint",()=>document.body.classList.remove("printing"));
 function vLogin(){
 return`<div class="card stack" style="max-width:420px;margin:30px auto;text-align:center">
 <img class="emblem sm" src="emblem.webp" alt="" width="640" height="640" style="margin:0 auto"><h2 style="margin:0">Tävlingsledningen</h2><p class="muted" style="margin:0">Skriv in koden för att föra protokoll.</p>
@@ -548,8 +626,8 @@ return`<h2>QR till resultatlistan</h2><div class="card stack" style="text-align:
 <div class="qr">${qrSvg(publicUrl())}</div>
 <p style="margin:0;font-weight:700;overflow-wrap:anywhere">${esc(publicUrl())}</p>
 <p class="muted" style="margin:0">Skriv ut eller visa koden. Deltagarna ser ställningen live men kan inte ändra något.</p>
-<div class="row" style="justify-content:center"><button class="btn" data-act="copyUrl">Kopiera länken</button><a class="btn" href="${esc(publicUrl())}" target="_blank" rel="noopener">Öppna resultatlistan</a></div></div>
-<h2>Inloggning</h2><div class="card stack">
+<div class="row" style="justify-content:center"><button class="btn primary" data-act="printSign">Skriv ut QR-skylt</button><button class="btn" data-act="copyUrl">Kopiera länken</button><a class="btn" href="${esc(publicUrl())}" target="_blank" rel="noopener">Öppna resultatlistan</a></div></div>
+${vSnd()}<h2>Inloggning</h2><div class="card stack">
 <form class="row" data-form="newPin" style="flex-wrap:nowrap"><input type="text" id="newPin" placeholder="Ny kod (minst 6 tecken)" autocomplete="off" style="flex:1"><button class="btn">Byt kod</button></form>
 <p class="muted" style="margin:0">Den nya koden gäller för alla i tävlingsledningen. Andra inloggade enheter loggas ut när de sparar nästa gång.</p>
 <div class="row"><button class="btn ghost danger" data-act="logout">Logga ut på den här enheten</button></div></div>
@@ -575,7 +653,7 @@ ${f.tie==="draw"?`<label class="row" style="justify-content:space-between">Oavgj
 <div class="row"><button class="btn" data-act="copy">Kopiera</button><button class="btn" data-act="import">Läs in från rutan</button><button class="btn ghost danger" data-act="arm" data-do="wipe">Rensa allt</button></div></div>`;
 }
 let pick={};
-function closeLayer(){$("#layer").innerHTML="";pick={}}
+function closeLayer(){$("#layer").innerHTML="";pick={};if(ui.cer){ui.cer=null;stopSnd(.6)}}
 function openEvent(type,ctx){
 const m=curMatch();
 if(ctx!=="fk"&&!m){toast("Starta en match först");return}
@@ -623,6 +701,7 @@ if(!pool.length){toast("Inga spelare att välja bland");return}
 const m=curMatch();if(m&&m.clock.running){m.clock.ms=elapsed(m);m.clock.running=false;save()}
 const final=pool[Math.floor(Math.random()*pool.length)];
 $("#layer").innerHTML=`<div class="jager rolling" id="jg" role="dialog" aria-modal="true" aria-label="Jäger-paus"><div class="k">JÄGER-PAUS!</div><div class="who" id="jwho">…</div><div class="team" id="jteam"></div><div class="row" id="jbtns" hidden style="justify-content:center"><button class="btn" data-act="jagerAgain">Slumpa om</button><button class="btn primary" data-act="jagerDone" style="font-size:20px">Skål! Shoten är tagen</button></div></div>`;
+jSound();
 const reduce=matchMedia("(prefers-reduced-motion: reduce)").matches;
 let n=0,delay=60;const spins=reduce?1:22;
 clearTimeout(jagerTimer);
@@ -631,7 +710,7 @@ const c=n>=spins-1?final:pool[Math.floor(Math.random()*pool.length)];
 const w=$("#jwho"),tm=$("#jteam");if(!w)return;
 w.textContent=c.p.name;tm.textContent=c.t.name;tm.style.color=c.t.color;
 if(++n<spins){delay*=1.08;jagerTimer=setTimeout(tick,delay)}
-else{$("#jg").classList.remove("rolling");$("#jbtns").hidden=false;pick={jager:final};S.jagerLive={player:final.p.id,team:final.t.id,t:Date.now()};save();confetti(["#ffc23d","#3ee0a8","#fff",c.t.color])}
+else{$("#jg").classList.remove("rolling");$("#jbtns").hidden=false;jReveal();pick={jager:final};S.jagerLive={player:final.p.id,team:final.t.id,t:Date.now()};save();confetti(["#ffc23d","#3ee0a8","#fff",c.t.color])}
 };
 tick();
 try{navigator.vibrate&&navigator.vibrate([80,60,80])}catch(e){}
@@ -651,7 +730,7 @@ raf=parts.length?requestAnimationFrame(step):0;
 }
 function goalFlash(t){
 const d=document.createElement("div");d.className="goalflash";d.textContent="MÅÅÅL!";document.body.appendChild(d);setTimeout(()=>d.remove(),1500);
-confetti(["#ffc23d","#fff",t?.color||"#ff4f9a"]);
+confetti(["#e8283c","#fff","#1d4fa8",t?.color||"#e8283c"]);
 }
 function toast(msg){const d=document.createElement("div");d.className="toast";d.textContent=msg;document.body.appendChild(d);setTimeout(()=>d.remove(),2200)}
 let armed=null,armT=0;
@@ -666,7 +745,7 @@ case"swClear":SW.laps=[];swSave();break;
 case"delPlayer":for(const t of S.teams)t.players=t.players.filter(p=>p.id!==id);break;
 case"delEv":for(const x of S.matches)x.events=x.events.filter(e=>e.id!==id);S.warns=S.warns.filter(e=>e.id!==id);break;
 case"delMatch":S.matches=S.matches.filter(x=>x!==m);if(S.sched)for(const f of S.sched.fixtures)if(f.matchId===m?.id)f.matchId=null;ui.openMatch=null;break;
-case"endMatch":if(m){const[a0,b0]=score(m);const po=m.fx&&S.sched&&S.sched.fixtures.some(f=>f.id===m.fx&&!f.g);if(a0===b0&&(fmtS().tie!=="draw"||po)&&!m.decided){openDecide(m);return}m.clock.ms=elapsed(m);m.clock.running=false;m.status="done";ui.openMatch=m.id;const[a,b]=score(m);confetti(["#ffc23d","#ff4f9a","#3ee0a8"]);toast(winnerOf(m)?team(winnerOf(m))?.name+" vinner!":"Oavgjort!")}break;
+case"endMatch":if(m){const[a0,b0]=score(m);const po=isPO(m);if(a0===b0&&(fmtS().tie!=="draw"||po)&&!m.decided){openDecide(m);return}m.clock.ms=elapsed(m);m.clock.running=false;m.status="done";ui.openMatch=m.id;const[a,b]=score(m);confetti(["#e8283c","#fff","#1d4fa8"]);toast(winnerOf(m)?team(winnerOf(m))?.name+" vinner!":"Oavgjort!")}break;
 case"delFk":S.fk.events=S.fk.events.filter(e=>e.id!==id);delete S.fk.scores[id];break;
 case"delAdj":S.fk.adj=S.fk.adj.filter(a=>a.id!==id);break;
 }
@@ -681,6 +760,7 @@ if(armed===el.dataset.do+id&&Date.now()-armT<3000){armed=null;doArmed(el.dataset
 armed=el.dataset.do+id;armT=Date.now();el.classList.add("armed");el.dataset.orig=el.textContent;el.textContent="Säker? Tryck igen";
 setTimeout(()=>{if(el.isConnected){el.classList.remove("armed");el.textContent=el.dataset.orig}},3000);return;
 }
+if(isAdmin)ac();
 const m=ui.openMatch?S.matches.find(x=>x.id===ui.openMatch):curMatch();
 switch(a){
 case"tab":ui.tab=el.dataset.k;if(ui.tab!=="match")ui.openMatch=null;try{localStorage.setItem(KEY+"-tab",ui.tab)}catch(e){}render();scrollTo(0,0);break;
@@ -719,8 +799,16 @@ case"genFill":ui.genText=S.teams.flatMap(t=>t.players.map(p=>p.name)).join("\n")
 case"logout":logout("Utloggad");break;
 case"copyUrl":navigator.clipboard?.writeText(publicUrl()).then(()=>toast("Länken är kopierad"),()=>toast(publicUrl()));break;
 case"jagerNow":startJager();break;
+case"cer":{const st=cerSteps();if(!st.length){toast("Inga resultat att dela ut priser för än");break}ui.cer={steps:st,i:0,shown:false};drawCer();break}
+case"cerShow":{const c=ui.cer;if(!c||c.rolling||c.shown)break;c.rolling=true;drawCer();const ctx=SND.mode!=="off"?ac():null;if(ctx)drumroll(ctx,1.6);
+sndT=setTimeout(()=>{if(ui.cer!==c)return;c.rolling=false;c.shown=true;drawCer();if(ctx){stopSnd(.05);fanfare(ctx)}const s=c.steps[c.i];confetti(s.place===1?["#ffc23d","#e8283c","#fff","#1d4fa8",s.team?.color||"#fff"]:["#ffc23d","#fff",s.team?.color||"#e8283c"]);if(s.place===1)setTimeout(()=>confetti(["#ffc23d","#e8283c","#fff"]),700)},1600);break}
+case"cerNext":if(ui.cer){ui.cer.i++;ui.cer.shown=false;drawCer()}break;
+case"printSign":printSign();break;
+case"sndMode":SND.mode=el.dataset.m;lsSet(KEY+"-jsnd",SND.mode);stopSnd(0);if(SND.mode==="file"&&!sndBuf&&SND.name)loadSnd().then(render);render();break;
+case"sndTest":{jSound();if(SND.mode==="jingle")sndT=setTimeout(jReveal,3300);break}
+case"sndStop":stopSnd(.3);break;
 case"jagerAgain":startJager();break;
-case"jagerDone":{const f=pick.jager;const cm=curMatch();delete S.jagerLive;if(!cm)save();
+case"jagerDone":{stopSnd(1.2);const f=pick.jager;const cm=curMatch();delete S.jagerLive;if(!cm)save();
 if(f&&cm){cm.events.push({id:uid(),t:Date.now(),type:"jager",player:f.p.id,team:f.t.id,clock:elapsed(cm),per:cm.period,pt:elapsed(cm)-pStart(cm)});schedJager(cm);save()}
 closeLayer();render();toast("Skål! Klockan står still tills ni startar den igen");break}
 case"copy":{const t=$("#backup");navigator.clipboard?.writeText(t.value).then(()=>toast("Kopierat"),()=>{t.select();toast("Markerat, kopiera själv")})||(t.select());break}
@@ -748,7 +836,10 @@ if(k==="addAdj"){const p=+$("#ap-"+id).value;if(!p){toast("Skriv antal poäng, t
 save();render();
 });
 document.addEventListener("change",ev=>{
-const el=ev.target,k=el.dataset.change;if(!k)return;
+const el=ev.target,k=el.dataset.change;
+if(el.id==="sndFile"){const f=el.files&&el.files[0];if(!f)return;if(f.size>20e6){toast("Filen är för stor (max 20 MB)");return}toast("Sparar låten…");
+f.arrayBuffer().then(async ab=>{await idbPut(ab);SND.name=f.name;lsSet(KEY+"-jsname",f.name);await loadSnd();toast(sndBuf?"Låten är sparad på den här enheten":"Kunde inte läsa ljudfilen");render()}).catch(()=>toast("Kunde inte spara låten"));return}
+if(!k)return;
 const m=curMatch();
 if(k==="teamName"){const v=el.value.trim();if(v)team(el.dataset.id).name=v}
 if(k==="period"&&m){m.period=el.value;m.pStart=elapsed(m);save();render();return}
@@ -756,6 +847,7 @@ if(k==="fkName"){const e=S.fk.events.find(x=>x.id===el.dataset.id);if(e&&el.valu
 if(k==="fkScore"){(S.fk.scores[el.dataset.ev]??={})[el.dataset.t]=el.value===""?"":+el.value;save();return}
 if(k==="set")S.settings[el.dataset.k]=+el.value||0;
 if(k==="setb")S.settings[el.dataset.k]=el.checked;
+if(k==="sndOff"){SND.off=Math.max(0,+el.value||0);lsSet(KEY+"-jsoff",String(SND.off));return}
 if(k==="swWho"){const l=SW.laps.find(x=>x.id===el.dataset.id);if(l){l.who=el.value;swSave();render()}return}
 if(k==="sets"){S.settings[el.dataset.k]=el.value;save();render();return}
 if(k==="set"&&/^(periods)$/.test(el.dataset.k)){save();render();return}
@@ -784,6 +876,7 @@ let lock=null;async function wake(){try{if(!lock&&navigator.wakeLock)lock=await 
 document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"&&curMatch()?.clock.running)wake()});
 addEventListener("resize",()=>{if(raf){cv.width=innerWidth*devicePixelRatio;cv.height=innerHeight*devicePixelRatio}});
 render();
+if(isAdmin&&SND.mode==="file"&&SND.name)loadSnd();
 if(isAdmin&&PIN&&sync.pending)push();
 poll();setInterval(()=>{if(document.visibilityState==="visible")poll()},isAdmin?8000:4000);
 document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")poll()});
