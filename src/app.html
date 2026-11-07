@@ -159,7 +159,8 @@ html.tv:has(#remoteBox:not([hidden])) #tvGfx:not([hidden]){display:block;positio
 .tvgfx .gt .gsum{margin-left:auto;min-width:2em;text-align:right;font-size:1.15em}
 .tvgfx .gt .gsum.max{color:var(--acc)}
 .tvgfx .gt .gsum.bust{color:var(--red)}
-.pl.team{cursor:default}.pl .tm{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.pl.team{cursor:default}.pl.team .sc{color:var(--fg)}.pl.team:not(.on) .sc{color:var(--mut)}
+.tvgfx .gsc.gscore{font-size:.8em}.pl .tm{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
 .pl .tmn{font-size:13px;font-weight:600;padding:2px 8px;border-radius:999px;border:1px solid var(--line2);color:var(--mut)}
 .pl .tmn.now{background:var(--acc);border-color:var(--acc);color:var(--acc-ink)}
 .tvgfx .gc{display:flex;align-items:center;gap:.6em;background:rgba(16,20,17,.92);border-top:1px solid rgba(255,255,255,.08);font-size:clamp(15px,2.8vh,34px);font-weight:700;padding:.3em .6em;border-radius:0 0 6px 6px;flex-wrap:wrap}
@@ -673,7 +674,7 @@ html.cupbig .queue{font-size:min(1.15cqw,2.05cqh)}
     <header class="home-head">
       <h1 class="logo"><img src="icons/wordmark.webp" alt="TrebleEye" width="980" height="556"></h1>
       <div class="byline">by T.Henriksson</div>
-      <div class="meta"><span id="appVer">v2.18.2</span></div>
+      <div class="meta"><span id="appVer">v2.18.3</span></div>
     </header>
     <div class="home">
       <button class="pri big" id="btnSettings">Nytt spel</button>
@@ -1707,8 +1708,10 @@ function renderMode(){
   // 170 in a team: one card for the team and one for the board, with the match score big
   if(G.cfg.team&&G.team){
     const T=G.team,b=G.board||0,n=G.cfg.rounds||10,over=G.matchWinner!==null,cp=G.players[G.cur];
-    [["Laget",T.pts,over?"Kvar –":"Kvar "+T.left,G.players.map(q=>q.name).join(", "),!over,over&&T.pts>b],
-     ["Tavlan",b,"Runda "+Math.min(T.rounds+1,n)+" av "+n,"",false,over&&b>T.pts]].forEach(([nm,sc,st,who,on,won])=>{
+    // what is left is the number the team plays to, so it is the big one; the match score sits beside it
+    const dl=9-T.visit*3-G.turn.darts.length;
+    [["Laget · kvar till utgång",over?"–":T.left,over?"":"Pil "+Math.min(9,10-dl)+" av 9",G.players.map(q=>q.name).join(", "),!over,over&&T.pts>b],
+     ["Ställning",T.pts+"–"+b,"Laget – Tavlan · runda "+Math.min(T.rounds+(T.roundDone?0:1),n)+" av "+n,"",false,over&&T.pts>=b]].forEach(([nm,sc,st,who,on,won])=>{
       const el=document.createElement("div");el.className="pl team"+(on?" on":"")+(won?" won":"");
       el.innerHTML='<div class="nm"><span class="who"><span class="pn"></span></span>'+(on?'<span class="dot" title="Kastar"></span>':"")+'</div><div class="sc"></div><div class="st"><span class="msub"></span></div>'+(who?'<div class="st"><span class="tm"></span></div>':"");
       el.querySelector(".pn").textContent=nm;el.querySelector(".sc").textContent=sc;el.querySelector(".msub").textContent=st;
@@ -2419,8 +2422,8 @@ function renderGfx(){
   let h='<div class="gh"><span>'+esc(x01?G.start+" · "+fmtText(G.fmt):(G.mode==="c170"?"170 · "+(G.cfg.rounds||10)+" rundor"+(team?" · lag mot tavlan":""):$("gameMeta").textContent))+'</span>'+(x01?(sets?'<span class="c">S</span>':'')+'<span class="c">L</span>':'<span></span>')+'<span></span></div>';
   if(team){
     const T=G.team,b=G.board||0,n=G.cfg.rounds||10;
-    h+='<div class="gr'+(done?"":" on")+(done&&T.pts>b?" won":"")+'"><span class="gp">'+(done?"":"<i></i>")+'</span><span class="gn">Laget</span><span class="c sub">'+esc(done?"":p.name+" kastar")+'</span><span class="gsc">'+T.pts+'</span></div>';
-    h+='<div class="gr'+(done&&b>T.pts?" won":"")+'"><span class="gp"></span><span class="gn">Tavlan</span><span class="c sub">'+esc("runda "+Math.min(T.rounds+1,n)+"/"+n)+'</span><span class="gsc">'+b+'</span></div>';
+    h+='<div class="gr'+(done?"":" on")+(done&&T.pts>b?" won":"")+'"><span class="gp">'+(done?"":"<i></i>")+'</span><span class="gn">Laget</span><span class="c sub">'+esc(done?"":p.name+" kastar")+'</span><span class="gsc">'+(done?"–":T.left)+'</span></div>';
+    h+='<div class="gr'+(done&&b>T.pts?" won":"")+'"><span class="gp"></span><span class="gn">Ställning</span><span class="c sub">'+esc("runda "+Math.min(T.rounds+(T.roundDone?0:1),n)+"/"+n)+'</span><span class="gsc gscore">'+T.pts+"–"+b+'</span></div>';
   }
   else G.players.forEach((q,i)=>{
     const on=i===G.cur&&!done,won=(G.matchWinner===i&&!(G.cfg&&G.cfg.team))||(x01&&G.winner===i);
@@ -2441,7 +2444,7 @@ function renderGfx(){
       h+='<div class="gc"><span class="gk">Kvar <b>'+p.score+'</b></span>'+(co?'<span class="gr2">'+co.map(d=>'<i'+(d.m===2?' class="d"':'')+'>'+esc(d.label)+'</i>').join("")+'</span>':su?'<span class="gr2"><i>'+esc(su.d.label)+'</i><em>ställ upp '+su.rest+'</em></span>':'')+'</div>';
     }else if(G.mode==="c170"&&!t.done){
       const L=c170S(p).left,co=checkout(L,3-t.darts.length,true);
-      h+='<div class="gc"><span class="gk">Kvar <b>'+L+'</b></span>'+(co?'<span class="gr2">'+co.map(d=>'<i'+(d.m===2?' class="d"':'')+'>'+esc(d.label)+'</i>').join("")+'</span>':'<span class="gr2"><em>ställ upp nästa besök</em></span>')+'</div>';
+      h+='<div class="gc"><span class="gk">'+(team?'Utgång':'Kvar <b>'+L+'</b>')+'</span>'+(co?'<span class="gr2">'+co.map(d=>'<i'+(d.m===2?' class="d"':'')+'>'+esc(d.label)+'</i>').join("")+'</span>':'<span class="gr2"><em>ställ upp nästa besök</em></span>')+'</div>';
     }else if(!x01){
       const tmp=document.createElement("div");tmp.innerHTML=(M.msg(p,t)||"").replace(/<\/span>\s*<span/g,"</span> <span");const txt=tmp.textContent.replace(/\s+/g," ").trim();
       if(txt)h+='<div class="gc"><span class="gm">'+esc(txt)+'</span></div>';
