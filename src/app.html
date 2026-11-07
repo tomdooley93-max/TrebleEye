@@ -698,7 +698,7 @@ html.cupbig .queue{font-size:min(1.15cqw,2.05cqh)}
     <header class="home-head">
       <h1 class="logo"><img src="icons/wordmark.webp" alt="TrebleEye" width="980" height="556"></h1>
       <div class="byline">by T.Henriksson</div>
-      <div class="meta"><span id="appVer">v2.20.0</span></div>
+      <div class="meta"><span id="appVer">v2.21.0</span></div>
     </header>
     <div class="home">
       <button class="pri big" id="btnSettings">Nytt spel</button>
@@ -1609,6 +1609,19 @@ const MODES={
         setTimeout(()=>caller.modeWin(w),0);
       }
     },
+    // Tom's rule: when a full throwing round is over (everyone has had the same number of visits) and exactly one
+    // player is killer while someone still has 0 streck, the killer wins the round
+    turnEnd(p,t){
+      if(G.kphase!=="play"||G.kwin!=null)return;
+      const n=G.players.length,ks=G.kstart||0;let i=G.cur,crossed=false;
+      for(let k=1;k<=n;k++){i=(G.cur+k)%n;if(i===ks)crossed=true;if(!G.players[i].out)break;}
+      if(!crossed)return;
+      const alive=G.players.filter(x=>!x.out),killers=alive.filter(x=>x.killer),zero=alive.filter(x=>!x.killer&&x.m===0);
+      if(killers.length===1&&zero.length){
+        const w=killers[0];w.wins++;G.kwin=G.players.indexOf(w);t.result="roundwin";t.why="zero";killerSaveRound();
+        setTimeout(()=>caller.modeWin(w),0);
+      }
+    },
     keepTurn:p=>G.kphase==="pick"&&!p.num&&G.kwin==null,
     nextIndex(){
       const n=G.players.length;
@@ -1617,19 +1630,19 @@ const MODES={
         G.kwin=null;G.kround=(G.kround||0)+1;
         G.players.forEach(p=>{p.num=0;p.m=0;p.killer=false;p.out=false;p.pickV=-1;});
         MODES.killer.setup();
-        return G.kround%n;
+        G.kstart=G.kround%n;return G.kstart;
       }
       if(G.kphase!=="pick")return null;
       for(let k=1;k<=n;k++){const i=(G.cur+k)%n;if(!G.players[i].num)return i;}
       // everyone has a number: the one who threw highest starts
-      G.kphase="play";let b=0;G.players.forEach((p,i)=>{if(p.pickV>G.players[b].pickV)b=i;});return b;
+      G.kphase="play";let b=0;G.players.forEach((p,i)=>{if(p.pickV>G.players[b].pickV)b=i;});G.kstart=b;return b;
     },
     finished:p=>p.out,
     winner:()=>null,
     big:p=>p.num?String(p.num):"?",
     sub(p){const L=G.cfg.lives||3;return p.out?"Ute":G.kphase==="pick"?(p.num?"Siffra vald":"Väljer siffra"):"●".repeat(p.m)+"○".repeat(Math.max(0,L-p.m))+(p.killer?" · KILLER":"")+" · vinster "+(p.wins||0);},
     msg(p,t){
-      if(t.result==="roundwin"&&G.kwin!=null)return '<span class="label">'+esc(G.players[G.kwin].name)+' vinner omgången och får en poäng! Ny omgång med nya siffror…</span>';
+      if(t.result==="roundwin"&&G.kwin!=null)return '<span class="label">'+esc(G.players[G.kwin].name)+(t.why==="zero"?' är killer medan någon står på 0 streck och':'')+' vinner omgången och får en poäng! Ny omgång med nya siffror…</span>';
       if(G.kphase==="pick"){
         if(t.result==="taken")return '<span class="label">Den siffran är redan tagen. Kasta igen med fel hand.</span>';
         if(t.result==="retry")return '<span class="label">Ingen siffra. Kasta igen med fel hand.</span>';
@@ -1715,7 +1728,9 @@ function modeDart(d,pos){
   if(w!=null){G.winner=G.matchWinner=w;t.done=true;saveModeHistory();setTimeout(()=>{if(G.matchWinner!==null)openStats("match");},4200);}
   if(t.done){
     G.log.unshift(p.name+": "+t.darts.map(x=>x.label).join(", ")+(w!=null?" · vinst":""));G.log=G.log.slice(0,40);
-    if(w!=null)caller.modeWin(G.players[w]);else autoAdvance(t.result==="roundwin"?4500:1400);
+    const miss3=t.darts.length===3&&t.darts.every(x=>x.n===0);
+    if(w==null&&miss3&&t.result!=="roundwin")caller.mock(p);
+    if(w!=null)caller.modeWin(G.players[w]);else autoAdvance(t.result==="roundwin"?4500:miss3?3000:1400);
   }else caller.dart();
   save();render();
 }
@@ -1731,6 +1746,7 @@ function modeNext(){
   snap();
   const M=MODES[G.mode],p=G.players[G.cur],t=G.turn;
   if(!t.done){p.darts+=3-t.darts.length;t.done=true;if(M.turnEnd)M.turnEnd(p,t);
+    if(t.result==="roundwin"){save();render();autoAdvance(4500);return;}
     const w=M.winner();if(w!=null){G.winner=G.matchWinner=w;saveModeHistory();caller.modeWin(G.players[w]);save();render();return;}}
   if(M.keepTurn&&M.keepTurn(p)){G.turn={darts:[],done:false};save();render();cam.onNewTurn();return;}
   const nx=M.nextIndex?M.nextIndex():null;
@@ -1965,6 +1981,17 @@ const audio=(function(){
     }else if(type==="win"){
       [523,659,784,1047].forEach((fr,i)=>{const o=a.createOscillator();o.type="triangle";o.frequency.value=fr;const g=a.createGain(),s=t+i*0.11;
         g.gain.setValueAtTime(0.001,s);g.gain.exponentialRampToValueAtTime(0.35,s+0.02);g.gain.exponentialRampToValueAtTime(0.001,s+0.5);o.connect(g).connect(out);o.start(s);o.stop(s+0.5);});
+    }else if(type==="mock"){
+      // sad trombone (wah wah wah waaah) over a low crowd "booo"
+      [[196,0,0.3],[185,0.32,0.3],[175,0.64,0.3],[165,0.96,1.0]].forEach(([fr,d,len],i)=>{
+        const s=t+d,o=a.createOscillator();o.type="sawtooth";o.frequency.setValueAtTime(fr,s);
+        if(i===3){const l=a.createOscillator(),lg=a.createGain();l.frequency.value=6;lg.gain.value=5;l.connect(lg).connect(o.frequency);l.start(s+0.15);l.stop(s+len);o.frequency.linearRampToValueAtTime(fr*0.94,s+len);}
+        const f=a.createBiquadFilter();f.type="lowpass";f.frequency.setValueAtTime(500,s);f.frequency.linearRampToValueAtTime(1500,s+0.08);f.frequency.linearRampToValueAtTime(700,s+len);
+        const g=a.createGain();g.gain.setValueAtTime(0.001,s);g.gain.exponentialRampToValueAtTime(0.32,s+0.04);g.gain.setValueAtTime(0.32,s+len*0.7);g.gain.exponentialRampToValueAtTime(0.001,s+len);
+        o.connect(f).connect(g).connect(out);o.start(s);o.stop(s+len+0.02);});
+      const n=a.createBufferSource();n.buffer=noise(a,2.2);const f=a.createBiquadFilter();f.type="bandpass";f.frequency.value=320;f.Q.value=1.2;
+      const g=a.createGain();g.gain.setValueAtTime(0.001,t+0.2);g.gain.exponentialRampToValueAtTime(0.22,t+0.7);g.gain.exponentialRampToValueAtTime(0.001,t+2.2);
+      n.connect(f).connect(g).connect(out);n.start(t+0.2);
     }else if(type==="bust"){
       const o=a.createOscillator();o.type="sawtooth";o.frequency.setValueAtTime(180,t);o.frequency.exponentialRampToValueAtTime(70,t+0.4);
       const g=a.createGain();g.gain.setValueAtTime(0.25,t);g.gain.exponentialRampToValueAtTime(0.001,t+0.45);o.connect(g).connect(out);o.start(t);o.stop(t+0.45);
@@ -2101,11 +2128,33 @@ const fx=(function(){
     const st={};
     play(t=>{dim(t,0.6,"#3a0705");slamLayer(t,st,{at:0.02,main:"BUST",fill:"red",glow:"rgba(229,70,60,.8)",ring:"#e5463c",shake:40,scale:0.36});},1500);
   }
+  // three misses: MISS stamps, a laughing face and a taunt for the thrower
+  const TAUNTS=["Tavlan sitter där borta →","Har du provat att sikta?","Pilarna saknar tavlan redan","Väggen tackar för besöket","Ring en vän!","Det var… modigt"];
+  function mock(name){
+    if(reduce){flashDom("3 × MISS");return;}
+    const st={taunt:TAUNTS[Math.floor(Math.random()*TAUNTS.length)]};
+    play(t=>{
+      const k=dim(t,0.75,"#1b0806"),cx=W/2,cy=H*0.4,R=Math.min(W,H);
+      [[-0.3,-0.2,-0.22],[0.3,-0.14,0.18],[0.32,0.12,-0.12]].forEach(([dx,dy,rot],i)=>{
+        const t0=0.02+i*0.09;if(t<t0)return;const p=clamp((t-t0)/0.06,0,1);
+        x.save();x.translate(cx+dx*R*0.9,cy+dy*R*0.9);x.rotate(rot);if(p>=1&&!st["m"+i]){st["m"+i]=1;burst(14,cx+dx*R*0.9,cy+dy*R*0.9,5,["#e5463c","#ffb1a8"],"s");}
+        text("MISS",0,0,R*0.11,1+1.5*(1-back(p)),"red","rgba(229,70,60,.6)",k*(t>0.85?Math.max(0,1-(t-0.85)/0.15):1));x.restore();
+      });
+      if(t>0.32){
+        const p=clamp((t-0.32)/0.1,0,1),es=R*0.26*(0.4+0.6*back(p)),wob=Math.sin(t*55)*0.18;
+        x.save();x.globalAlpha=k;x.translate(cx,cy+R*0.08+Math.abs(Math.sin(t*28))*-R*0.02);x.rotate(wob);
+        x.font=Math.round(es)+"px 'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji',sans-serif";x.textAlign="center";x.textBaseline="middle";x.fillText("😂",0,0);x.restore();
+        const q=ease(clamp((t-0.42)/0.12,0,1)),ns=st.ns||(st.ns=fit(name.toUpperCase()+" – 3 × MISS",R*0.075,0.9)),ts=st.ts||(st.ts=fit(st.taunt,R*0.05,0.9));
+        text(name.toUpperCase()+" – 3 × MISS",cx,cy+R*0.3+20*(1-q),ns,1,"#efe7d3",null,q*k);
+        text(st.taunt,cx,cy+R*0.3+ns*0.9+ts*0.7+20*(1-q),ts,1,"#f2b33d",null,q*k);
+      }
+    },3400);
+  }
   function flashDom(text,big){
     const f=$("flash");f.textContent=text;f.className="flash"+(big?" big":"");void f.offsetWidth;f.classList.add("on");
     clearTimeout(flashDom.t);flashDom.t=setTimeout(()=>f.classList.remove("on"),1500);
   }
-  return {score,oneEighty,gameShot,bust,flash:flashDom};
+  return {score,oneEighty,gameShot,bust,mock,flash:flashDom};
 })();
 
 /* ---------- Caller ---------- */
@@ -2140,6 +2189,8 @@ const caller=(function(){
     setLang(l){lang=l;store.set("dk_voice",l);},
     get lang(){return lang;},
     dart(){if(fxOn())audio.sfx("thunk");},
+    // three misses in one visit: taunt the thrower
+    mock(p){fx.mock(p.name);if(fxOn())audio.sfx("mock");},
     turnDone(t,p){
       const sum=t.darts.reduce((s,d)=>s+d.v,0);
       if(G.winner!==null){
@@ -2151,6 +2202,7 @@ const caller=(function(){
         return;
       }
       if(t.bust){fx.bust();if(fxOn())audio.sfx("bust");call("s0","No score","Inga poäng");return;}
+      if(t.darts.length===3&&t.darts.every(d=>d.n===0)){fx.mock(p.name);if(fxOn())audio.sfx("mock");return;}
       if(sum===180){fx.oneEighty(()=>call("s180","One hundred... and eighty!","Ett hundra... och åttio!",{rate:0.8,pitch:1.1,e:1}));return;}
       if(sum>=100){
         fx.score({main:String(sum),sub:sum>=140?"TON-FORTY PLUS":sum>100?"TON-PLUS":"THE TON",at:0.05,ray:"#f2b33d",conf:sum>=140?120:70,dur:2000});
@@ -4508,6 +4560,10 @@ const iconNote=(function(){
 /* ---------- "Nytt i den här uppdateringen": shown once per version that has an entry here.
    Small fixes get no entry, so no pop-up. Newest first. ---------- */
 const NEWS=[
+  {v:"2.21.0",items:[
+    "Tre missar i samma besök ger ett hånljud och en animation som retar den som kastade.",
+    "Killer: är du killer när varvet är slut och någon annan står kvar på 0 streck vinner du omgången."
+  ]},
   {v:"2.20.0",items:[
     "Killer: den som kastade högst börjar, man är ute när man räknas ner till noll, och vinnaren får en poäng innan en ny omgång med nya siffror startar."
   ]},
@@ -4772,7 +4828,7 @@ const MODE_HELP={
   cricket:"Stäng 15–20 och bull med tre träffar var (dubbel = 2, trippel = 3). Fler träffar på en stängd siffra ger poäng tills motståndarna stänger den. Den som stänger allt och har minst lika många poäng vinner.",
   atc:"Träffa 1 till 20 i tur och ordning och sist bull. Alla delar av siffran räknas. Först runt vinner.",
   checkout:"Varje runda får ett slumpat utgångsmål. Du har tre pilar på dig att gå ut med en dubbel. Appen visar proffsvägen.",
-  killer:"Alla får en egen siffra, genom att kasta med fel hand eller genom lottning. Fyll din siffra med streck för att bli killer: singel ger 1, dubbel 2 och trippel 3. Den som kastade högst börjar. Som killer tar du streck från den vars siffra du träffar, men din egen siffra kostar dig streck. Den som räknas ner till noll är ute. Sist kvar vinner omgången och får en poäng, sedan blir det ny omgång med nya siffror. Minst två spelare.",
+  killer:"Alla får en egen siffra, genom att kasta med fel hand eller genom lottning. Fyll din siffra med streck för att bli killer: singel ger 1, dubbel 2 och trippel 3. Den som kastade högst börjar. Som killer tar du streck från den vars siffra du träffar, men din egen siffra kostar dig streck. Den som räknas ner till noll är ute. Är någon killer när varvet är slut och en annan står kvar på 0 streck vinner killern. Annars vinner den som är sist kvar omgången och får en poäng, sedan blir det ny omgång med nya siffror. Minst två spelare.",
   c170:"Varje runda börjar på 170 och du har nio pilar (tre besök) på dig att gå ut med en dubbel. Lyckas du får du poängen, annars får tavlan den. Bust ger tillbaka poängen från besökets början. I lag delar ni på samma 170 och kastar ett besök var i tur och ordning.",
   bobs27:"Börja på 27 poäng. Kasta tre pilar på D1, sedan D2 och så vidare till bull. Varje träff ger dubbelns värde, ingen träff drar av det. Under noll är du ute."
 };
