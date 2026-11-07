@@ -1609,6 +1609,19 @@ const MODES={
         setTimeout(()=>caller.modeWin(w),0);
       }
     },
+    // Tom's rule: when a full throwing round is over (everyone has had the same number of visits) and exactly one
+    // player is killer while someone still has 0 streck, the killer wins the round
+    turnEnd(p,t){
+      if(G.kphase!=="play"||G.kwin!=null)return;
+      const n=G.players.length,ks=G.kstart||0;let i=G.cur,crossed=false;
+      for(let k=1;k<=n;k++){i=(G.cur+k)%n;if(i===ks)crossed=true;if(!G.players[i].out)break;}
+      if(!crossed)return;
+      const alive=G.players.filter(x=>!x.out),killers=alive.filter(x=>x.killer),zero=alive.filter(x=>!x.killer&&x.m===0);
+      if(killers.length===1&&zero.length){
+        const w=killers[0];w.wins++;G.kwin=G.players.indexOf(w);t.result="roundwin";t.why="zero";killerSaveRound();
+        setTimeout(()=>caller.modeWin(w),0);
+      }
+    },
     keepTurn:p=>G.kphase==="pick"&&!p.num&&G.kwin==null,
     nextIndex(){
       const n=G.players.length;
@@ -1617,19 +1630,19 @@ const MODES={
         G.kwin=null;G.kround=(G.kround||0)+1;
         G.players.forEach(p=>{p.num=0;p.m=0;p.killer=false;p.out=false;p.pickV=-1;});
         MODES.killer.setup();
-        return G.kround%n;
+        G.kstart=G.kround%n;return G.kstart;
       }
       if(G.kphase!=="pick")return null;
       for(let k=1;k<=n;k++){const i=(G.cur+k)%n;if(!G.players[i].num)return i;}
       // everyone has a number: the one who threw highest starts
-      G.kphase="play";let b=0;G.players.forEach((p,i)=>{if(p.pickV>G.players[b].pickV)b=i;});return b;
+      G.kphase="play";let b=0;G.players.forEach((p,i)=>{if(p.pickV>G.players[b].pickV)b=i;});G.kstart=b;return b;
     },
     finished:p=>p.out,
     winner:()=>null,
     big:p=>p.num?String(p.num):"?",
     sub(p){const L=G.cfg.lives||3;return p.out?"Ute":G.kphase==="pick"?(p.num?"Siffra vald":"Väljer siffra"):"●".repeat(p.m)+"○".repeat(Math.max(0,L-p.m))+(p.killer?" · KILLER":"")+" · vinster "+(p.wins||0);},
     msg(p,t){
-      if(t.result==="roundwin"&&G.kwin!=null)return '<span class="label">'+esc(G.players[G.kwin].name)+' vinner omgången och får en poäng! Ny omgång med nya siffror…</span>';
+      if(t.result==="roundwin"&&G.kwin!=null)return '<span class="label">'+esc(G.players[G.kwin].name)+(t.why==="zero"?' är killer medan någon står på 0 streck och':'')+' vinner omgången och får en poäng! Ny omgång med nya siffror…</span>';
       if(G.kphase==="pick"){
         if(t.result==="taken")return '<span class="label">Den siffran är redan tagen. Kasta igen med fel hand.</span>';
         if(t.result==="retry")return '<span class="label">Ingen siffra. Kasta igen med fel hand.</span>';
@@ -1733,6 +1746,7 @@ function modeNext(){
   snap();
   const M=MODES[G.mode],p=G.players[G.cur],t=G.turn;
   if(!t.done){p.darts+=3-t.darts.length;t.done=true;if(M.turnEnd)M.turnEnd(p,t);
+    if(t.result==="roundwin"){save();render();autoAdvance(4500);return;}
     const w=M.winner();if(w!=null){G.winner=G.matchWinner=w;saveModeHistory();caller.modeWin(G.players[w]);save();render();return;}}
   if(M.keepTurn&&M.keepTurn(p)){G.turn={darts:[],done:false};save();render();cam.onNewTurn();return;}
   const nx=M.nextIndex?M.nextIndex():null;
@@ -4547,7 +4561,8 @@ const iconNote=(function(){
    Small fixes get no entry, so no pop-up. Newest first. ---------- */
 const NEWS=[
   {v:"2.21.0",items:[
-    "Tre missar i samma besök ger ett hånljud och en animation som retar den som kastade."
+    "Tre missar i samma besök ger ett hånljud och en animation som retar den som kastade.",
+    "Killer: är du killer när varvet är slut och någon annan står kvar på 0 streck vinner du omgången."
   ]},
   {v:"2.20.0",items:[
     "Killer: den som kastade högst börjar, man är ute när man räknas ner till noll, och vinnaren får en poäng innan en ny omgång med nya siffror startar."
@@ -4813,7 +4828,7 @@ const MODE_HELP={
   cricket:"Stäng 15–20 och bull med tre träffar var (dubbel = 2, trippel = 3). Fler träffar på en stängd siffra ger poäng tills motståndarna stänger den. Den som stänger allt och har minst lika många poäng vinner.",
   atc:"Träffa 1 till 20 i tur och ordning och sist bull. Alla delar av siffran räknas. Först runt vinner.",
   checkout:"Varje runda får ett slumpat utgångsmål. Du har tre pilar på dig att gå ut med en dubbel. Appen visar proffsvägen.",
-  killer:"Alla får en egen siffra, genom att kasta med fel hand eller genom lottning. Fyll din siffra med streck för att bli killer: singel ger 1, dubbel 2 och trippel 3. Den som kastade högst börjar. Som killer tar du streck från den vars siffra du träffar, men din egen siffra kostar dig streck. Den som räknas ner till noll är ute. Sist kvar vinner omgången och får en poäng, sedan blir det ny omgång med nya siffror. Minst två spelare.",
+  killer:"Alla får en egen siffra, genom att kasta med fel hand eller genom lottning. Fyll din siffra med streck för att bli killer: singel ger 1, dubbel 2 och trippel 3. Den som kastade högst börjar. Som killer tar du streck från den vars siffra du träffar, men din egen siffra kostar dig streck. Den som räknas ner till noll är ute. Är någon killer när varvet är slut och en annan står kvar på 0 streck vinner killern. Annars vinner den som är sist kvar omgången och får en poäng, sedan blir det ny omgång med nya siffror. Minst två spelare.",
   c170:"Varje runda börjar på 170 och du har nio pilar (tre besök) på dig att gå ut med en dubbel. Lyckas du får du poängen, annars får tavlan den. Bust ger tillbaka poängen från besökets början. I lag delar ni på samma 170 och kastar ett besök var i tur och ordning.",
   bobs27:"Börja på 27 poäng. Kasta tre pilar på D1, sedan D2 och så vidare till bull. Varje träff ger dubbelns värde, ingen träff drar av det. Under noll är du ute."
 };
