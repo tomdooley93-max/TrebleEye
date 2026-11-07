@@ -347,6 +347,30 @@ html.tv .bar,html.tv .backdrop{display:none!important}
 .nums{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
 .nums button{padding:10px 0;font-family:var(--f-num);font-size:20px;font-weight:700;background:var(--bg2);border-color:var(--line)}
 .nums button:hover{background:var(--panel2)}
+/* the interactive board can be hidden in favour of a bigger keypad (saved per device) */
+.bdbar{display:flex;justify-content:flex-end;margin:-4px 0 4px}
+.bdtoggle{padding:5px 10px;font-size:12px;background:transparent}
+html.nobrd #board{display:none!important}
+html.nobrd #paneMan:not([hidden]){display:flex!important;flex-direction:column}
+html.nobrd .mult{margin:4px 0 10px;gap:8px}
+html.nobrd .mult button{padding:16px 4px;font-size:20px}
+html.nobrd .nums{gap:8px;grid-template-columns:repeat(5,1fr)}
+html.nobrd .nums button{padding:20px 0;font-size:34px;min-height:64px}
+html.nobrd #paneMan:not([hidden])>*{width:100%;box-sizing:border-box}
+@media (orientation:landscape) and (max-height:540px){
+  html.nobrd .mult button{padding:8px 4px;font-size:16px}
+  html.nobrd .nums{gap:5px;grid-template-columns:repeat(8,1fr)}
+  html.nobrd .nums button{padding:8px 0;font-size:24px;min-height:44px}
+}
+@media (min-width:700px) and (min-height:600px){
+  html.nobrd:not(.tv) #paneMan:not([hidden]) .nums{flex:1;min-height:0;grid-auto-rows:1fr;grid-template-columns:repeat(6,1fr)}
+  html.nobrd:not(.tv) .nums button{padding:0;font-size:clamp(28px,4.5vh,48px)}
+}
+@media (min-width:700px) and (min-height:600px) and (orientation:portrait){
+  html.nobrd:not(.tv) #scrGame .grid>.panel{justify-content:flex-start}
+  html.nobrd:not(.tv) #paneMan:not([hidden]){flex:1 1 auto}
+  html.nobrd:not(.tv) #paneMan:not([hidden]) .nums{grid-template-columns:repeat(4,1fr)}
+}
 .nums .w2{grid-column:span 2}
 
 /* Camera */
@@ -674,7 +698,7 @@ html.cupbig .queue{font-size:min(1.15cqw,2.05cqh)}
     <header class="home-head">
       <h1 class="logo"><img src="icons/wordmark.webp" alt="TrebleEye" width="980" height="556"></h1>
       <div class="byline">by T.Henriksson</div>
-      <div class="meta"><span id="appVer">v2.18.3</span></div>
+      <div class="meta"><span id="appVer">v2.20.0</span></div>
     </header>
     <div class="home">
       <button class="pri big" id="btnSettings">Nytt spel</button>
@@ -1038,6 +1062,7 @@ html.cupbig .queue{font-size:min(1.15cqw,2.05cqh)}
       </div>
 
       <div id="paneMan">
+        <div class="bdbar"><button class="bdtoggle" id="btnBoardToggle" aria-pressed="false">Dölj tavlan</button></div>
         <svg id="board" viewBox="-210 -210 420 420" aria-label="Darttavla, tryck där pilen sitter"></svg>
         <div class="mult" id="mult">
           <button aria-pressed="true" data-m="1">Singel</button>
@@ -1556,8 +1581,9 @@ const MODES={
   },
   killer:{
     label:"Killer",
-    // m = streck (0..lives). Fill your own number to become killer; drop below zero and you are out.
-    init(p){p.num=0;p.m=0;p.killer=false;p.out=false;p.kills=0;},
+    // m = streck (0..lives). Fill your own number to become killer; hit down to zero and you are out.
+    // The last one standing wins the round and a point; a new round with new numbers follows (Tom's rules).
+    init(p){p.num=0;p.m=0;p.killer=false;p.out=false;p.kills=0;p.wins=0;p.pickV=-1;},
     setup(){
       G.kphase=G.cfg.pick==="throw"?"pick":"play";
       if(G.kphase==="play"){const nums=Array.from({length:20},(_,i)=>i+1).sort(()=>Math.random()-0.5);G.players.forEach((p,i)=>p.num=nums[i]);}
@@ -1565,7 +1591,7 @@ const MODES={
     dart(p,d,t){
       const L=G.cfg.lives||3;
       if(G.kphase==="pick"){
-        if(d.n>=1&&d.n<=20&&!G.players.some(o=>o.num===d.n)){p.num=d.n;t.result="picked";t.done=true;}
+        if(d.n>=1&&d.n<=20&&!G.players.some(o=>o.num===d.n)){p.num=d.n;p.pickV=d.v;t.result="picked";t.done=true;}
         else t.result=d.n>=1&&d.n<=20?"taken":"retry";
         return;
       }
@@ -1576,19 +1602,34 @@ const MODES={
       // a killer hitting a number takes streck from that player (own number included)
       o.m-=d.m;if(o!==p)p.kills+=d.m;
       if(o.m<L)o.killer=false;
-      if(o.m<0){o.m=0;o.out=true;}
+      if(o.m<=0){o.m=0;o.out=true;}
+      const alive=G.players.filter(x=>!x.out);
+      if(G.players.length>1&&alive.length===1){
+        const w=alive[0];w.wins++;G.kwin=G.players.indexOf(w);t.result="roundwin";t.done=true;killerSaveRound();
+        setTimeout(()=>caller.modeWin(w),0);
+      }
     },
-    keepTurn:p=>G.kphase==="pick"&&!p.num,
+    keepTurn:p=>G.kphase==="pick"&&!p.num&&G.kwin==null,
     nextIndex(){
+      const n=G.players.length;
+      // after a won round: new round, new numbers
+      if(G.kwin!=null){
+        G.kwin=null;G.kround=(G.kround||0)+1;
+        G.players.forEach(p=>{p.num=0;p.m=0;p.killer=false;p.out=false;p.pickV=-1;});
+        MODES.killer.setup();
+        return G.kround%n;
+      }
       if(G.kphase!=="pick")return null;
-      for(let k=1;k<=G.players.length;k++){const i=(G.cur+k)%G.players.length;if(!G.players[i].num)return i;}
-      G.kphase="play";return 0;
+      for(let k=1;k<=n;k++){const i=(G.cur+k)%n;if(!G.players[i].num)return i;}
+      // everyone has a number: the one who threw highest starts
+      G.kphase="play";let b=0;G.players.forEach((p,i)=>{if(p.pickV>G.players[b].pickV)b=i;});return b;
     },
     finished:p=>p.out,
-    winner(){if(G.kphase!=="play")return null;const alive=G.players.filter(p=>!p.out);return G.players.length>1&&alive.length===1?G.players.indexOf(alive[0]):null;},
+    winner:()=>null,
     big:p=>p.num?String(p.num):"?",
-    sub(p){const L=G.cfg.lives||3;return p.out?"Ute":G.kphase==="pick"?(p.num?"Siffra vald":"Väljer siffra"):"●".repeat(p.m)+"○".repeat(Math.max(0,L-p.m))+(p.killer?" · KILLER":"");},
+    sub(p){const L=G.cfg.lives||3;return p.out?"Ute":G.kphase==="pick"?(p.num?"Siffra vald":"Väljer siffra"):"●".repeat(p.m)+"○".repeat(Math.max(0,L-p.m))+(p.killer?" · KILLER":"")+" · vinster "+(p.wins||0);},
     msg(p,t){
+      if(t.result==="roundwin"&&G.kwin!=null)return '<span class="label">'+esc(G.players[G.kwin].name)+' vinner omgången och får en poäng! Ny omgång med nya siffror…</span>';
       if(G.kphase==="pick"){
         if(t.result==="taken")return '<span class="label">Den siffran är redan tagen. Kasta igen med fel hand.</span>';
         if(t.result==="retry")return '<span class="label">Ingen siffra. Kasta igen med fel hand.</span>';
@@ -1599,8 +1640,8 @@ const MODES={
       const opp=G.players.filter(o=>o!==p&&!o.out);
       return '<span class="label">Du är killer! Sikta på </span>'+opp.map(o=>'<span class="chip">'+o.num+' '+esc(o.name)+'</span>').join("")+'<span class="label"> · din egen siffra kostar streck</span>';
     },
-    stat:p=>({name:p.name,num:p.num,m:p.m,kills:p.kills,out:p.out}),
-    statCols:[["Spelare",r=>r.name],["Siffra",r=>String(r.num||"–")],["Streck kvar",r=>r.out?"ute":String(r.m),"big"],["Tagna streck",r=>String(r.kills)]],
+    stat:p=>({name:p.name,num:p.num,m:p.m,kills:p.kills,out:p.out,wins:p.wins||0}),
+    statCols:[["Spelare",r=>r.name],["Vinster",r=>String(r.wins||0),"big"],["Siffra",r=>String(r.num||"–")],["Streck kvar",r=>r.out?"ute":String(r.m)],["Tagna streck",r=>String(r.kills)]],
     summary:r=>(r.num||"?")+", "+(r.out?"ute":r.m+" streck kvar")
   },
   c170:{
@@ -1674,9 +1715,16 @@ function modeDart(d,pos){
   if(w!=null){G.winner=G.matchWinner=w;t.done=true;saveModeHistory();setTimeout(()=>{if(G.matchWinner!==null)openStats("match");},4200);}
   if(t.done){
     G.log.unshift(p.name+": "+t.darts.map(x=>x.label).join(", ")+(w!=null?" · vinst":""));G.log=G.log.slice(0,40);
-    if(w!=null)caller.modeWin(G.players[w]);else autoAdvance(1400);
+    if(w!=null)caller.modeWin(G.players[w]);else autoAdvance(t.result==="roundwin"?4500:1400);
   }else caller.dart();
   save();render();
+}
+// Killer: every won round goes to the history on its own
+function killerSaveRound(){
+  if(sess.role==="client"||G.kwin==null)return;
+  const M=MODES.killer,id=G.id+"-"+(G.kround||0),h=matchHistory().filter(m=>m.id!==id);
+  h.unshift({id,date:new Date().toISOString(),mode:"killer",winner:G.players[G.kwin].name,players:G.players.map(M.stat)});
+  store.set("dk_history",h.slice(0,200));
 }
 function modeNext(){
   if(G.matchWinner!==null)return;
@@ -4460,6 +4508,12 @@ const iconNote=(function(){
 /* ---------- "Nytt i den här uppdateringen": shown once per version that has an entry here.
    Small fixes get no entry, so no pop-up. Newest first. ---------- */
 const NEWS=[
+  {v:"2.20.0",items:[
+    "Killer: den som kastade högst börjar, man är ute när man räknas ner till noll, och vinnaren får en poäng innan en ny omgång med nya siffror startar."
+  ]},
+  {v:"2.19.0",items:[
+    "Du kan dölja den interaktiva tavlan (Dölj tavlan) och få en större knappsats för poängen. Valet sparas på enheten."
+  ]},
   {v:"2.18.0",items:[
     "Tv-grafiken visar vad spelaren har kvar och rekommenderad utgång, och fungerar i alla spellägen.",
     "170 kan spelas i lag: två eller tre spelare delar på samma 170 mot tavlan.",
@@ -4718,7 +4772,7 @@ const MODE_HELP={
   cricket:"Stäng 15–20 och bull med tre träffar var (dubbel = 2, trippel = 3). Fler träffar på en stängd siffra ger poäng tills motståndarna stänger den. Den som stänger allt och har minst lika många poäng vinner.",
   atc:"Träffa 1 till 20 i tur och ordning och sist bull. Alla delar av siffran räknas. Först runt vinner.",
   checkout:"Varje runda får ett slumpat utgångsmål. Du har tre pilar på dig att gå ut med en dubbel. Appen visar proffsvägen.",
-  killer:"Alla får en egen siffra, genom att kasta med fel hand eller genom lottning. Fyll din siffra med streck för att bli killer: singel ger 1, dubbel 2 och trippel 3. Som killer tar du streck från den vars siffra du träffar, men din egen siffra kostar dig streck. Den som hamnar under noll är ute. Sist kvar vinner. Minst två spelare.",
+  killer:"Alla får en egen siffra, genom att kasta med fel hand eller genom lottning. Fyll din siffra med streck för att bli killer: singel ger 1, dubbel 2 och trippel 3. Den som kastade högst börjar. Som killer tar du streck från den vars siffra du träffar, men din egen siffra kostar dig streck. Den som räknas ner till noll är ute. Sist kvar vinner omgången och får en poäng, sedan blir det ny omgång med nya siffror. Minst två spelare.",
   c170:"Varje runda börjar på 170 och du har nio pilar (tre besök) på dig att gå ut med en dubbel. Lyckas du får du poängen, annars får tavlan den. Bust ger tillbaka poängen från besökets början. I lag delar ni på samma 170 och kastar ett besök var i tur och ordning.",
   bobs27:"Börja på 27 poäng. Kasta tre pilar på D1, sedan D2 och så vidare till bull. Varje träff ger dubbelns värde, ingen träff drar av det. Under noll är du ute."
 };
@@ -4795,6 +4849,9 @@ let camWasOn=false;
 // automatic dart detection is a beta: off unless the user turned it on
 $("chkAuto").checked=!!store.get("dk_autodet");
 $("chkAuto").addEventListener("change",e=>store.set("dk_autodet",e.target.checked));
+function boardPref(hide){document.documentElement.classList.toggle("nobrd",hide);const b=$("btnBoardToggle");b.textContent=hide?"Visa tavlan":"Dölj tavlan";b.setAttribute("aria-pressed",String(hide));}
+boardPref(!!store.get("dk_nobrd"));
+$("btnBoardToggle").addEventListener("click",()=>{const h=!document.documentElement.classList.contains("nobrd");store.set("dk_nobrd",h);boardPref(h);});
 $("tabMan").addEventListener("click",()=>{tab(false);if(cam.live){camWasOn=true;clearProp();stopLive();}});
 $("tabCam").addEventListener("click",()=>{tab(true);if(camWasOn&&!cam.live){camWasOn=false;startLive();}});
 $("btnLive").addEventListener("click",startLive);
