@@ -670,7 +670,7 @@ html.cupbig .queue{font-size:min(1.15cqw,2.05cqh)}
     <header class="home-head">
       <h1 class="logo"><img src="icons/wordmark.webp" alt="TrebleEye" width="980" height="556"></h1>
       <div class="byline">by T.Henriksson</div>
-      <div class="meta"><span id="appVer">v2.18.0</span></div>
+      <div class="meta"><span id="appVer">v2.18.1</span></div>
     </header>
     <div class="home">
       <button class="pri big" id="btnSettings">Nytt spel</button>
@@ -1003,7 +1003,7 @@ html.cupbig .queue{font-size:min(1.15cqw,2.05cqh)}
   </div>
 
   <div class="screen" id="scrGame">
-    <div class="bar"><button id="btnMenu">‹ Meny</button><span class="gmeta" id="gameMeta"></span><button class="chipbtn" id="sessChip2" hidden></button><button id="btnStats2">Statistik</button><button class="dng" id="btnEnd">Avsluta</button></div>
+    <div class="bar"><button id="btnMenu">‹ Meny</button><span class="gmeta" id="gameMeta"></span><button class="chipbtn" id="sessChip2" hidden></button><button id="btnStats2">Statistik</button><button id="btnTvBar" hidden>TV-läge</button><button class="dng" id="btnEnd">Avsluta</button></div>
   <div class="grid">
     <div>
       <div class="players" id="players"></div>
@@ -2335,8 +2335,11 @@ function updateResume(){
   if(has)$("resumeInfo").textContent=G.players.map(p=>p.name).join(" – ")+" · "+$("gameMeta").textContent;
 }
 // abandon the running game without saving it to the statistics
+// a running match: started and not yet won or ended (on a connected device this mirrors the host's match)
+const matchRunning=()=>!!(G&&!G.ended&&G.matchWinner==null&&(G.log.length||G.turn.darts.length));
 function endGame(){
-  if(sess.role==="client"){sess.send({a:"end"});return;}
+  // only the host ends the match; a connected device just leaves the match screen
+  if(sess.role==="client"){showScreen("home");return;}
   clearTimeout(advanceT);
   G.ended=true;
   undo=[];save();showScreen("home");
@@ -3266,10 +3269,12 @@ const sess=(function(){
     else if(m.a==="undo")doUndo();
     else if(m.a==="next")nextPlayer();
     else if(m.a==="rematch"){if(G.matchWinner!=null)rematch();}
-    else if(m.a==="end"){endGame();}
+    // only the host may end or replace a running match
+    else if(m.a==="end"){}
+    else if(m.a==="newgame"&&matchRunning()){}
     else if(m.a==="newgame"&&m.cfg&&Array.isArray(m.cfg.names)){
       if(["cricket","atc","checkout","bobs27","killer","c170"].includes(m.cfg.mode)){
-        newGame({mode:m.cfg.mode,range:CO_RANGES[m.cfg.range]?m.cfg.range:"61-100",rounds:[5,10,20].includes(m.cfg.rounds)?m.cfg.rounds:10,lives:[3,5].includes(m.cfg.lives)?m.cfg.lives:3,pick:m.cfg.pick==="throw"?"throw":"random",names:m.cfg.names.slice(0,4).map(n=>String(n).slice(0,24))});
+        newGame({mode:m.cfg.mode,range:CO_RANGES[m.cfg.range]?m.cfg.range:"61-100",rounds:[5,10,20].includes(m.cfg.rounds)?m.cfg.rounds:10,lives:[3,5].includes(m.cfg.lives)?m.cfg.lives:3,pick:m.cfg.pick==="throw"?"throw":"random",team:!!m.cfg.team,names:m.cfg.names.slice(0,4).map(n=>String(n).slice(0,24))});
         cam.onNewTurn();caller.gameOn();return;
       }
       const f=m.cfg.fmt||{},legs=[1,3,5,7,9,11].includes(f.legs)?f.legs:1,sets=[0,3,5,7].includes(f.sets)?f.sets:0;
@@ -3391,9 +3396,11 @@ const sess=(function(){
   function chip(){
     const c=$("sessChip"),c2=$("sessChip2");if(!c)return;
     $("btnSess").hidden=!!role;$("btnJoin").hidden=!!role;
-    if(!role){c.hidden=c2.hidden=true;return;}
+    if(!role){c.hidden=c2.hidden=true;$("btnEnd").hidden=false;$("btnTvBar").hidden=true;return;}
     const live=role==="host"?(peer&&peer.open):(hostConn&&hostConn.open);
     const txt=role==="host"?"Värd · "+code+" · "+conns.length+" anslutna":live?"Ansluten · "+code:"Återansluter · "+code;
+    // connected devices get TV mode where the host has Avsluta: only the host ends the match
+    $("btnEnd").hidden=role==="client";$("btnTvBar").hidden=role!=="client";
     [c,c2].forEach(el=>{el.hidden=false;el.className="chipbtn"+(live?" live":"");el.textContent=txt;});
     c2.textContent=role==="host"?code+" · "+conns.length:live?code:"…"+code;
   }
@@ -4723,7 +4730,9 @@ $("btnStart").addEventListener("click",()=>{
   const cfg=mode==="x01"?{mode,start:+$("selStart").value,dbl:$("chkDbl").checked,names,fmt:{legs:+$("selLegs").value,sets:+$("selSets").value}}
     :{mode,names,range:$("selRange").value,rounds:+$("selRounds").value,lives:+$("selLives").value,pick:$("selPick").value,team:mode==="c170"&&n>1&&$("selTeam").value==="1"};
   showScreen("game");
-  if(sess.role==="client"){sess.send({a:"newgame",cfg});return;}
+  if(sess.role==="client"){
+    if(matchRunning()){showScreen("setup");$("modeHelp").textContent="Värden har en match igång. Bara värden kan avsluta den och starta ett nytt spel.";return;}
+    sess.send({a:"newgame",cfg});return;}
   newGame(cfg);cam.onNewTurn();caller.gameOn();
 });
 $("btnSess").addEventListener("click",()=>{usage.ev("session/start");$("sessPanel").hidden=false;sess.host();});
@@ -4732,6 +4741,7 @@ $("sessChip").addEventListener("click",()=>{$("sessPanel").hidden=false;sess.ui(
 $("sessClose").addEventListener("click",()=>{$("sessPanel").hidden=true;});
 $("tvHere").addEventListener("click",()=>tv.enter());
 $("tvHere2").addEventListener("click",()=>tv.enter());
+$("btnTvBar").addEventListener("click",()=>tv.enter());
 $("tvExit").addEventListener("click",()=>tv.exit());
 $("tvCast").addEventListener("click",()=>tv.cast(sess.code));
 $("sessJoin").addEventListener("click",()=>{usage.ev("session/anslut");sess.join($("sessCode").value);});
