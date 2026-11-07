@@ -2415,7 +2415,7 @@ function renderGfx(){
       const left=t.done?3:3-t.darts.length,co=t.bust?null:checkout(p.score,left,G.dbl),su=co||t.bust?null:setupShot(p.score,left,G.dbl);
       h+='<div class="gc"><span class="gk">Kvar <b>'+p.score+'</b></span>'+(co?'<span class="gr2">'+co.map(d=>'<i'+(d.m===2?' class="d"':'')+'>'+esc(d.label)+'</i>').join("")+'</span>':su?'<span class="gr2"><i>'+esc(su.d.label)+'</i><em>ställ upp '+su.rest+'</em></span>':'')+'</div>';
     }else if(!x01){
-      const tmp=document.createElement("div");tmp.innerHTML=M.msg(p,t)||"";const txt=tmp.textContent.trim();
+      const tmp=document.createElement("div");tmp.innerHTML=(M.msg(p,t)||"").replace(/<\/span>\s*<span/g,"</span> <span");const txt=tmp.textContent.replace(/\s+/g," ").trim();
       if(txt)h+='<div class="gc"><span class="gm">'+esc(txt)+'</span></div>';
     }
   }
