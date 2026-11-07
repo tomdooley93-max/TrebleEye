@@ -614,7 +614,7 @@ html.cupbig .queue{font-size:min(1.15cqw,2.05cqh)}
     <header class="home-head">
       <h1 class="logo"><img src="icons/wordmark.webp" alt="TrebleEye" width="980" height="556"></h1>
       <div class="byline">by T.Henriksson</div>
-      <div class="meta"><span id="appVer">v2.14.3</span></div>
+      <div class="meta"><span id="appVer">v2.14.4</span></div>
     </header>
     <div class="home">
       <button class="pri big" id="btnSettings">Nytt spel</button>
@@ -2718,9 +2718,16 @@ function startCalib(){
 }
 
 /* Reference, detection, proposals */
+// brightness ratio cur/ref on the board (median), so auto-exposure and a person near the board do not count as change
+function gainOf(cur,ref){
+  const n=cam.W*cam.H,rs=[];
+  for(let i=0;i<n;i+=7)if(cam.mask[i]&&ref[i]>25&&ref[i]<235)rs.push(cur[i]/ref[i]);
+  if(rs.length<50)return 1;rs.sort((a,b)=>a-b);const g=rs[rs.length>>1];
+  return Math.abs(g-1)<0.03?1:Math.min(1.6,Math.max(0.6,g));
+}
 function changed(a,b){
-  const thr=+$("rngThr").value,n=cam.W*cam.H;let c=0;
-  for(let i=0;i<n;i++)if(cam.mask[i]&&Math.abs(a[i]-b[i])>thr)c++;
+  const thr=Math.max(+$("rngThr").value,Math.round((cam.noise||0)*3+6)),n=cam.W*cam.H,k=gainOf(a,b);let c=0;
+  for(let i=0;i<n;i++)if(cam.mask[i]&&Math.abs(a[i]-b[i]*k)>thr)c++;
   return c;
 }
 function takeRef(g){cam.ref=g;cam.emptyRef=g;cam.needRef=false;cam.waitSince=0;}
@@ -2732,13 +2739,13 @@ function detect(cur){
   const W=cam.W,H=cam.H,n=W*H,ref=cam.ref;
   // never go below the measured camera noise, so grain and flicker are not taken for a dart
   const thr=Math.max(+$("rngThr").value,Math.round((cam.noise||0)*3+6));
-  const raw=new Uint8Array(n);
+  const raw=new Uint8Array(n),k=gainOf(cur,ref);
   for(let i=0;i<n;i++){
     if(!cam.mask[i])continue;
-    const dg=cur[i]-ref[i],ag=dg<0?-dg:dg,d1=Math.abs(cur[n+i]-ref[n+i]),d2=Math.abs(cur[2*n+i]-ref[2*n+i]);
+    const dg=cur[i]-ref[i]*k,ag=dg<0?-dg:dg,d1=Math.abs(cur[n+i]-ref[n+i]),d2=Math.abs(cur[2*n+i]-ref[2*n+i]);
     if(ag<=thr&&d1*2<=thr&&d2*2<=thr)continue;
     // a shadow only darkens: same colour, moderate drop in brightness
-    if(dg<0&&ag<thr*3&&d1*3<thr&&d2*3<thr&&ref[i]>30&&cur[i]>ref[i]*0.5)continue;
+    if(dg<0&&ag<thr*3&&d1*3<thr&&d2*3<thr&&ref[i]>30&&cur[i]>ref[i]*k*0.5)continue;
     raw[i]=1;
   }
   // drop isolated specks: keep pixels with at least two changed neighbours
@@ -2891,13 +2898,14 @@ function autoTick(t){
   if(cam.lastGray){
     const thr=+$("rngThr").value;let c=0,nd=[];
     for(let i=0;i<cam.W*cam.H;i+=2)if(cam.mask[i]){const dd=Math.abs(g[i]-cam.lastGray[i]);if(dd>thr)c++;if((i&62)===0)nd.push(dd);}
-    if(c>15){cam.moving=true;cam.lastMove=t;cam.still=[];}
+    const still=c<=Math.max(15,cam.maskN*0.0008);
+    if(!still){cam.moving=true;cam.lastMove=t;cam.still=[];}
     else{
       cam.still=(cam.still||[]).concat([g]).slice(-3);
       if(nd.length){nd.sort((a,b)=>a-b);const med=nd[nd.length>>1];cam.noise=cam.noise==null?med:cam.noise*0.9+med*0.1;}
     }
     if(t-(cam.lastPlace||0)>1500){cam.lastPlace=t;renderPlacement();}
-    if(c<=15&&t-cam.lastMove>800){
+    if(still&&t-cam.lastMove>800){
       if(cam.moving||cam.dirty||cam.needRef||!cam.ref){cam.moving=false;cam.dirty=false;onSettled(steady(g),t);}
       else if(t-cam.lastCheck>4000){cam.lastCheck=t;driftCheck();}
     }
@@ -2908,7 +2916,7 @@ function onSettled(g,t){
   if(cam.prop){cam.dirty=true;return;}
   if(!cam.ref||cam.needRef){
     // wait until the board looks empty again (darts pulled), max 20 s
-    if(cam.emptyRef&&G.turn.darts.length===0&&changed(g,cam.emptyRef)>60){
+    if(cam.emptyRef&&G.turn.darts.length===0&&changed(g,cam.emptyRef)>Math.max(60,cam.maskN*0.003)){
       if(!cam.waitSince)cam.waitSince=t;
       if(t-cam.waitSince<20000){cam.dirty=true;status("Dra ut pilarna från tavlan.");return;}
     }
@@ -2916,7 +2924,7 @@ function onSettled(g,t){
   }
   if(!$("chkAuto").checked)return;
   const turn=G.turn;
-  if(cam.emptyRef&&turn.darts.length>0&&changed(g,cam.emptyRef)<40){
+  if(cam.emptyRef&&turn.darts.length>0&&changed(g,cam.emptyRef)<Math.max(40,cam.maskN*0.002)){
     takeRef(g);
     if($("chkAutoNext").checked&&G.winner===null){nextPlayer();cam.needRef=false;status("Pilarna utdragna. "+G.players[G.cur].name+" kastar.");}
     return;
