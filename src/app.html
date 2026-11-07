@@ -600,7 +600,7 @@ html.cupbig .queue{font-size:min(1.15cqw,2.05cqh)}
     <header class="home-head">
       <h1 class="logo"><img src="icons/wordmark.webp" alt="TrebleEye" width="980" height="556"></h1>
       <div class="byline">by T.Henriksson</div>
-      <div class="meta"><span id="appVer">v2.15.0</span></div>
+      <div class="meta"><span id="appVer">v2.15.1</span></div>
     </header>
     <div class="home">
       <button class="pri big" id="btnSettings">Nytt spel</button>
@@ -2914,8 +2914,9 @@ function autoTick(t){
   if(cam.lastGray){
     const thr=+$("rngThr").value;let c=0,nd=[];
     for(let i=0;i<cam.W*cam.H;i+=2)if(cam.mask[i]){const dd=Math.abs(g[i]-cam.lastGray[i]);if(dd>thr)c++;if((i&62)===0)nd.push(dd);}
-    const still=c<=Math.max(15,cam.maskN*0.0008);
-    if(!still){cam.moving=true;cam.lastMove=t;cam.still=[];}
+    // a dart far from the camera changes only a few pixels: keep this low
+    const still=c<=15;
+    if(!still){cam.moving=true;cam.lastMove=t;cam.still=[];cam.checkedStill=false;}
     else{
       cam.still=(cam.still||[]).concat([g]).slice(-3);
       if(nd.length){nd.sort((a,b)=>a-b);const med=nd[nd.length>>1];cam.noise=cam.noise==null?med:cam.noise*0.9+med*0.1;}
@@ -2923,6 +2924,9 @@ function autoTick(t){
     if(t-(cam.lastPlace||0)>1500){cam.lastPlace=t;renderPlacement();}
     if(still&&t-cam.lastMove>800){
       if(cam.moving||cam.dirty||cam.needRef||!cam.ref){cam.moving=false;cam.dirty=false;onSettled(steady(g),t);}
+      else if(!cam.checkedStill&&cam.ref&&!cam.prop&&t-cam.lastMove>1500){
+        // safety net: a small dart can land without counting as motion, so compare with the reference once per still period
+        cam.checkedStill=true;const sg=steady(g);if(changed(sg,cam.ref)>=20)onSettled(sg,t);}
       else if(t-cam.lastCheck>4000){cam.lastCheck=t;driftCheck();}
     }
   }
@@ -2948,6 +2952,7 @@ function onSettled(g,t){
   if(turn.done||G.winner!==null)return;
   const r=detect(g);
   if(!r.err)propose(r,false);
+  else if(r.err!=="big")status("Ingen pil hittades. Höj känsligheten, flytta kameran närmare eller mata in manuellt.","w");
   else if(r.err==="big")status("Stor förändring i bilden. Väntar på stilla bild.","w");
 }
 function driftCheck(){
