@@ -493,6 +493,7 @@ function spUri(link){const m=String(link||"").match(/(track|playlist|album)[/:](
 const spDevQ=pre=>SP.dev?pre+"device_id="+encodeURIComponent(SP.dev):"";
 function spQuiet(){try{if(navigator.audioSession)navigator.audioSession.type="ambient"}catch(e){}try{if(audio&&audio.state==="running")audio.suspend()}catch(e){}}
 async function spPlay(){spQuiet();const u=spUri(SP.link);if(!u)throw new Error("Klistra in en länk till en låt eller spellista");
+if(!SP.playing){const pr=await spApi("/me/player").catch(()=>null);SP.prev=pr&&pr.item?{ctx:pr.context&&pr.context.uri||null,uri:pr.item.uri,pos:pr.progress_ms||0,on:!!pr.is_playing,sh:!!pr.shuffle_state,dev:pr.device&&pr.device.id}:null}
 if(u.type!=="track")await spApi("/me/player/shuffle?state=true"+spDevQ("&"),"PUT").catch(()=>{});
 const body=u.type==="track"?{uris:[u.uri],position_ms:Math.round((+SND.off||0)*1000)}:{context_uri:u.uri};
 try{await spApi("/me/player/play"+spDevQ("?"),"PUT",body)}catch(e){if(e.status!==404)throw e;
@@ -500,7 +501,12 @@ const j=await spApi("/me/player/devices"),ds=(j&&j.devices||[]).filter(d=>!d.is_
 const d=ds.find(x=>x.id===SP.dev)||ds.find(x=>x.is_active)||ds[0];if(!d)throw e;
 await spApi("/me/player/play?device_id="+encodeURIComponent(d.id),"PUT",body)}
 SP.playing=true}
-function spPause(){if(SND.mode!=="spotify"||!SP.playing)return;SP.playing=false;spApi("/me/player/pause"+spDevQ("?"),"PUT").catch(()=>{})}
+function spPause(){if(SND.mode!=="spotify"||!SP.playing)return;SP.playing=false;const p=SP.prev;SP.prev=null;
+if(!p||!p.on){spApi("/me/player/pause"+spDevQ("?"),"PUT").catch(()=>{});return}
+const q=p.dev?"?device_id="+encodeURIComponent(p.dev):"",back={uris:[p.uri],position_ms:p.pos};
+(async()=>{await spApi("/me/player/shuffle?state="+p.sh+(p.dev?"&device_id="+encodeURIComponent(p.dev):""),"PUT").catch(()=>{});
+if(p.ctx&&/^spotify:(playlist|album):/.test(p.ctx)){try{await spApi("/me/player/play"+q,"PUT",{context_uri:p.ctx,offset:{uri:p.uri},position_ms:p.pos});return}catch(e){}}
+await spApi("/me/player/play"+q,"PUT",back)})().catch(()=>spApi("/me/player/pause"+spDevQ("?"),"PUT").catch(()=>{}))}
 function spErr(e){return e.status===404?"Ingen Spotify-enhet hittades. Öppna Spotify på högtalaren eller telefonen och tryck play en gång.":e.status===403?"Spotify nekade ("+e.message+"). Kräver Premium, och i utvecklarappen måste ditt konto finnas under User Management.":e.status===401?"Koppla Spotify under Mer.":"Spotify: "+e.message+(e.status?" ("+e.status+")":"")}
 async function spDevices(){try{const j=await spApi("/me/player/devices");SP.devs=(j&&j.devices||[]).map(d=>({id:d.id,name:d.name,type:d.type}));spSave();toast(SP.devs.length?SP.devs.length+(SP.devs.length===1?" enhet hittad":" enheter hittade"):"Inga enheter. Öppna Spotify på högtalaren eller telefonen.")}catch(e){toast(spErr(e))}render()}
 function jSound(){if(!isAdmin)return;stopSnd(0);if(SND.mode==="off")return;
@@ -529,7 +535,7 @@ ${SP.rt?`<label class="stack" style="gap:4px;text-align:left">Låt eller spellis
 <p class="muted" style="margin:0">${u?(u.type==="track"?"En låt. Den börjar vid sekunden nedan.":"En spellista. En slumpad låt spelas varje gång."):"Kopiera länken i Spotify via Dela > Kopiera länk."}</p>
 ${u&&u.type==="track"?`<label class="row" style="justify-content:space-between">Börja vid sekund<input type="number" id="sndOff" value="${esc(SND.off)}" min="0" data-change="sndOff" style="width:5em"></label>`:""}
 <label class="stack" style="gap:4px;text-align:left">Spela på<div class="row" style="flex-wrap:nowrap"><select id="spDev" data-change="spDev" style="flex:1"><option value="">Den enhet som spelar Spotify just nu</option>${(SP.devs||[]).map(d=>`<option value="${esc(d.id)}" ${SP.dev===d.id?"selected":""}>${esc(d.name)} (${esc(d.type)})</option>`).join("")}</select><button class="btn small" data-act="spDevs">Hämta</button></div></label>
-<p class="muted" style="margin:0">Spotify måste vara öppet på den enheten (högtalare, telefon eller dator). Musiken pausas när ni trycker Skål.</p>`:""}`}
+<p class="muted" style="margin:0">Spotify måste vara öppet på den enheten (högtalare, telefon eller dator). När ni trycker Skål fortsätter musiken som spelade innan, annars pausas den.</p>`:""}`}
 function vSW(){
 const opts=S.teams.map(t=>`<optgroup label="${esc(t.name)}">${t.players.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join("")}</optgroup>`).join("");
 const laps=SW.laps.slice().sort((a,b)=>a.t-b.t);
