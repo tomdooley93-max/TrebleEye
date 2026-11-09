@@ -855,7 +855,7 @@ sndT=setTimeout(()=>{if(ui.cer!==c)return;c.rolling=false;c.shown=true;drawCer()
 case"cerNext":if(ui.cer){ui.cer.i++;ui.cer.shown=false;drawCer()}break;
 case"printSign":printSign();break;
 case"sndMode":spPause();SND.mode=el.dataset.m;if(SND.mode==="spotify")spQuiet();lsSet(KEY+"-jsnd",SND.mode);stopSnd(0);if(SND.mode==="file"&&!sndBuf&&SND.name)loadSnd().then(render);render();break;
-case"sndTest":{jSound();if(SND.mode==="jingle")sndT=setTimeout(jReveal,3300);break}
+case"sndTest":{jSound();if(SND.mode==="spotify")setTimeout(()=>spApi("/me/player").then(j=>toast(j?`Spotify: ${j.item?j.item.name:"?"} på ${j.device?j.device.name:"?"}, ${j.is_playing?"spelar":"PAUSAD"}`:"Spotify: ingen uppspelning hittad"),e=>toast(spErr(e))),2500);if(SND.mode==="jingle")sndT=setTimeout(jReveal,3300);break}
 case"sndStop":stopSnd(.3);spPause();break;
 case"spLogin":spLogin();break;
 case"spOut":SP={cid:SP.cid,link:SP.link};spSave();render();toast("Spotify är frånkopplat");break;
