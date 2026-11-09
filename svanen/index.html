@@ -146,6 +146,13 @@ canvas#fx{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-in
 .emblem.sm{width:min(42vw,180px)}
 .foot a{color:var(--dim);font-size:13px}
 .fktbl td:first-child{white-space:normal}
+.cd{text-align:center;display:flex;flex-direction:column;align-items:center;gap:14px;margin-top:4px}
+.cd-big{font-family:var(--display);line-height:1}.cd-big span{display:block;font-size:clamp(96px,32vw,190px);color:var(--amber);text-shadow:0 0 30px rgba(232,40,60,.6);font-variant-numeric:tabular-nums}
+.cd-big small{display:block;font-family:var(--body);font-weight:800;font-size:clamp(15px,4.4vw,22px);letter-spacing:3px;text-transform:uppercase;margin-top:8px}
+.cd-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;width:min(360px,100%)}
+.cd-row div{background:var(--ice);border:1px solid var(--line);border-radius:14px;padding:10px 4px}
+.cd-row b{display:block;font-family:var(--display);font-weight:400;font-size:clamp(28px,9vw,40px);font-variant-numeric:tabular-nums}.cd-row span{font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--dim);font-weight:700}
+.cd-when{font-weight:700;font-size:17px;margin:0}
 .cer{background:radial-gradient(circle at 50% 35%,#1b3f80 0%,#0a1a3a 55%,#030814 100%);overflow:auto}
 .cer .who{overflow-wrap:normal;word-break:normal;text-wrap:balance}
 .cer .sub{font-weight:700;color:var(--dim);font-size:18px}
@@ -619,10 +626,20 @@ return`<div class="card stack" style="max-width:420px;margin:30px auto;text-alig
 <form class="stack" data-form="login"><input type="text" id="pin" placeholder="Kod" autocomplete="off" autocapitalize="off" spellcheck="false" style="text-align:center;font-size:20px;letter-spacing:2px"><button class="btn primary">Logga in</button></form>
 <a href="#" class="muted">Till resultatlistan</a></div>`;
 }
+const START_DEF="2027-01-30T12:00";
+function startAt(){return Date.parse((S&&S.settings&&S.settings.start)||START_DEF)||0}
+function cdParts(ms){const s=Math.max(0,Math.floor(ms/1000));return[Math.floor(s/86400),Math.floor(s/3600)%24,Math.floor(s/60)%60,s%60]}
+function vCountdown(st){const[d,h,m,s]=cdParts(st-Date.now());const when=new Date(st).toLocaleString("sv-SE",{weekday:"long",day:"numeric",month:"long",hour:"2-digit",minute:"2-digit"});
+return`<img class="emblem" src="emblem.webp" alt="Svanen Hockey Games Ludvika" width="640" height="640"><div class="cd" id="cd">
+<div class="cd-big"><span id="cdD">${d}</span><small>${d===1?"dag":"dagar"} kvar till nedsläpp</small></div>
+<div class="cd-row">${[[h,"tim","cdH"],[m,"min","cdM"],[s,"sek","cdS"]].map(([v,l,id])=>`<div><b id="${id}">${String(v).padStart(2,"0")}</b><span>${l}</span></div>`).join("")}</div>
+<p class="cd-when">${esc(when.charAt(0).toUpperCase()+when.slice(1))}</p>
+<p class="muted" style="margin:0">Vässa skridskorna och kyl Jägern. Den här sidan blir resultatlistan när pucken släpps.</p></div>`}
 function vPublic(){
 const foot=`<div class="foot"><a href="#sekretariat">Tävlingsledning</a></div>`;
 const hero=sm=>`<img class="emblem${sm?" sm":""}" src="emblem.webp" alt="Svanen Hockey Games Ludvika" width="640" height="640">`;
 if(!loaded)return hero()+`<div class="empty">Hämtar ställningen…</div>`+foot;
+{const st=startAt();if(st>Date.now()&&!(S&&S.matches&&S.matches.length))return vCountdown(st)+foot}
 if(!S)return hero()+`<div class="empty">${netErr?"Når inte resultatservern just nu. Försöker igen strax.":"Turneringen har inte börjat än. Håll i klubban!"}</div>`+foot;
 let h=hero(!!curMatch()||!!S.jagerLive);
 if(S.jagerLive&&Date.now()-S.jagerLive.t<15*60000){const x=player(S.jagerLive.player);if(x)h+=`<div class="jalert"><div class="k">JÄGER-PAUS!</div><div class="who">${esc(x.p.name)}</div><div style="font-weight:800;letter-spacing:2px;text-transform:uppercase;color:${esc(x.t.color)}">${esc(x.t.name)}</div><div class="muted" style="color:#cfe">tar en shot. Skål!</div></div>`}
@@ -697,6 +714,8 @@ ${f.tie==="draw"?`<label class="row" style="justify-content:space-between">Oavgj
 `<label class="row" style="justify-content:space-between">Vinst efter ${f.tie==="so"?"straffar":"förlängning/straffar"}<input type="number" id="s-otw" value="${f.otWin}" data-change="set" data-k="otWin" style="width:5em"></label>
 <label class="row" style="justify-content:space-between">Förlust efter ${f.tie==="so"?"straffar":"förlängning/straffar"}<input type="number" id="s-otl2" value="${f.otLoss}" data-change="set" data-k="otLoss" style="width:5em"></label>`}
 <h3 style="margin:8px 0 0">Övrigt</h3>`)(fmtS())}
+<label class="row" style="justify-content:space-between">Nedsläpp (nedräkningen på resultatlistan)<input type="datetime-local" id="s-start" value="${esc(s.start||START_DEF)}" data-change="setStart" style="width:auto"></label>
+<p class="muted" style="margin:0">Fram till dess ser deltagarna en nedräkning. Den försvinner när tiden passerat eller när första matchen startar.${S.demo?" <b>Rensa exempellagen först, annars syns inte ändringen.</b>":""}</p>
 <label class="row" style="justify-content:space-between">Räkna hockeypoängen i totalen<input type="checkbox" id="s-uh" ${s.useHockey?"checked":""} data-change="setb" data-k="useHockey" style="width:24px;height:24px"></label>
 <label class="row" style="justify-content:space-between">Slumpad Jäger-paus under matcherna<input type="checkbox" id="s-aj" ${s.autoJager?"checked":""} data-change="setb" data-k="autoJager" style="width:24px;height:24px"></label>
 <label class="row" style="justify-content:space-between">Jäger-paus tidigast efter (min matchtid)<input type="number" id="s-jmin" value="${s.jMin}" data-change="set" data-k="jMin" style="width:5em"></label>
@@ -908,6 +927,7 @@ if(k==="fkName"){const e=S.fk.events.find(x=>x.id===el.dataset.id);if(e&&el.valu
 if(k==="fkScore"){(S.fk.scores[el.dataset.ev]??={})[el.dataset.t]=el.value===""?"":+el.value;save();return}
 if(k==="set")S.settings[el.dataset.k]=+el.value||0;
 if(k==="setb")S.settings[el.dataset.k]=el.checked;
+if(k==="setStart"){if(el.value){S.settings.start=el.value;toast("Nedsläpp: "+new Date(Date.parse(el.value)).toLocaleString("sv-SE",{day:"numeric",month:"long",hour:"2-digit",minute:"2-digit"}))}}
 if(k==="spCid"){SP.cid=el.value.trim();spSave();render();return}
 if(k==="spLink"){SP.link=el.value.trim();spSave();if(SP.link&&!spUri(SP.link))toast("Länken känns inte igen. Kopiera den via Dela > Kopiera länk i Spotify.");render();return}
 if(k==="spDev"){SP.dev=el.value;spSave();return}
@@ -950,6 +970,7 @@ if(isAdmin&&PIN&&sync.pending)push();
 poll();setInterval(()=>{if(document.visibilityState==="visible")poll()},isAdmin?8000:4000);
 document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")poll()});
 addEventListener("hashchange",()=>location.reload());
+setInterval(()=>{if(!$("#cd"))return;const ms=startAt()-Date.now();if(ms<=0){render();return}const[d,h,m,s]=cdParts(ms);$("#cdD").textContent=d;$("#cdH").textContent=String(h).padStart(2,"0");$("#cdM").textContent=String(m).padStart(2,"0");$("#cdS").textContent=String(s).padStart(2,"0")},1000);
 })();
 </script>
 </body></html>
