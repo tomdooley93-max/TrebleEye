@@ -491,7 +491,8 @@ const r=await fetch("https://api.spotify.com/v1"+path,{method:method||"GET",head
 if(r.status===204||r.status===202)return null;const j=await r.json().catch(()=>null);if(!r.ok){const e=new Error((j&&j.error&&j.error.message)||"HTTP "+r.status);e.status=r.status;throw e}return j}
 function spUri(link){const m=String(link||"").match(/(track|playlist|album)[/:]([A-Za-z0-9]{22})/);return m?{type:m[1],uri:"spotify:"+m[1]+":"+m[2]}:null}
 const spDevQ=pre=>SP.dev?pre+"device_id="+encodeURIComponent(SP.dev):"";
-async function spPlay(){const u=spUri(SP.link);if(!u)throw new Error("Klistra in en länk till en låt eller spellista");
+function spQuiet(){try{if(navigator.audioSession)navigator.audioSession.type="ambient"}catch(e){}try{if(audio&&audio.state==="running")audio.suspend()}catch(e){}}
+async function spPlay(){spQuiet();const u=spUri(SP.link);if(!u)throw new Error("Klistra in en länk till en låt eller spellista");
 if(u.type!=="track")await spApi("/me/player/shuffle?state=true"+spDevQ("&"),"PUT").catch(()=>{});
 const body=u.type==="track"?{uris:[u.uri],position_ms:Math.round((+SND.off||0)*1000)}:{context_uri:u.uri};
 try{await spApi("/me/player/play"+spDevQ("?"),"PUT",body)}catch(e){if(e.status!==404)throw e;
@@ -809,7 +810,7 @@ if(armed===el.dataset.do+id&&Date.now()-armT<3000){armed=null;doArmed(el.dataset
 armed=el.dataset.do+id;armT=Date.now();el.classList.add("armed");el.dataset.orig=el.textContent;el.textContent="Säker? Tryck igen";
 setTimeout(()=>{if(el.isConnected){el.classList.remove("armed");el.textContent=el.dataset.orig}},3000);return;
 }
-if(isAdmin)ac();
+if(isAdmin&&SND.mode!=="spotify")ac();
 const m=ui.openMatch?S.matches.find(x=>x.id===ui.openMatch):curMatch();
 switch(a){
 case"tab":ui.tab=el.dataset.k;if(ui.tab!=="match")ui.openMatch=null;try{localStorage.setItem(KEY+"-tab",ui.tab)}catch(e){}render();scrollTo(0,0);break;
@@ -853,7 +854,7 @@ case"cerShow":{const c=ui.cer;if(!c||c.rolling||c.shown)break;c.rolling=true;dra
 sndT=setTimeout(()=>{if(ui.cer!==c)return;c.rolling=false;c.shown=true;drawCer();if(ctx){stopSnd(.05);fanfare(ctx)}const s=c.steps[c.i];confetti(s.place===1?["#ffc23d","#e8283c","#fff","#1d4fa8",s.team?.color||"#fff"]:["#ffc23d","#fff",s.team?.color||"#e8283c"]);if(s.place===1)setTimeout(()=>confetti(["#ffc23d","#e8283c","#fff"]),700)},1600);break}
 case"cerNext":if(ui.cer){ui.cer.i++;ui.cer.shown=false;drawCer()}break;
 case"printSign":printSign();break;
-case"sndMode":spPause();SND.mode=el.dataset.m;lsSet(KEY+"-jsnd",SND.mode);stopSnd(0);if(SND.mode==="file"&&!sndBuf&&SND.name)loadSnd().then(render);render();break;
+case"sndMode":spPause();SND.mode=el.dataset.m;if(SND.mode==="spotify")spQuiet();lsSet(KEY+"-jsnd",SND.mode);stopSnd(0);if(SND.mode==="file"&&!sndBuf&&SND.name)loadSnd().then(render);render();break;
 case"sndTest":{jSound();if(SND.mode==="jingle")sndT=setTimeout(jReveal,3300);break}
 case"sndStop":stopSnd(.3);spPause();break;
 case"spLogin":spLogin();break;
@@ -938,6 +939,7 @@ if(code)spToken({grant_type:"authorization_code",code,redirect_uri:spRedir(),cod
 render();
 try{const msg=sessionStorage.getItem(KEY+"-msg");if(msg){sessionStorage.removeItem(KEY+"-msg");toast(msg)}}catch(e){}
 if(isAdmin&&SND.mode==="file"&&SND.name)loadSnd();
+if(isAdmin&&SND.mode==="spotify")spQuiet();
 if(isAdmin&&PIN&&sync.pending)push();
 poll();setInterval(()=>{if(document.visibilityState==="visible")poll()},isAdmin?8000:4000);
 document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")poll()});
