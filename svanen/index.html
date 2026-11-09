@@ -120,7 +120,10 @@ background:radial-gradient(circle at 50% 40%,#0f6b4c 0%,#06281d 55%,#020c08 100%
 .jager.rolling .who{opacity:.85;filter:blur(.5px)}
 @keyframes pulse{from{transform:scale(1)}to{transform:scale(1.08)}}
 canvas#fx{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:70}
-.toast{position:fixed;left:50%;bottom:calc(90px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:80;background:var(--amber);color:var(--on);font-weight:800;padding:10px 18px;border-radius:99px;box-shadow:0 8px 30px rgba(0,0,0,.4)}
+.toast{position:fixed;left:50%;bottom:calc(90px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:80;background:var(--amber);color:var(--on);font-weight:800;padding:10px 18px;border-radius:99px;box-shadow:0 8px 30px rgba(0,0,0,.4);display:flex;align-items:center;gap:12px;max-width:calc(100vw - 32px);width:max-content}
+.toast .undo{background:rgba(0,0,0,.25);color:#fff;border-radius:99px;padding:6px 12px;font-weight:800;min-height:34px}
+.log .pin-in{padding:6px 8px;border-radius:8px;background:transparent;border-color:transparent}
+.log .pin-in:focus{background:var(--bg);border-color:var(--line)}
 .goalflash{position:fixed;inset:0;z-index:65;display:flex;align-items:center;justify-content:center;pointer-events:none;font-family:var(--display);font-size:clamp(70px,22vw,200px);color:var(--amber);text-shadow:0 0 40px rgba(232,40,60,.85);animation:gf 1.4s ease-out forwards}
 @keyframes gf{0%{transform:scale(.3);opacity:0}25%{transform:scale(1.1);opacity:1}70%{opacity:1}100%{transform:scale(1.3);opacity:0}}
 @media (prefers-reduced-motion:reduce){.jager .k,.goalflash{animation:none}.btn{transition:none}}
@@ -266,6 +269,7 @@ if(e.type==="goal"){r.g++;if(e.assist&&st[e.assist])st[e.assist].a++}
 if(e.type==="pen")r.pim+=e.min;if(e.type==="warn")r.w++;if(e.type==="jager")r.j++;
 }
 for(const w of S.warns)if(st[w.player])st[w.player].w++;
+for(const j of (S.jx||[]))if(st[j.player])st[j.player].j++;
 return Object.values(st);
 }
 function hockeyTable(teamIds,matchFilter){
@@ -312,11 +316,11 @@ $("#nav").hidden=false;
 $("#tabs").innerHTML=TABS.map(([k,l,ic])=>`<button data-act="tab" data-k="${k}" ${ui.tab===k?'aria-current="page"':""}>${ic}${l}</button>`).join("");
 let h=S.demo?`<div class="banner"><span>Det här är exempellag så att du ser hur allt fungerar. Deltagarna ser ingenting förrän du rensar och lägger in era egna lag.</span><button class="btn small" data-act="arm" data-do="wipe">Rensa och börja på riktigt</button></div>`:"";
 {const cm=curMatch();if(cm&&!(ui.tab==="match"&&!ui.openMatch)){const H=team(cm.home),A=team(cm.away),[a1,b1]=score(cm);
-h+=`<div class="minibar"><button class="ms" data-act="tab" data-k="match" style="all:unset;cursor:pointer;font-weight:800;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(H?.name)} ${a1}–${b1} ${esc(A?.name)}</button><span class="mt" id="mclock">${fmt(pClock(cm,elapsed(cm)))}</span><button class="btn small ${cm.clock.running?"":"mint"}" data-act="clock">${cm.clock.running?"Paus":"Start"}</button></div>`}}
+h+=`<div class="minibar"><button class="ms" data-act="tab" data-k="match" style="all:unset;cursor:pointer;font-weight:800;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(H?.name)} ${a1}–${b1} ${esc(A?.name)}</button><span class="mt" id="mclock">${fmt(pClock(cm,elapsed(cm)))}</span><button class="btn small ${cm.clock.running?"":"mint"}" data-act="clock" data-cur="1">${cm.clock.running?"Paus":"Start"}</button></div>`}}
 h+=({lag:vLag,match:vMatch,femkamp:vFem,tabell:vTabell,mer:vMer}[ui.tab]||vMatch)();
 $("#app").innerHTML=h;
 }
-function teamDot(t){return`<span class="dot" style="background:${esc(t.color)}"></span>`}
+function teamDot(t){return`<span class="dot" style="background:${esc(t?t.color:"#56657f")}"></span>`}
 function teamOptions(sel,ex){return S.teams.filter(t=>t.id!==ex).map(t=>`<option value="${t.id}" ${t.id===sel?"selected":""}>${esc(t.name)}</option>`).join("")}
 function vLag(){
 let h=`<h2>Lag &amp; spelare</h2>${vGen()}<div style="height:12px"></div>
@@ -327,9 +331,9 @@ for(const t of S.teams){
 h+=`<div class="card stack">
 <div class="row" style="justify-content:space-between"><div class="row">${teamDot(t)}<input type="text" id="tn-${t.id}" value="${esc(t.name)}" data-change="teamName" data-id="${t.id}" style="font-weight:800;width:auto;flex:1"></div>
 <button class="btn small ghost danger" data-act="arm" data-do="delTeam" data-id="${t.id}">Ta bort</button></div>
-<div class="row">${COLORS.map(c=>`<button class="dot" aria-label="Färg" data-act="color" data-id="${t.id}" data-c="${c}" style="background:${c};width:26px;height:26px;${t.color===c?"outline:3px solid var(--fg);outline-offset:2px":""}"></button>`).join("")}</div>
-<ul class="log">${t.players.map(p=>`<li><span class="when">#${esc(p.nr||"–")}</span><span class="what">${esc(p.name)}</span><button class="btn small ghost danger" data-act="arm" data-do="delPlayer" data-id="${p.id}">✕</button></li>`).join("")||`<li class="muted">Inga spelare än</li>`}</ul>
-<form class="row" data-form="addPlayer" data-id="${t.id}"><input type="text" id="pnr-${t.id}" placeholder="Nr" maxlength="3" style="width:4.2em"><input type="text" id="pn-${t.id}" placeholder="Namn" maxlength="30" style="flex:1"><button class="btn">Lägg till</button></form>
+<div class="row">${COLORS.map(c=>`<button class="dot" aria-label="Lagfärg ${c}" data-act="color" data-id="${t.id}" data-c="${c}" style="background:${c};width:26px;height:26px;${t.color===c?"outline:3px solid var(--fg);outline-offset:2px":""}"></button>`).join("")}</div>
+<ul class="log">${t.players.map(p=>`<li><input type="text" inputmode="numeric" value="${esc(p.nr||"")}" placeholder="Nr" maxlength="3" aria-label="Nummer" data-change="pNr" data-id="${p.id}" class="pin-in" style="width:3.4em;text-align:center"><input type="text" value="${esc(p.name)}" maxlength="30" aria-label="Namn" data-change="pName" data-id="${p.id}" class="pin-in" style="flex:1"><button class="btn small ghost danger" data-act="arm" data-do="delPlayer" data-id="${p.id}">✕</button></li>`).join("")||`<li class="muted">Inga spelare än</li>`}</ul>
+<form class="row" data-form="addPlayer" data-id="${t.id}"><input type="text" inputmode="numeric" id="pnr-${t.id}" placeholder="Nr" maxlength="3" style="width:4.2em"><input type="text" id="pn-${t.id}" placeholder="Namn" maxlength="30" style="flex:1"><button class="btn">Lägg till</button></form>
 </div>`;
 }
 return h+`</div>`;
@@ -361,7 +365,7 @@ if(r.w){const f=S.sched.fixtures.find(x=>x.no===r.w);const m=f&&fxMatch(f);retur
 function refLabel(r){if(typeof r==="string")return esc(team(r)?.name||"?");if(r.g)return r.g==="*"?`${r.pos}:an i gruppspelet`:`${r.pos}:an grupp ${r.g}`;return`Vinnare match ${r.w}`}
 function fxRow(f,ro){const h=resolveRef(f.home),a=resolveRef(f.away),m=fxMatch(f),live=m&&m.status==="live";
 const nm=(id,ref)=>id?`${teamDot(team(id))} ${esc(team(id)?.name)}`:`<span class="muted">${refLabel(ref)}</span>`;
-const right=m&&m.status==="done"?`<span class="res">${resLabel(m)}</span>`:live?`<span class="live">PÅGÅR</span>`:(!ro&&h&&a&&!curMatch()?`<button class="btn small mint" data-act="playFx" data-id="${f.id}">Spela</button>`:`<span class="muted">${f.no}</span>`);
+const right=m&&m.status==="done"?(ro?`<span class="res">${resLabel(m)}</span>`:`<button class="res" data-act="openMatch" data-id="${m.id}" aria-label="Öppna matchen" style="text-decoration:underline dotted;text-underline-offset:4px">${resLabel(m)}</button>`):live?`<span class="live">PÅGÅR</span>`:(!ro&&h&&a&&!curMatch()?`<button class="btn small mint" data-act="playFx" data-id="${f.id}">Spela</button>`:`<span class="muted">${f.no}</span>`);
 return`<div class="card matchcard" style="padding:10px 12px"><span style="min-width:0"><span class="muted" style="font-size:12px;display:block">${f.no}. ${esc(f.stage)}</span>${nm(h,f.home)} – ${nm(a,f.away)}</span>${right}</div>`}
 function vSched(ro){
 if(!S.sched){if(ro)return"";const n=S.teams.length,al=fmtAllowed(n),sg=suggestFmt(n);
@@ -470,18 +474,56 @@ function fanfare(c){const t0=c.currentTime+.02,m=c.createGain();m.gain.value=.26
 const lp=c.createBiquadFilter();lp.type="lowpass";lp.frequency.value=2600;lp.connect(m);
 for(const[fq,st,d]of[[392,0,.14],[523.25,.16,.14],[659.25,.32,.14],[783.99,.48,.42],[659.25,.94,.14],[783.99,1.1,.95]])for(const[type,det]of[["sawtooth",0],["square",7]]){const o=c.createOscillator(),g=c.createGain();o.type=type;o.frequency.value=fq;o.detune.value=det;g.gain.setValueAtTime(0,t0+st);g.gain.linearRampToValueAtTime(.5,t0+st+.02);g.gain.setValueAtTime(.5,t0+st+d-.05);g.gain.linearRampToValueAtTime(0,t0+st+d);o.connect(g);g.connect(lp);o.start(t0+st);o.stop(t0+st+d+.02)}
 const s=c.createBufferSource(),hp=c.createBiquadFilter(),g=c.createGain();s.buffer=noise(c);hp.type="highpass";hp.frequency.value=5000;g.gain.setValueAtTime(.5,t0);g.gain.exponentialRampToValueAtTime(.001,t0+1.5);s.connect(hp);hp.connect(g);g.connect(c.destination);s.start(t0);s.stop(t0+1.55)}
-function jSound(){if(!isAdmin)return;stopSnd(0);if(SND.mode==="off")return;const c=ac();if(!c)return;
+/* Spotify Connect (valfritt, kräver Premium). Inloggningen sparas bara på den här enheten. */
+const SPK=KEY+"-sp";let SP={};try{SP=JSON.parse(lsGet(SPK)||"null")||{}}catch(e){}
+const spSave=()=>lsSet(SPK,JSON.stringify(SP));
+const spRedir=()=>location.origin+location.pathname;
+const b64u=buf=>btoa(String.fromCharCode(...new Uint8Array(buf))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
+async function spLogin(){if(!SP.cid){toast("Klistra in Client ID först");return}
+const v=b64u(crypto.getRandomValues(new Uint8Array(48))),ch=b64u(await crypto.subtle.digest("SHA-256",new TextEncoder().encode(v)));lsSet(SPK+"-v",v);
+location.href="https://accounts.spotify.com/authorize?"+new URLSearchParams({client_id:SP.cid,response_type:"code",redirect_uri:spRedir(),code_challenge_method:"S256",code_challenge:ch,scope:"user-read-playback-state user-modify-playback-state",state:"svanen"})}
+async function spToken(body){const r=await fetch("https://accounts.spotify.com/api/token",{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},body:new URLSearchParams({client_id:SP.cid,...body})});const j=await r.json().catch(()=>({}));
+if(!r.ok){if(j.error==="invalid_grant"){delete SP.rt;delete SP.at;spSave()}throw new Error(j.error_description||j.error||"HTTP "+r.status)}
+SP.at=j.access_token;SP.exp=Date.now()+((j.expires_in||3600)-60)*1000;if(j.refresh_token)SP.rt=j.refresh_token;spSave()}
+async function spApi(path,method,body){if(!SP.rt){const e=new Error("Inte kopplad");e.status=401;throw e}
+if(!SP.at||Date.now()>SP.exp)await spToken({grant_type:"refresh_token",refresh_token:SP.rt});
+const r=await fetch("https://api.spotify.com/v1"+path,{method:method||"GET",headers:Object.assign({Authorization:"Bearer "+SP.at},body?{"Content-Type":"application/json"}:{}),body:body?JSON.stringify(body):undefined});
+if(r.status===204||r.status===202)return null;const j=await r.json().catch(()=>null);if(!r.ok){const e=new Error((j&&j.error&&j.error.message)||"HTTP "+r.status);e.status=r.status;throw e}return j}
+function spUri(link){const m=String(link||"").match(/(track|playlist|album)[/:]([A-Za-z0-9]{22})/);return m?{type:m[1],uri:"spotify:"+m[1]+":"+m[2]}:null}
+const spDevQ=pre=>SP.dev?pre+"device_id="+encodeURIComponent(SP.dev):"";
+async function spPlay(){const u=spUri(SP.link);if(!u)throw new Error("Klistra in en länk till en låt eller spellista");
+if(u.type!=="track")await spApi("/me/player/shuffle?state=true"+spDevQ("&"),"PUT").catch(()=>{});
+await spApi("/me/player/play"+spDevQ("?"),"PUT",u.type==="track"?{uris:[u.uri],position_ms:Math.round((+SND.off||0)*1000)}:{context_uri:u.uri});SP.playing=true}
+function spPause(){if(SND.mode!=="spotify"||!SP.playing)return;SP.playing=false;spApi("/me/player/pause"+spDevQ("?"),"PUT").catch(()=>{})}
+function spErr(e){return e.status===404?"Ingen Spotify-enhet hittades. Öppna Spotify på högtalaren eller telefonen och tryck play en gång.":e.status===403?"Spotify nekade uppspelning. Det kräver Premium.":e.status===401?"Koppla Spotify under Mer.":"Spotify: "+e.message}
+async function spDevices(){try{const j=await spApi("/me/player/devices");SP.devs=(j&&j.devices||[]).map(d=>({id:d.id,name:d.name,type:d.type}));spSave();toast(SP.devs.length?SP.devs.length+(SP.devs.length===1?" enhet hittad":" enheter hittade"):"Inga enheter. Öppna Spotify på högtalaren eller telefonen.")}catch(e){toast(spErr(e))}render()}
+function jSound(){if(!isAdmin)return;stopSnd(0);if(SND.mode==="off")return;
+if(SND.mode==="spotify"){spPlay().catch(e=>{toast(spErr(e)+" Spelar trumvirveln i stället.");const c=ac();if(c)drumroll(c,3.3)});return}
+const c=ac();if(!c)return;
 if(SND.mode==="file"&&sndBuf){const g=c.createGain();g.connect(c.destination);const s=c.createBufferSource();s.buffer=sndBuf;s.connect(g);s.start(0,Math.min(+SND.off||0,Math.max(0,sndBuf.duration-1)));sndSrc=s;sndGain=g;return}
 drumroll(c,3.3)}
-function jReveal(){if(isAdmin&&SND.mode!=="off"&&!(SND.mode==="file"&&sndBuf)){const c=ac();if(c)fanfare(c)}}
+function jReveal(){if(isAdmin&&(SND.mode==="jingle"||(SND.mode==="file"&&!sndBuf)||(SND.mode==="spotify"&&!SP.playing))){const c=ac();if(c)fanfare(c)}}
 function vSnd(){return`<h2>Ljud vid Jäger-paus</h2><div class="card stack">
 <p class="muted" style="margin:0">Ljudet spelas från den här enheten, så koppla gärna in en högtalare. Deltagarnas mobiler är tysta. En iPhone på ljudlöst spelar inget.</p>
-<div class="row">${[["jingle","Trumvirvel + fanfar"],["file","Egen låt"],["off","Av"]].map(([v,l])=>`<button class="btn small ${SND.mode===v?"primary":""}" data-act="sndMode" data-m="${v}">${l}</button>`).join("")}</div>
+<div class="row">${[["jingle","Trumvirvel + fanfar"],["file","Egen låt"],["spotify","Spotify"],["off","Av"]].map(([v,l])=>`<button class="btn small ${SND.mode===v?"primary":""}" data-act="sndMode" data-m="${v}">${l}</button>`).join("")}</div>
 ${SND.mode==="file"?`<label class="btn" style="cursor:pointer">${SND.name?"Byt låt":"Välj ljudfil"}<input type="file" id="sndFile" accept="audio/*" hidden></label>
 <p class="muted" style="margin:0">${SND.name?"Vald: <b>"+esc(SND.name)+"</b>"+(sndBuf?"":" (kunde inte läsas, välj igen)"):"Ingen låt vald än. Välj en mp3 eller liknande, den sparas bara på den här enheten."}</p>
 <label class="row" style="justify-content:space-between">Börja vid sekund<input type="number" id="sndOff" value="${esc(SND.off)}" min="0" data-change="sndOff" style="width:5em"></label>
 <p class="muted" style="margin:0">Låten spelar tills ni trycker Skål, och tonar då ut.</p>`:""}
+${SND.mode==="spotify"?vSpotify():""}
 ${SND.mode!=="off"?`<div class="row"><button class="btn small" data-act="sndTest">Provspela</button><button class="btn small ghost" data-act="sndStop">Stoppa</button></div>`:""}</div>`}
+function vSpotify(){const u=spUri(SP.link);
+return`<details ${SP.cid?"":"open"} style="background:var(--bg);border-radius:10px;padding:10px 12px"><summary style="font-weight:700;cursor:pointer">Engångsinställning (5 min)</summary>
+<ol class="muted" style="margin:8px 0 0;padding-left:20px;line-height:1.5"><li>Gå till <a href="https://developer.spotify.com/dashboard" target="_blank" rel="noopener" style="color:var(--fg)">developer.spotify.com/dashboard</a>, logga in och tryck <b>Create app</b>.</li>
+<li>Fyll i valfritt namn och beskrivning. Under <b>Redirect URIs</b> lägger du till exakt:<br><code style="color:var(--fg);overflow-wrap:anywhere">${esc(spRedir())}</code></li>
+<li>Kryssa i <b>Web API</b>, spara och kopiera <b>Client ID</b> hit nedanför.</li></ol></details>
+<label class="stack" style="gap:4px;text-align:left">Client ID<input type="text" id="spCid" value="${esc(SP.cid||"")}" data-change="spCid" autocomplete="off" spellcheck="false" placeholder="32 tecken från Spotify"></label>
+${SP.cid?(SP.rt?`<div class="row" style="justify-content:space-between"><span class="chip"><span class="dot" style="background:#1ed760"></span>Spotify är kopplat</span><button class="btn small ghost danger" data-act="spOut">Koppla från</button></div>`:`<button class="btn" data-act="spLogin" style="background:#1ed760;color:#04140a;border-color:transparent">Logga in med Spotify</button>`):""}
+${SP.rt?`<label class="stack" style="gap:4px;text-align:left">Låt eller spellista<input type="text" id="spLink" value="${esc(SP.link||"")}" data-change="spLink" placeholder="https://open.spotify.com/track/…" autocomplete="off" spellcheck="false"></label>
+<p class="muted" style="margin:0">${u?(u.type==="track"?"En låt. Den börjar vid sekunden nedan.":"En spellista. En slumpad låt spelas varje gång."):"Kopiera länken i Spotify via Dela > Kopiera länk."}</p>
+${u&&u.type==="track"?`<label class="row" style="justify-content:space-between">Börja vid sekund<input type="number" id="sndOff" value="${esc(SND.off)}" min="0" data-change="sndOff" style="width:5em"></label>`:""}
+<label class="stack" style="gap:4px;text-align:left">Spela på<div class="row" style="flex-wrap:nowrap"><select id="spDev" data-change="spDev" style="flex:1"><option value="">Den enhet som spelar Spotify just nu</option>${(SP.devs||[]).map(d=>`<option value="${esc(d.id)}" ${SP.dev===d.id?"selected":""}>${esc(d.name)} (${esc(d.type)})</option>`).join("")}</select><button class="btn small" data-act="spDevs">Hämta</button></div></label>
+<p class="muted" style="margin:0">Spotify måste vara öppet på den enheten (högtalare, telefon eller dator). Musiken pausas när ni trycker Skål.</p>`:""}`}
 function vSW(){
 const opts=S.teams.map(t=>`<optgroup label="${esc(t.name)}">${t.players.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join("")}</optgroup>`).join("");
 const laps=SW.laps.slice().sort((a,b)=>a.t-b.t);
@@ -514,7 +556,7 @@ const adj=S.fk.adj.filter(a=>a.team===r.t.id);
 h+=`<div class="card stack"><div class="row" style="justify-content:space-between"><b class="row">${teamDot(r.t)} ${esc(r.t.name)}</b><span class="chip">${r.pim} utv-min · ${r.warn} tills.</span></div>
 ${historyFor(r.t.id)}
 ${adj.length?`<ul class="log" style="font-size:14px">${adj.map(a=>`<li><span class="tag t-adj">${a.pts>0?"+":""}${esc(a.pts)}</span><span class="what">${esc(a.note)}</span><button class="btn small ghost danger" data-act="arm" data-do="delAdj" data-id="${a.id}">✕</button></li>`).join("")}</ul>`:""}
-<form class="row" data-form="addAdj" data-id="${r.t.id}" style="flex-wrap:nowrap"><input type="number" inputmode="numeric" id="ap-${r.t.id}" placeholder="±p" style="width:5em"><input type="text" id="an-${r.t.id}" placeholder="Anledning, t.ex. fusk i dragkampen" style="flex:1"><button class="btn small">Justera</button></form></div>`;
+<form class="stack" data-form="addAdj" data-id="${r.t.id}" style="gap:6px"><input type="text" id="an-${r.t.id}" placeholder="Anledning, t.ex. fusk i dragkampen" maxlength="60"><div class="row" style="flex-wrap:nowrap"><input type="number" inputmode="numeric" min="1" id="ap-${r.t.id}" placeholder="Poäng" aria-label="Antal poäng" style="flex:1"><button class="btn small" data-sign="-1" aria-label="Dra av poäng">− Dra av</button><button class="btn small" data-sign="1" aria-label="Ge poäng">+ Ge</button></div></form></div>`;
 }
 return h+`</div>`;
 }
@@ -585,7 +627,7 @@ function openDecide(m){
 const H=team(m.home),A=team(m.away),f=fmtS();
 const btn=(t,how,label)=>`<button class="btn" style="justify-content:flex-start;gap:10px" data-act="decide" data-t="${t.id}" data-how="${how}">${teamDot(t)} ${esc(t.name)} ${label}</button>`;
 $("#layer").innerHTML=`<div class="modal" data-act="bg"><div class="sheet" role="dialog" aria-modal="true" aria-label="Avgörande"><h2>Oavgjort! Hur avgjordes det?</h2>
-<p class="muted">Vinst ger ${f.otWin} p, förlust ${f.otLoss} p.</p><div class="stack">
+<p class="muted">${isPO(m)?"Slutspel: någon måste vinna.":`Vinst ger ${f.otWin} p, förlust ${f.otLoss} p.`}</p><div class="stack">
 ${f.tie==="ot"?btn(H,"ot","vann i förlängningen")+btn(A,"ot","vann i förlängningen"):""}
 ${btn(H,"so","vann på straffar")}${btn(A,"so","vann på straffar")}</div>
 <div class="row" style="margin-top:14px"><button class="btn ghost" data-act="close">Avbryt</button></div></div></div>`;
@@ -687,7 +729,7 @@ function addEv(e){
 const m=curMatch();e.id=uid();e.t=Date.now();
 if(pick.ctx==="fk"||!m){e.ctx="Femkamp";S.warns.push(e)}
 else{e.clock=elapsed(m);e.per=m.period;e.pt=e.clock-pStart(m);m.events.push(e)}
-save();
+save();return e;
 }
 let jagerTimer=null;
 function jagerPool(){
@@ -732,13 +774,15 @@ function goalFlash(t){
 const d=document.createElement("div");d.className="goalflash";d.textContent="MÅÅÅL!";document.body.appendChild(d);setTimeout(()=>d.remove(),1500);
 confetti(["#e8283c","#fff","#1d4fa8",t?.color||"#e8283c"]);
 }
-function toast(msg){const d=document.createElement("div");d.className="toast";d.textContent=msg;document.body.appendChild(d);setTimeout(()=>d.remove(),2200)}
+function toast(msg,undoId){document.querySelectorAll(".toast").forEach(x=>x.remove());const d=document.createElement("div");d.className="toast";d.setAttribute("role","status");d.textContent=msg;
+if(undoId){const b=document.createElement("button");b.className="undo";b.textContent="Ångra";b.onclick=()=>{for(const x of S.matches)x.events=x.events.filter(e=>e.id!==undoId);S.warns=S.warns.filter(e=>e.id!==undoId);save();render();d.remove();toast("Ångrat")};d.appendChild(b)}
+document.body.appendChild(d);setTimeout(()=>d.remove(),undoId?5000:2400)}
 let armed=null,armT=0;
 function doArmed(what,id){
 const m=ui.openMatch?S.matches.find(x=>x.id===ui.openMatch):curMatch();
 switch(what){
-case"wipe":S={...demo(),demo:false,teams:[],matches:[],warns:[]};S.fk.scores={};ui={tab:"lag",openMatch:null};toast("Rent bord. Lägg in era lag!");break;
-case"delTeam":S.teams=S.teams.filter(t=>t.id!==id);break;
+case"wipe":{const keep=S.demo?null:S.settings;S={...demo(),demo:false,teams:[],matches:[],warns:[]};if(keep)S.settings=keep}S.fk.scores={};ui={tab:"lag",openMatch:null};toast("Rent bord. Lägg in era lag!");break;
+case"delTeam":if(S.matches.some(x=>x.home===id||x.away===id)||(S.sched&&S.sched.fixtures.some(f=>f.home===id||f.away===id))){toast("Laget finns i matcher eller spelschemat. Ta bort dem först.");return}S.teams=S.teams.filter(t=>t.id!==id);break;
 case"genApply":if(ui.gen)genApply();break;
 case"delSched":delete S.sched;break;
 case"swClear":SW.laps=[];swSave();break;
@@ -768,7 +812,7 @@ case"color":team(id).color=el.dataset.c;save();render();break;
 case"openMatch":ui.openMatch=id;render();break;
 case"closeMatch":ui.openMatch=null;render();break;
 case"reopen":if(curMatch()){toast("Avsluta pågående match först");break}m.status="live";delete m.decided;ui.openMatch=null;save();render();break;
-case"clock":if(m.clock.running){m.clock.ms=elapsed(m);m.clock.running=false}else{m.clock.since=Date.now();m.clock.running=true;if(m.nextJager==null||m.nextJager<elapsed(m))schedJager(m);wake()}save();render();break;
+case"clock":{const m=el.dataset.cur?curMatch():(ui.openMatch?S.matches.find(x=>x.id===ui.openMatch):curMatch());if(!m||m.status!=="live")break;if(m.clock.running){m.clock.ms=elapsed(m);m.clock.running=false}else{m.clock.since=Date.now();m.clock.running=true;if(m.nextJager==null||m.nextJager<elapsed(m))schedJager(m);wake()}save();render();break}
 case"ev":openEvent(el.dataset.type,el.dataset.ctx);break;
 case"pickP":
 if(pick.step==="assist"){pick.assist=id;saveGoal();break}
@@ -778,8 +822,8 @@ drawPick();break;
 case"saveGoal":saveGoal();break;
 case"pickMin":pick.min=+el.dataset.n;drawPick();break;
 case"pickNote":pick.note=el.dataset.n;drawPick();break;
-case"saveDetail":{const txt=$("#noteTxt").value.trim();addEv({type:pick.type,player:pick.player,team:pick.team,min:pick.min,note:txt||pick.note||""});
-const who=pname(pick.player);closeLayer();render();toast(pick.type==="pen"?`${who} till båset`:`${who} har fått en tillsägelse`);break}
+case"saveDetail":{const txt=$("#noteTxt").value.trim(),ty=pick.type,who=pname(pick.player);const e=addEv({type:ty,player:pick.player,team:pick.team,min:pick.min,note:txt||pick.note||""});
+closeLayer();render();toast(ty==="pen"?`${who} till båset, ${e.min} min`:`${who} har fått en tillsägelse`,e.id);break}
 case"close":closeLayer();break;
 case"randPair":{if(S.teams.length<2)break;ui.pair=randomPair();render();const[x,y]=ui.pair;toast(team(x).name+" mot "+team(y).name+"!");break}
 case"playFx":{if(curMatch()){toast("En match pågår redan");break}const f=S.sched?.fixtures.find(x=>x.id===id);if(!f)break;const h=resolveRef(f.home),a=resolveRef(f.away);if(!h||!a)break;const mm=startMatch(h,a,f.id);f.matchId=mm.id;save();render();scrollTo(0,0);toast(f.stage+": nedsläpp!");break}
@@ -804,20 +848,24 @@ case"cerShow":{const c=ui.cer;if(!c||c.rolling||c.shown)break;c.rolling=true;dra
 sndT=setTimeout(()=>{if(ui.cer!==c)return;c.rolling=false;c.shown=true;drawCer();if(ctx){stopSnd(.05);fanfare(ctx)}const s=c.steps[c.i];confetti(s.place===1?["#ffc23d","#e8283c","#fff","#1d4fa8",s.team?.color||"#fff"]:["#ffc23d","#fff",s.team?.color||"#e8283c"]);if(s.place===1)setTimeout(()=>confetti(["#ffc23d","#e8283c","#fff"]),700)},1600);break}
 case"cerNext":if(ui.cer){ui.cer.i++;ui.cer.shown=false;drawCer()}break;
 case"printSign":printSign();break;
-case"sndMode":SND.mode=el.dataset.m;lsSet(KEY+"-jsnd",SND.mode);stopSnd(0);if(SND.mode==="file"&&!sndBuf&&SND.name)loadSnd().then(render);render();break;
+case"sndMode":spPause();SND.mode=el.dataset.m;lsSet(KEY+"-jsnd",SND.mode);stopSnd(0);if(SND.mode==="file"&&!sndBuf&&SND.name)loadSnd().then(render);render();break;
 case"sndTest":{jSound();if(SND.mode==="jingle")sndT=setTimeout(jReveal,3300);break}
-case"sndStop":stopSnd(.3);break;
+case"sndStop":stopSnd(.3);spPause();break;
+case"spLogin":spLogin();break;
+case"spOut":SP={cid:SP.cid,link:SP.link};spSave();render();toast("Spotify är frånkopplat");break;
+case"spDevs":spDevices();break;
 case"jagerAgain":startJager();break;
-case"jagerDone":{stopSnd(1.2);const f=pick.jager;const cm=curMatch();delete S.jagerLive;if(!cm)save();
+case"jagerDone":{stopSnd(1.2);spPause();const f=pick.jager;const cm=curMatch();delete S.jagerLive;if(f&&!cm)(S.jx||(S.jx=[])).push({id:uid(),t:Date.now(),player:f.p.id,team:f.t.id});if(!cm)save();
 if(f&&cm){cm.events.push({id:uid(),t:Date.now(),type:"jager",player:f.p.id,team:f.t.id,clock:elapsed(cm),per:cm.period,pt:elapsed(cm)-pStart(cm)});schedJager(cm);save()}
-closeLayer();render();toast("Skål! Klockan står still tills ni startar den igen");break}
+closeLayer();render();toast(cm?"Skål! Klockan står still tills ni startar den igen":"Skål!");break}
 case"copy":{const t=$("#backup");navigator.clipboard?.writeText(t.value).then(()=>toast("Kopierat"),()=>{t.select();toast("Markerat, kopiera själv")})||(t.select());break}
 case"import":try{const d=JSON.parse($("#backup").value);if(!d.teams)throw 0;S=d;save();render();toast("Inläst")}catch(e){toast("Texten gick inte att läsa in")}break;
 }
 });
 function saveGoal(){
-const t=team(pick.team);addEv({type:"goal",player:pick.player,team:pick.team,assist:pick.assist||null});
-closeLayer();render();goalFlash(t);
+const t=team(pick.team),e=addEv({type:"goal",player:pick.player,team:pick.team,assist:pick.assist||null}),m=curMatch();
+if(m&&m.period==="OT"&&m.clock.running){m.clock.ms=elapsed(m);m.clock.running=false;save()}
+closeLayer();render();goalFlash(t);toast(m&&m.period==="OT"?"Sudden death! "+pname(e.player)+" avgör, tryck Slutsignal":"Mål av "+pname(e.player),e.id);
 }
 document.addEventListener("submit",ev=>{
 ev.preventDefault();const f=ev.target,k=f.dataset.form,id=f.dataset.id;
@@ -832,7 +880,7 @@ if(k==="newMatch"){const h=$("#mh").value,a=$("#ma").value;if(h===a){toast("Väl
 startMatch(h,a);ui.pair=null;toast("Nedsläpp!")}
 if(k==="mkSched"){makeSchedule($("#schFmt").value,+$("#schMeet").value||1);toast("Spelschemat är klart!")}
 if(k==="addFk"){const v=$("#newFk").value.trim();if(!v)return;S.fk.events.push({id:uid(),name:v})}
-if(k==="addAdj"){const p=+$("#ap-"+id).value;if(!p){toast("Skriv antal poäng, t.ex. -2");return}S.fk.adj.push({id:uid(),team:id,pts:p,note:$("#an-"+id).value.trim()||"Justering"})}
+if(k==="addAdj"){const sg=+(ev.submitter?.dataset.sign||1),p=Math.abs(+$("#ap-"+id).value)*sg;if(!p){toast("Skriv antal poäng först");return}S.fk.adj.push({id:uid(),team:id,pts:p,note:$("#an-"+id).value.trim()||"Justering"})}
 save();render();
 });
 document.addEventListener("change",ev=>{
@@ -841,12 +889,16 @@ if(el.id==="sndFile"){const f=el.files&&el.files[0];if(!f)return;if(f.size>20e6)
 f.arrayBuffer().then(async ab=>{await idbPut(ab);SND.name=f.name;lsSet(KEY+"-jsname",f.name);await loadSnd();toast(sndBuf?"Låten är sparad på den här enheten":"Kunde inte läsa ljudfilen");render()}).catch(()=>toast("Kunde inte spara låten"));return}
 if(!k)return;
 const m=curMatch();
-if(k==="teamName"){const v=el.value.trim();if(v)team(el.dataset.id).name=v}
+if(k==="teamName"){const v=el.value.trim();if(v)team(el.dataset.id).name=v;else{el.value=team(el.dataset.id).name;return}}
+if(k==="pName"||k==="pNr"){const x=player(el.dataset.id);if(!x)return;const v=el.value.trim();if(k==="pName"){if(!v){el.value=x.p.name;return}x.p.name=v}else x.p.nr=v}
 if(k==="period"&&m){m.period=el.value;m.pStart=elapsed(m);save();render();return}
 if(k==="fkName"){const e=S.fk.events.find(x=>x.id===el.dataset.id);if(e&&el.value.trim())e.name=el.value.trim()}
 if(k==="fkScore"){(S.fk.scores[el.dataset.ev]??={})[el.dataset.t]=el.value===""?"":+el.value;save();return}
 if(k==="set")S.settings[el.dataset.k]=+el.value||0;
 if(k==="setb")S.settings[el.dataset.k]=el.checked;
+if(k==="spCid"){SP.cid=el.value.trim();spSave();render();return}
+if(k==="spLink"){SP.link=el.value.trim();spSave();if(SP.link&&!spUri(SP.link))toast("Länken känns inte igen. Kopiera den via Dela > Kopiera länk i Spotify.");render();return}
+if(k==="spDev"){SP.dev=el.value;spSave();return}
 if(k==="sndOff"){SND.off=Math.max(0,+el.value||0);lsSet(KEY+"-jsoff",String(SND.off));return}
 if(k==="swWho"){const l=SW.laps.find(x=>x.id===el.dataset.id);if(l){l.who=el.value;swSave();render()}return}
 if(k==="sets"){S.settings[el.dataset.k]=el.value;save();render();return}
@@ -875,7 +927,11 @@ if(SW.mode==="down"&&swShown()===0){SW.ms=SW.down;SW.running=false;swSave();beep
 let lock=null;async function wake(){try{if(!lock&&navigator.wakeLock)lock=await navigator.wakeLock.request("screen");lock?.addEventListener("release",()=>lock=null)}catch(e){}}
 document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"&&curMatch()?.clock.running)wake()});
 addEventListener("resize",()=>{if(raf){cv.width=innerWidth*devicePixelRatio;cv.height=innerHeight*devicePixelRatio}});
+{const q=new URLSearchParams(location.search);if(q.get("state")==="svanen"){const code=q.get("code"),fin=msg=>{try{sessionStorage.setItem(KEY+"-msg",msg)}catch(e){}location.replace(location.pathname+"#sekretariat")};
+document.body.innerHTML='<div class="empty" style="padding-top:40vh">Kopplar Spotify…</div>';
+if(code)spToken({grant_type:"authorization_code",code,redirect_uri:spRedir(),code_verifier:lsGet(SPK+"-v")||""}).then(()=>fin("Spotify är kopplat!"),e=>fin("Spotify-kopplingen misslyckades: "+e.message));else fin("Spotify-kopplingen avbröts");return}}
 render();
+try{const msg=sessionStorage.getItem(KEY+"-msg");if(msg){sessionStorage.removeItem(KEY+"-msg");toast(msg)}}catch(e){}
 if(isAdmin&&SND.mode==="file"&&SND.name)loadSnd();
 if(isAdmin&&PIN&&sync.pending)push();
 poll();setInterval(()=>{if(document.visibilityState==="visible")poll()},isAdmin?8000:4000);
