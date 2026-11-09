@@ -162,6 +162,7 @@ details.sec>summary::after{content:"";width:9px;height:9px;border-right:2px soli
 details.sec[open]>summary::after{transform:rotate(-135deg)}
 details.sec>summary b{font-size:17px;display:block}details.sec>summary small{display:block;color:var(--dim);font-size:13px;margin-top:2px}
 .sec-in{padding:0 14px 14px}
+.yrs{margin-bottom:10px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap;align-items:center}.yrs a{color:var(--fg);font-weight:800;font-size:15px}
 .cd{text-align:center;display:flex;flex-direction:column;align-items:center;gap:14px;margin-top:4px}
 .cd-big{font-family:var(--display);line-height:1}.cd-big span{display:block;font-size:clamp(96px,32vw,190px);color:var(--amber);text-shadow:0 0 30px rgba(232,40,60,.6);font-variant-numeric:tabular-nums}
 .cd-big small{display:block;font-family:var(--body);font-weight:800;font-size:clamp(15px,4.4vw,22px);letter-spacing:3px;text-transform:uppercase;margin-top:8px}
@@ -222,6 +223,7 @@ async function rpc(fn,body){const r=await fetch(SB_URL+"/rest/v1/rpc/"+fn,{metho
 const lsGet=k=>{try{return localStorage.getItem(k)}catch(e){return null}};
 const lsSet=(k,v)=>{try{v==null?localStorage.removeItem(k):localStorage.setItem(k,v)}catch(e){}};
 const isAdmin=location.hash==="#sekretariat";
+const viewYear=(location.hash.match(/^#ar(\d{4})$/)||[])[1]||null,viewMara=location.hash==="#maraton";
 let PIN=isAdmin?lsGet(KEY+"-pin"):null;
 let S=null,loaded=false,netErr=false;
 if(isAdmin){try{S=JSON.parse(lsGet(KEY)||"null")}catch(e){S=null}if(!S||!S.teams)S=demo()}
@@ -651,8 +653,36 @@ return`<img class="emblem" src="emblem.webp" alt="Svanen Hockey Games Ludvika" w
 <div class="cd-row">${[[h,"tim","cdH"],[m,"min","cdM"],[s,"sek","cdS"]].map(([v,l,id])=>`<div><b id="${id}">${String(v).padStart(2,"0")}</b><span>${l}</span></div>`).join("")}</div>
 <p class="cd-when">${esc(when.charAt(0).toUpperCase()+when.slice(1))}</p>
 <p class="muted" style="margin:0">Vässa skridskorna och kyl Jägern. Den här sidan blir resultatlistan när pucken släpps.</p></div>`}
+function vMaraton(){
+const cur=S,yrs=[...(S.archive||[]).map(a=>({year:a.year,state:a.state}))];
+if(cur.matches.some(m=>m.status==="done")||Object.keys(cur.fk.scores||{}).length)yrs.push({year:new Date(startAt()).getFullYear(),state:cur,now:true});
+const P={};
+try{for(const y of yrs){S=y.state;const tot=fkTotals(),w=tot[0]&&tot[0].total>0?tot[0].t.id:null,ch=champion();
+for(const r of playerStats()){const k=r.p.name.trim().toLowerCase();const x=P[k]||(P[k]={name:r.p.name.trim(),yrs:new Set(),g:0,a:0,pim:0,w:0,j:0,win:0,ch:0});
+x.yrs.add(y.year);x.g+=r.g;x.a+=r.a;x.pim+=r.pim;x.w+=r.w;x.j+=r.j;if(!y.now&&w===r.t.id)x.win++;if(!y.now&&ch===r.t.id)x.ch++}}}finally{S=cur}
+const rows=Object.values(P).sort((a,b)=>(b.win-a.win)||((b.g+b.a)-(a.g+a.a))||b.g-a.g||a.name.localeCompare(b.name,"sv"));
+const yl=yrs.map(y=>y.year+(y.now?" (pågår)":"")).join(", ");
+let h=`<div class="row" style="justify-content:space-between;margin-bottom:6px"><a href="#" class="btn small">← Årets turnering</a><span class="chip">Alla år</span></div><h2 style="margin-top:6px">Maratontabellen</h2><p class="muted" style="margin-top:-4px">${esc(yl||"Inga år än")}. Spelare matchas på namn.</p>`;
+if(!rows.length)return h+`<div class="empty">Ingen statistik än.</div>`;
+h+=`<div class="tbl-wrap"><table><thead><tr><th></th><th>Spelare</th><th>År</th><th title="Totalvinster">🏆</th><th>Mål</th><th>Ass</th><th>P</th><th>Utv</th><th>Tills.</th><th>Jäger</th></tr></thead><tbody>${rows.map((r,i)=>`<tr class="${i===0&&(r.win||r.g+r.a)?"lead":""}"><td class="rank">${i+1}</td><td class="name">${esc(r.name)}</td><td>${r.yrs.size}</td><td class="${r.win?"pts":""}">${r.win||""}</td><td>${r.g}</td><td>${r.a}</td><td class="pts">${r.g+r.a}</td><td class="${r.pim?"flag":""}">${r.pim}</td><td class="${r.w?"flag":""}">${r.w}</td><td>${r.j}</td></tr>`).join("")}</tbody></table></div>
+<p class="muted">🏆 = antal år i laget som vann totalen. Tabellen sorteras på vinster och sedan poäng (mål + assist).</p>`;
+return h}
+function vArchive(yr){
+const ch=champion(),tot=fkTotals(),win=tot[0]&&tot[0].total>0?tot[0]:null;
+let h=`<div class="row" style="justify-content:space-between;margin-bottom:6px"><a href="#" class="btn small">← Årets turnering</a><span class="chip">Arkiv</span></div>
+<img class="emblem sm" src="emblem.webp" alt="Svanen Hockey Games Ludvika" width="1254" height="1254"><h2 style="text-align:center;margin-top:0">Svanen Hockey Games ${esc(yr)}</h2>`;
+if(win)h+=`<div class="jalert" style="background:radial-gradient(circle at 30% 30%,#6b520f,#281d06);border-color:var(--amber)"><div class="k">Vinnare ${esc(yr)}</div><div class="who" style="font-size:clamp(24px,7.5vw,48px);overflow-wrap:normal;word-break:normal">${esc(win.t.name)}</div>${ch&&ch!==win.t.id&&team(ch)?`<div class="muted" style="color:#ffe">Hockeymästare: <b>${esc(team(ch).name)}</b></div>`:""}</div>`;
+h+=vTabell();
+const ps=playerStats().sort((a,b)=>a.t.name.localeCompare(b.t.name,"sv")||(b.g+b.a)-(a.g+a.a));
+if(ps.length)h+=`<h2>Alla deltagare</h2><div class="tbl-wrap"><table><thead><tr><th>Spelare</th><th>Lag</th><th>Mål</th><th>Ass</th><th>Utv</th><th>Tills.</th><th>Jäger</th></tr></thead><tbody>${ps.map(r=>`<tr><td class="name">${esc(r.p.name)}</td><td style="text-align:left">${teamDot(r.t)} ${esc(r.t.name)}</td><td>${r.g}</td><td>${r.a}</td><td>${r.pim}</td><td>${r.w}</td><td>${r.j}</td></tr>`).join("")}</tbody></table></div>`;
+const done=S.matches.filter(x=>x.status==="done");
+if(done.length)h+=`<h2>Alla matcher</h2><div class="stack">`+done.map(x=>{const H=team(x.home),A=team(x.away);return`<div class="card matchcard"><span>${H?teamDot(H):""} ${esc(H?.name)} – ${esc(A?.name)} ${A?teamDot(A):""}</span><span class="res">${resLabel(x)}</span></div>`}).join("")+`</div>`;
+return h}
 function vPublic(){
-const foot=`<div class="foot"><a href="#sekretariat">Tävlingsledning</a></div>`;
+const yrs=(S&&S.archive||[]).map(a=>a.year);
+const foot=`<div class="foot">${yrs.length?`<div class="yrs"><span class="muted">Tidigare år:</span> ${yrs.map(y=>`<a href="#ar${y}">${y}</a>`).join(" ")} <a href="#maraton">Maratontabell</a></div>`:""}<a href="#sekretariat">Tävlingsledning</a></div>`;
+if(viewMara&&loaded&&S)return vMaraton()+foot;
+if(viewYear&&loaded&&S){const a=(S.archive||[]).find(x=>String(x.year)===viewYear);if(!a)return`<div class="empty">Hittar inget arkiv för ${esc(viewYear)}. <a href="#">Till resultatlistan</a></div>`+foot;const cur=S;S=a.state;try{return vArchive(a.year)+foot}finally{S=cur}}
 const hero=sm=>`<img class="emblem${sm?" sm":""}" src="emblem.webp" alt="Svanen Hockey Games Ludvika" width="1254" height="1254">`;
 if(!loaded)return hero()+`<div class="empty">Hämtar ställningen…</div>`+foot;
 {const st=startAt();if(st>Date.now()&&!(S&&S.matches&&S.matches.length))return vCountdown(st)+foot}
@@ -740,8 +770,12 @@ h+=sec("login","Inloggning","Byt kod eller logga ut",
 `<form class="row" data-form="newPin" style="flex-wrap:nowrap"><input type="text" id="newPin" placeholder="Ny kod (minst 6 tecken)" autocomplete="off" style="flex:1"><button class="btn">Byt kod</button></form>
 <p class="muted" style="margin:0">Gäller för alla i tävlingsledningen. Andra inloggade enheter loggas ut när de sparar nästa gång.</p>
 <div class="row"><button class="btn ghost danger" data-act="logout">Logga ut på den här enheten</button></div>`,false);
-h+=sec("data","Nollställ och säkerhetskopia","Börja om, spara undan eller läs in data",
-`<h3 style="margin:0">Nollställ resultat</h3>
+h+=sec("data","Arkiv, nollställ och säkerhetskopia",(S.archive||[]).length?"Arkiverade år: "+S.archive.map(a=>a.year).join(", "):"Avsluta året, börja om eller spara undan data",
+`<h3 style="margin:0">Avsluta året</h3>
+<p class="muted" style="margin:0">Sparar hela årets turnering i arkivet (syns under "Tidigare år" på resultatlistan), nollställer resultaten och flyttar nedsläppet ett år framåt. Lag, spelare och grenar finns kvar.</p>
+<div class="row"><button class="btn primary" data-act="arm" data-do="archive">Arkivera ${new Date(startAt()).getFullYear()} och starta nytt år</button></div>
+${(S.archive||[]).length?`<ul class="log">${S.archive.map(a=>`<li><span class="what"><b>${a.year}</b> <span class="muted">arkiverat ${new Date(a.at).toLocaleDateString("sv-SE")}</span></span><a class="btn small" href="${esc(publicUrl())}#ar${a.year}" target="_blank" rel="noopener">Visa</a><button class="btn small ghost danger" data-act="arm" data-do="delYear" data-id="${a.year}" aria-label="Ta bort ${a.year} ur arkivet">✕</button></li>`).join("")}</ul>`:""}
+<h3 style="margin:10px 0 0">Nollställ resultat</h3>
 <p class="muted" style="margin:0">Lag, spelare, grenar och inställningar finns kvar. Tryck två gånger för att bekräfta.</p>
 <div class="row"><button class="btn ghost danger" data-act="arm" data-do="resetHockey">Hockeyn</button><button class="btn ghost danger" data-act="arm" data-do="resetFk">Femkampen</button><button class="btn danger" data-act="arm" data-do="resetAll">Hela turneringen</button></div>
 <p class="muted" style="margin:0"><b>Hockeyn:</b> matcher, spelschema, mål, utvisningar, tillsägelser i matcher och Jäger-shots. <b>Femkampen:</b> grenpoäng, justeringar och tillsägelser i femkampen.</p>
@@ -840,12 +874,18 @@ let armed=null,armT=0;
 function doArmed(what,id){
 const m=ui.openMatch?S.matches.find(x=>x.id===ui.openMatch):curMatch();
 switch(what){
-case"wipe":{const keep=S.demo?null:S.settings;S={...demo(),demo:false,teams:[],matches:[],warns:[]};if(keep)S.settings=keep}S.fk.scores={};ui={tab:"lag",openMatch:null};toast("Rent bord. Lägg in era lag!");break;
+case"wipe":{const keep=S.demo?null:S.settings,arc=S.archive;S={...demo(),demo:false,teams:[],matches:[],warns:[]};if(keep)S.settings=keep;if(arc)S.archive=arc}S.fk.scores={};ui={tab:"lag",openMatch:null};toast("Rent bord. Lägg in era lag!");break;
 case"delTeam":if(S.matches.some(x=>x.home===id||x.away===id)||(S.sched&&S.sched.fixtures.some(f=>f.home===id||f.away===id))){toast("Laget finns i matcher eller spelschemat. Ta bort dem först.");return}S.teams=S.teams.filter(t=>t.id!==id);break;
 case"genApply":if(ui.gen)genApply();break;
 case"delSched":delete S.sched;break;
 case"resetHockey":S.matches=[];delete S.sched;delete S.jagerLive;S.jx=[];ui.openMatch=null;toast("Hockeyn är nollställd");break;
 case"resetFk":S.fk.scores={};S.fk.adj=[];S.warns=[];toast("Femkampen är nollställd");break;
+case"archive":{const yr=new Date(startAt()).getFullYear();const snap=JSON.parse(JSON.stringify(S));delete snap.archive;delete snap.jagerLive;
+S.archive=(S.archive||[]).filter(a=>a.year!==yr).concat({year:yr,at:Date.now(),state:snap}).sort((a,b)=>b.year-a.year);
+S.matches=[];delete S.sched;delete S.jagerLive;S.jx=[];S.fk.scores={};S.fk.adj=[];S.warns=[];ui.openMatch=null;
+const d=new Date(startAt());d.setFullYear(d.getFullYear()+1);const pad=n=>String(n).padStart(2,"0");S.settings.start=`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+toast(yr+" är arkiverat. Välkommen till "+(yr+1)+"!");break}
+case"delYear":S.archive=(S.archive||[]).filter(a=>String(a.year)!==String(id));toast("Året är borttaget ur arkivet");break;
 case"resetAll":S.matches=[];delete S.sched;delete S.jagerLive;S.jx=[];S.fk.scores={};S.fk.adj=[];S.warns=[];ui.openMatch=null;toast("Turneringen är nollställd. Lagen finns kvar.");break;
 case"swClear":SW.laps=[];swSave();break;
 case"delPlayer":for(const t of S.teams)t.players=t.players.filter(p=>p.id!==id);break;
