@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TrebleEye kameratest</title>
+<style>
+:root{--bg:#0e1116;--card:#171b22;--line:#2a313c;--txt:#e7ebf0;--mut:#8b95a3;--acc:#2ecc71;--warn:#f1c40f;--bad:#e74c3c}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--txt);font:15px/1.4 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+header{padding:12px 16px;border-bottom:1px solid var(--line);display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+h1{font-size:17px;margin:0 12px 0 0}
+button,select{background:#222936;color:var(--txt);border:1px solid var(--line);border-radius:8px;padding:8px 12px;font:inherit;cursor:pointer}
+button.pri{background:var(--acc);color:#05200f;border-color:var(--acc);font-weight:600}
+main{padding:16px;display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(320px,1fr))}
+.cam{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px}
+.cam canvas{width:100%;display:block;border-radius:8px;background:#000;cursor:crosshair;touch-action:none}
+.row{display:flex;gap:8px;align-items:center;justify-content:space-between;margin-bottom:8px;flex-wrap:wrap}
+.mut{color:var(--mut);font-size:13px}
+#status{margin:0 16px;padding:10px 12px;border-radius:8px;background:var(--card);border:1px solid var(--line)}
+#log{margin:16px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px;font:13px/1.5 ui-monospace,Menlo,Consolas,monospace;white-space:pre-wrap;max-height:260px;overflow:auto}
+.help{margin:16px;color:var(--mut);font-size:14px}
+.help b{color:var(--txt)}
+</style>
+</head>
+<body>
+<header>
+  <h1>Kameratest – steg 1</h1>
+  <button class="pri" id="bStart">Starta kameror</button>
+  <button id="bRef" disabled>Ny referens (tom tavla)</button>
+  <button id="bSave" disabled>Spara bilder från senaste pilen</button>
+  <label class="mut"><input type="checkbox" id="cMask" checked> Visa skillnad</label>
+</header>
+<div id="status">Anslut 2–3 USB-kameror och tryck <b>Starta kameror</b>.</div>
+<main id="cams"></main>
+<div class="help">
+  <b>Så testar du:</b> 1) Montera kamerorna vid tavlans kant så att de tittar längs ytan. 2) Klicka i varje bild på den höjd där tavlans yta syns (gul linje). 3) Tryck <b>Ny referens</b> med tom tavla. 4) Kasta en pil. När det är stilla visas pilen i rött, axeln i grönt och spetsen som en vit prick. 5) Dra ut pilarna: stor förändring gör att sidan tar ny referens själv.<br>
+  Kolla även att varje kamera verkligen ger 640×480 och minst 10 bilder/s (står över bilden). Annars räcker inte USB-bandbredden – flytta en kamera till en annan USB-port.
+</div>
+<div id="log"></div>
+
+<script>
+"use strict";
+const W = 320, H = 240;          // processing resolution
+const PIX_T = 28;                // per-pixel colour change threshold (0..255)
+const MOVE_T = 0.004;            // share of pixels changing frame-to-frame = movement
+const STILL_MS = 450;            // how long all cameras must be still
+const MIN_AREA = 25, BIG = 0.15; // dart blob min pixels; >15 % changed = hand/darts pulled out
+const $ = id => document.getElementById(id);
+const log = s => { $("log").textContent = new Date().toLocaleTimeString() + "  " + s + "\n" + $("log").textContent; };
+const store = { get(k){ try { return JSON.parse(localStorage.getItem(k)); } catch(e){ return null; } }, set(k,v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} } };
+
+let cams = [], devices = [], moving = false, lastMove = 0, dartNo = 0, needRef = true;
+
+$("bStart").onclick = start;
+$("bRef").onclick = () => { needRef = true; dartNo = 0; setStatus("Ny referens tas när det är stilla."); };
+$("bSave").onclick = saveImages;
+
+function setStatus(s){ $("status").innerHTML = s; }
+
+async function start(){
+  try {
+    const s = await navigator.mediaDevices.getUserMedia({ video: true });
+    s.getTracks().forEach(t => t.stop());
+  } catch(e){ setStatus("Fick inte tillgång till kameran: " + e.message); return; }
+  devices = (await navigator.mediaDevices.enumerateDevices()).filter(d => d.kind === "videoinput");
+  if (!devices.length){ setStatus("Ingen kamera hittades."); return; }
+  $("bStart").disabled = true; $("bRef").disabled = false;
+  const n = Math.min(3, devices.length);
+  for (let i = 0; i < n; i++) await addCam(i, devices[i].deviceId);
+  setStatus(n + " kamera(or) startade. " + (n < 2 ? "Minst 2 behövs för triangulering i steg 2." : "Klicka på tavlans yta i varje bild."));
+  requestAnimationFrame(loop);
+}
+
+async function addCam(i, deviceId){
+  const el = document.createElement("div"); el.className = "cam";
+  el.innerHTML = `<div class="row"><b>Kamera ${i+1}</b><select></select></div>
+    <canvas width="${W}" height="${H}"></canvas>
+    <div class="row mut"><span class="info">–</span><span class="res">–</span></div>`;
+  $("cams").appendChild(el);
+  const sel = el.querySelector("select");
+  devices.forEach(d => { const o = document.createElement("option"); o.value = d.deviceId; o.textContent = d.label || ("Kamera " + d.deviceId.slice(0,6)); sel.appendChild(o); });
+  const c = { i, el, cv: el.querySelector("canvas"), video: document.createElement("video"),
+    work: document.createElement("canvas"), prev: null, ref: null, cur: null, mask: null, result: null,
+    beforeImg: null, afterImg: null, frames: 0, fpsT: performance.now(), fps: 0, stream: null, deviceId: null };
+  c.video.muted = true; c.video.playsInline = true;
+  c.work.width = W; c.work.height = H;
+  c.wctx = c.work.getContext("2d", { willReadFrequently: true });
+  c.ctx = c.cv.getContext("2d", { willReadFrequently: true });
+  c.cv.onpointerdown = e => { const r = c.cv.getBoundingClientRect(); c.surf = (e.clientY - r.top) / r.height; store.set("kt_surf_" + c.deviceId, c.surf); };
+  sel.onchange = () => openStream(c, sel.value);
+  sel.value = deviceId;
+  cams.push(c);
+  await openStream(c, deviceId);
+}
+
+async function openStream(c, deviceId){
+  if (c.stream) c.stream.getTracks().forEach(t => t.stop());
+  try {
+    c.stream = await navigator.mediaDevices.getUserMedia({ video: { deviceId: { exact: deviceId }, width: { ideal: 640 }, height: { ideal: 480 }, frameRate: { ideal: 30 } } });
+  } catch(e){ c.el.querySelector(".info").textContent = "Kunde inte öppnas: " + e.message; return; }
+  c.deviceId = deviceId;
+  c.surf = store.get("kt_surf_" + deviceId) ?? 0.7;
+  c.video.srcObject = c.stream; await c.video.play().catch(()=>{});
+  c.ref = null; needRef = true;
+}
+
+function grab(c){
+  if (c.video.readyState < 2) return null;
+  c.wctx.drawImage(c.video, 0, 0, W, H);
+  return c.wctx.getImageData(0, 0, W, H);
+}
+
+// Share of pixels whose max channel differs more than PIX_T. Optionally fills mask.
+function diff(a, b, mask){
+  const A = a.data, B = b.data; let n = 0;
+  // light compensation: ratio of mean brightness
+  let sa = 0, sb = 0; for (let p = 0; p < A.length; p += 16){ sa += A[p]+A[p+1]+A[p+2]; sb += B[p]+B[p+1]+B[p+2]; }
+  const g = sb ? sa / sb : 1;
+  for (let p = 0, q = 0; p < A.length; p += 4, q++){
+    const d = Math.max(Math.abs(A[p]-B[p]*g), Math.abs(A[p+1]-B[p+1]*g), Math.abs(A[p+2]-B[p+2]*g));
+    const on = d > PIX_T; if (on) n++; if (mask) mask[q] = on ? 1 : 0;
+  }
+  return n / (W*H);
+}
+
+// Largest 8-connected blob after removing isolated pixels.
+function largestBlob(mask){
+  const clean = new Uint8Array(W*H);
+  for (let y = 1; y < H-1; y++) for (let x = 1; x < W-1; x++){
+    const q = y*W+x; if (!mask[q]) continue;
+    let nb = mask[q-1]+mask[q+1]+mask[q-W]+mask[q+W]+mask[q-W-1]+mask[q-W+1]+mask[q+W-1]+mask[q+W+1];
+    if (nb >= 2) clean[q] = 1;
+  }
+  const lab = new Int32Array(W*H); let best = null, id = 0; const st = [];
+  for (let q = 0; q < W*H; q++){
+    if (!clean[q] || lab[q]) continue; id++; const pts = []; st.push(q); lab[q] = id;
+    while (st.length){ const r = st.pop(); pts.push(r); const x = r % W, y = (r / W) | 0;
+      for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++){
+        const nx = x+dx, ny = y+dy; if (nx < 0 || ny < 0 || nx >= W || ny >= H) continue;
+        const s = ny*W+nx; if (clean[s] && !lab[s]){ lab[s] = id; st.push(s); } } }
+    if (!best || pts.length > best.length) best = pts;
+  }
+  return { clean, pts: best || [] };
+}
+
+// Dart axis by PCA, tip = where the axis crosses the board-surface line.
+function analyse(c){
+  const { clean, pts } = largestBlob(c.mask);
+  c.clean = clean;
+  if (pts.length < MIN_AREA) return { ok: false, why: "ingen pil hittad (" + pts.length + " px)" };
+  let mx = 0, my = 0; for (const q of pts){ mx += q % W; my += (q / W) | 0; } mx /= pts.length; my /= pts.length;
+  let sxx = 0, syy = 0, sxy = 0; for (const q of pts){ const dx = q % W - mx, dy = ((q / W) | 0) - my; sxx += dx*dx; syy += dy*dy; sxy += dx*dy; }
+  const ang = 0.5 * Math.atan2(2*sxy, sxx - syy); let ux = Math.cos(ang), uy = Math.sin(ang);
+  const sy = c.surf * H;
+  let tx, ty, how;
+  if (Math.abs(uy) > 0.25){ const t = (sy - my) / uy; tx = mx + ux*t; ty = sy; how = "axel×yta"; }
+  else { // axis almost horizontal: take the blob end nearest the surface line
+    let bq = pts[0]; for (const q of pts) if (Math.abs(((q/W)|0) - sy) < Math.abs(((bq/W)|0) - sy)) bq = q;
+    tx = bq % W; ty = (bq / W) | 0; how = "närmaste punkt";
+  }
+  return { ok: true, area: pts.length, mx, my, ux, uy, tx, ty, x: tx / W, how };
+}
+
+function loop(now){
+  let anyMove = false, allReady = cams.length > 0;
+  for (const c of cams){
+    const f = grab(c); if (!f){ allReady = false; continue; }
+    c.frames++; if (now - c.fpsT > 1000){ c.fps = c.frames * 1000 / (now - c.fpsT); c.frames = 0; c.fpsT = now;
+      const s = c.stream?.getVideoTracks()[0]?.getSettings() || {};
+      c.el.querySelector(".res").textContent = (s.width||"?") + "×" + (s.height||"?") + " · " + c.fps.toFixed(0) + " bilder/s"; }
+    if (c.prev && diff(f, c.prev) > MOVE_T) anyMove = true;
+    c.prev = f; c.cur = f;
+  }
+  if (anyMove){ if (!moving) setStatus("Rörelse…"); moving = true; lastMove = now; }
+  else if (moving && allReady && now - lastMove > STILL_MS){ moving = false; settled(); }
+  else if (needRef && allReady && !moving && now - lastMove > STILL_MS) settled();
+  for (const c of cams) draw(c);
+  requestAnimationFrame(loop);
+}
+
+function settled(){
+  if (needRef || cams.some(c => !c.ref)){
+    cams.forEach(c => { c.ref = c.cur; c.result = null; c.mask = null; });
+    needRef = false; dartNo = 0; setStatus("Referens tagen. Kasta en pil."); log("Referens (tom tavla)"); return;
+  }
+  const out = [];
+  let big = false;
+  for (const c of cams){
+    c.mask = new Uint8Array(W*H);
+    const share = diff(c.cur, c.ref, c.mask);
+    if (share > BIG){ big = true; break; }
+    c.result = share < 0.0003 ? { ok: false, why: "ingen förändring" } : analyse(c);
+    c.beforeImg = c.ref; c.afterImg = c.cur;
+  }
+  if (big){
+    cams.forEach(c => { c.ref = c.cur; c.result = null; c.mask = null; }); dartNo = 0;
+    setStatus("Stor förändring (pilar utdragna?) – ny referens tagen."); log("Ny referens efter stor förändring"); return;
+  }
+  if (cams.every(c => !c.result.ok && c.result.why === "ingen förändring")){ setStatus("Rörelse men ingen ny pil."); return; }
+  dartNo++;
+  for (const c of cams){ out.push("K" + (c.i+1) + ": " + (c.result.ok ? "x=" + c.result.x.toFixed(3) + " (" + c.result.area + " px, " + c.result.how + ")" : c.result.why)); c.ref = c.cur; }
+  const hits = cams.filter(c => c.result.ok).length;
+  setStatus("Pil " + dartNo + ": hittad i " + hits + " av " + cams.length + " kameror.");
+  log("Pil " + dartNo + "  " + out.join("  |  "));
+  $("bSave").disabled = false;
+}
+
+function draw(c){
+  const g = c.ctx;
+  if (c.video.readyState >= 2) g.drawImage(c.video, 0, 0, W, H);
+  if ($("cMask").checked && c.clean && c.result){
+    const img = g.getImageData(0, 0, W, H), D = img.data;
+    for (let q = 0; q < W*H; q++) if (c.clean[q]){ D[q*4] = 255; D[q*4+1] *= 0.3; D[q*4+2] *= 0.3; }
+    g.putImageData(img, 0, 0);
+  }
+  const sy = c.surf * H;
+  g.strokeStyle = "#f1c40f"; g.lineWidth = 1; g.setLineDash([6,4]); g.beginPath(); g.moveTo(0, sy); g.lineTo(W, sy); g.stroke(); g.setLineDash([]);
+  const r = c.result;
+  if (r && r.ok){
+    g.strokeStyle = "#2ecc71"; g.lineWidth = 2; g.beginPath(); g.moveTo(r.mx - r.ux*200, r.my - r.uy*200); g.lineTo(r.mx + r.ux*200, r.my + r.uy*200); g.stroke();
+    g.fillStyle = "#fff"; g.strokeStyle = "#000"; g.beginPath(); g.arc(r.tx, r.ty, 4, 0, 7); g.fill(); g.stroke();
+    g.beginPath(); g.moveTo(r.tx, 0); g.lineTo(r.tx, H); g.strokeStyle = "rgba(255,255,255,.35)"; g.stroke();
+  }
+  c.el.querySelector(".info").textContent = r ? (r.ok ? "Spets x = " + r.x.toFixed(3) : r.why) : (c.ref ? "Väntar på pil" : "Ingen referens");
+}
+
+function saveImages(){
+  for (const c of cams){
+    if (!c.beforeImg || !c.afterImg) continue;
+    const cv = document.createElement("canvas"); cv.width = W*2; cv.height = H;
+    const g = cv.getContext("2d"); g.putImageData(c.beforeImg, 0, 0); g.putImageData(c.afterImg, W, 0);
+    const a = document.createElement("a"); a.download = "kamera" + (c.i+1) + "-pil" + dartNo + ".png"; a.href = cv.toDataURL("image/png"); a.click();
+  }
+}
+</script>
+</body>
+</html>
