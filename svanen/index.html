@@ -156,6 +156,12 @@ body.cdmode .cd-big span{font-size:min(30vw,16dvh)}
 body.cdmode .cd-big small{margin-top:.6dvh}
 body.cdmode .cd-row b{font-size:min(9vw,4.6dvh)}
 body.cdmode .foot{margin-top:1dvh}
+details.sec{padding:0}details.sec>summary{list-style:none;cursor:pointer;padding:14px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+details.sec>summary::-webkit-details-marker{display:none}
+details.sec>summary::after{content:"";width:9px;height:9px;border-right:2px solid var(--dim);border-bottom:2px solid var(--dim);transform:rotate(45deg);flex:none;margin-right:4px;transition:transform .15s}
+details.sec[open]>summary::after{transform:rotate(-135deg)}
+details.sec>summary b{font-size:17px;display:block}details.sec>summary small{display:block;color:var(--dim);font-size:13px;margin-top:2px}
+.sec-in{padding:0 14px 14px}
 .cd{text-align:center;display:flex;flex-direction:column;align-items:center;gap:14px;margin-top:4px}
 .cd-big{font-family:var(--display);line-height:1}.cd-big span{display:block;font-size:clamp(96px,32vw,190px);color:var(--amber);text-shadow:0 0 30px rgba(232,40,60,.6);font-variant-numeric:tabular-nums}
 .cd-big small{display:block;font-family:var(--body);font-weight:800;font-size:clamp(15px,4.4vw,22px);letter-spacing:3px;text-transform:uppercase;margin-top:8px}
@@ -220,7 +226,7 @@ let PIN=isAdmin?lsGet(KEY+"-pin"):null;
 let S=null,loaded=false,netErr=false;
 if(isAdmin){try{S=JSON.parse(lsGet(KEY)||"null")}catch(e){S=null}if(!S||!S.teams)S=demo()}
 let ui={tab:"match",openMatch:null};
-{const t=lsGet(KEY+"-tab");if(t)ui.tab=t}
+{const t=lsGet(KEY+"-tab");if(t)ui.tab=t;try{ui.sec=JSON.parse(lsGet(KEY+"-sec")||"null")||undefined}catch(e){}}
 const sync={pending:lsGet(KEY+"-dirty")==="1",timer:0,seen:null,status:"idle"};
 function saveLocal(){lsSet(KEY,JSON.stringify(S))}
 function save(){saveLocal();if(isAdmin&&PIN&&!S.demo)queuePush()}
@@ -532,7 +538,7 @@ const c=ac();if(!c)return;
 if(SND.mode==="file"&&sndBuf){const g=c.createGain();g.connect(c.destination);const s=c.createBufferSource();s.buffer=sndBuf;s.connect(g);s.start(0,Math.min(+SND.off||0,Math.max(0,sndBuf.duration-1)));sndSrc=s;sndGain=g;return}
 drumroll(c,3.3)}
 function jReveal(){if(isAdmin&&(SND.mode==="jingle"||(SND.mode==="file"&&!sndBuf)||(SND.mode==="spotify"&&!SP.playing))){const c=ac();if(c)fanfare(c)}}
-function vSnd(){return`<h2>Ljud vid Jäger-paus</h2><div class="card stack">
+function vSnd(){return`<h3 style="margin:10px 0 0">Ljud</h3><div class="stack">
 <p class="muted" style="margin:0">Ljudet spelas från den här enheten, så koppla gärna in en högtalare. Deltagarnas mobiler är tysta. En iPhone på ljudlöst spelar inget.</p>
 <div class="row">${[["jingle","Trumvirvel + fanfar"],["file","Egen låt"],["spotify","Spotify"],["off","Av"]].map(([v,l])=>`<button class="btn small ${SND.mode===v?"primary":""}" data-act="sndMode" data-m="${v}">${l}</button>`).join("")}</div>
 ${SND.mode==="file"?`<label class="btn" style="cursor:pointer">${SND.name?"Byt låt":"Välj ljudfil"}<input type="file" id="sndFile" accept="audio/*" hidden></label>
@@ -701,42 +707,51 @@ ${g?`<div class="grid2" style="grid-template-columns:repeat(auto-fit,minmax(170p
 }
 function publicUrl(){return location.origin+location.pathname}
 function qrSvg(url){try{const q=qrcode(0,"M");q.addData(url);q.make();return q.createSvgTag({cellSize:6,margin:2,scalable:true})}catch(e){return`<img alt="QR-kod till resultatlistan" width="280" height="280" style="display:block;width:100%;height:auto" src="https://api.qrserver.com/v1/create-qr-code/?size=400x400&margin=8&data=${encodeURIComponent(url)}">`}}
+function sec(k,title,hint,body,open){const o=ui.sec&&k in ui.sec?ui.sec[k]:open;return`<details class="card sec" data-sec="${k}" ${o?"open":""}><summary><span><b>${title}</b>${hint?`<small>${hint}</small>`:""}</span></summary><div class="stack sec-in">${body}</div></details>`}
 function vMer(){
-const s=S.settings;
-return`<h2>QR till resultatlistan</h2><div class="card stack" style="text-align:center">
-<div class="qr">${qrSvg(publicUrl())}</div>
-<p style="margin:0;font-weight:700;overflow-wrap:anywhere">${esc(publicUrl())}</p>
-<p class="muted" style="margin:0">Skriv ut eller visa koden. Deltagarna ser ställningen live men kan inte ändra något.</p>
-<div class="row" style="justify-content:center"><button class="btn primary" data-act="printSign">Skriv ut QR-skylt</button><button class="btn" data-act="copyUrl">Kopiera länken</button><a class="btn" href="${esc(publicUrl())}" target="_blank" rel="noopener">Öppna resultatlistan</a></div></div>
-${vSnd()}<h2>Inloggning</h2><div class="card stack">
-<form class="row" data-form="newPin" style="flex-wrap:nowrap"><input type="text" id="newPin" placeholder="Ny kod (minst 6 tecken)" autocomplete="off" style="flex:1"><button class="btn">Byt kod</button></form>
-<p class="muted" style="margin:0">Den nya koden gäller för alla i tävlingsledningen. Andra inloggade enheter loggas ut när de sparar nästa gång.</p>
-<div class="row"><button class="btn ghost danger" data-act="logout">Logga ut på den här enheten</button></div></div>
-`+`<h2>Inställningar</h2><div class="card stack">
-${(f=>`<h3 style="margin:0">Matchformat</h3>
-<label class="row" style="justify-content:space-between">Antal perioder<select id="s-per" data-change="set" data-k="periods" style="width:5em">${[1,2,3,4].map(n=>`<option ${+f.periods===n?"selected":""}>${n}</option>`).join("")}</select></label>
-<label class="row" style="justify-content:space-between">Periodlängd (min, 0 = klockan räknar uppåt)<input type="number" id="s-plen" value="${f.plen}" min="0" data-change="set" data-k="plen" style="width:5em"></label>
-<label class="row" style="justify-content:space-between">Vid oavgjort<select id="s-tie" data-change="sets" data-k="tie" style="width:auto">${[["draw","Oavgjort står sig"],["ot","Sudden death, sedan straffar"],["so","Straffar direkt"]].map(([v,l])=>`<option value="${v}" ${f.tie===v?"selected":""}>${l}</option>`).join("")}</select></label>
-${f.tie==="ot"?`<label class="row" style="justify-content:space-between">Förlängning (min)<input type="number" id="s-otl" value="${f.otLen}" min="0" data-change="set" data-k="otLen" style="width:5em"></label>`:""}
-<h3 style="margin:8px 0 0">Poäng</h3>
-<label class="row" style="justify-content:space-between">Vinst<input type="number" id="s-win" value="${f.win}" data-change="set" data-k="win" style="width:5em"></label>
-${f.tie==="draw"?`<label class="row" style="justify-content:space-between">Oavgjort<input type="number" id="s-draw" value="${f.draw}" data-change="set" data-k="draw" style="width:5em"></label>`:
-`<label class="row" style="justify-content:space-between">Vinst efter ${f.tie==="so"?"straffar":"förlängning/straffar"}<input type="number" id="s-otw" value="${f.otWin}" data-change="set" data-k="otWin" style="width:5em"></label>
-<label class="row" style="justify-content:space-between">Förlust efter ${f.tie==="so"?"straffar":"förlängning/straffar"}<input type="number" id="s-otl2" value="${f.otLoss}" data-change="set" data-k="otLoss" style="width:5em"></label>`}
-<h3 style="margin:8px 0 0">Övrigt</h3>`)(fmtS())}
-<label class="row" style="justify-content:space-between">Nedsläpp (nedräkningen på resultatlistan)<input type="datetime-local" id="s-start" value="${esc(s.start||START_DEF)}" data-change="setStart" style="width:auto"></label>
-<p class="muted" style="margin:0">Fram till dess ser deltagarna en nedräkning. Den försvinner när tiden passerat eller när första matchen startar.${S.demo?" <b>Rensa exempellagen först, annars syns inte ändringen.</b>":""}</p>
-<label class="row" style="justify-content:space-between">Räkna hockeypoängen i totalen<input type="checkbox" id="s-uh" ${s.useHockey?"checked":""} data-change="setb" data-k="useHockey" style="width:24px;height:24px"></label>
-<label class="row" style="justify-content:space-between">Slumpad Jäger-paus under matcherna<input type="checkbox" id="s-aj" ${s.autoJager?"checked":""} data-change="setb" data-k="autoJager" style="width:24px;height:24px"></label>
-<label class="row" style="justify-content:space-between">Jäger-paus tidigast efter (min matchtid)<input type="number" id="s-jmin" value="${s.jMin}" data-change="set" data-k="jMin" style="width:5em"></label>
-<label class="row" style="justify-content:space-between">och senast efter (min)<input type="number" id="s-jmax" value="${s.jMax}" data-change="set" data-k="jMax" style="width:5em"></label>
-</div>
-<h2>Nollställ resultat</h2><div class="card stack"><p class="muted" style="margin:0">Lag, spelare, grenar och inställningar finns kvar. Tryck två gånger för att bekräfta. Ta gärna en säkerhetskopia (nedan) först.</p>
+const s=S.settings,f=fmtS(),row=(l,inp)=>`<label class="row" style="justify-content:space-between;flex-wrap:nowrap"><span>${l}</span>${inp}</label>`,num=(id,k,v,min)=>`<input type="number" inputmode="numeric" id="${id}" value="${esc(v)}" ${min!=null?`min="${min}"`:""} data-change="set" data-k="${k}" style="width:5em">`;
+const tieL={draw:"oavgjort står sig",ot:"sudden death + straffar",so:"straffar direkt"}[f.tie];
+const sndL={jingle:"trumvirvel",file:"egen låt",spotify:"Spotify",off:"inget ljud"}[SND.mode];
+const st=startAt(),stL=new Date(st).toLocaleString("sv-SE",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"});
+let h=`<h2>Inställningar</h2><div class="stack">`;
+h+=sec("match","Matchregler",`${f.periods} × ${+f.plen?f.plen+" min":"fri tid"} · ${tieL} · vinst ${f.win} p`,
+`<h3 style="margin:0">Format</h3>
+${row("Antal perioder",`<select id="s-per" data-change="set" data-k="periods" style="width:5em">${[1,2,3,4].map(n=>`<option ${+f.periods===n?"selected":""}>${n}</option>`).join("")}</select>`)}
+${row("Periodlängd i minuter <span class=\"muted\">(0 = räknar uppåt)</span>",num("s-plen","plen",f.plen,0))}
+${row("Vid oavgjort",`<select id="s-tie" data-change="sets" data-k="tie" style="width:auto">${[["draw","Oavgjort står sig"],["ot","Sudden death, sedan straffar"],["so","Straffar direkt"]].map(([v,l])=>`<option value="${v}" ${f.tie===v?"selected":""}>${l}</option>`).join("")}</select>`)}
+${f.tie==="ot"?row("Förlängning i minuter",num("s-otl","otLen",f.otLen,0)):""}
+<h3 style="margin:8px 0 0">Tabellpoäng</h3>
+${row("Vinst",num("s-win","win",f.win))}
+${f.tie==="draw"?row("Oavgjort",num("s-draw","draw",f.draw)):row(`Vinst efter ${f.tie==="so"?"straffar":"förlängning/straffar"}`,num("s-otw","otWin",f.otWin))+row(`Förlust efter ${f.tie==="so"?"straffar":"förlängning/straffar"}`,num("s-otl2","otLoss",f.otLoss))}`,true);
+h+=sec("tour","Turneringen",`Nedsläpp ${stL} · hockeypoäng ${s.useHockey?"räknas":"räknas inte"} i totalen`,
+`${row("Nedsläpp",`<input type="datetime-local" id="s-start" value="${esc(s.start||START_DEF)}" data-change="setStart" style="width:auto">`)}
+<p class="muted" style="margin:0">Fram till dess visar resultatlistan en nedräkning. Den försvinner när tiden passerat eller första matchen startar.${S.demo?" <b>Rensa exempellagen först, annars syns inte ändringen.</b>":""}</p>
+${row("Räkna hockeypoängen i totalen",`<input type="checkbox" id="s-uh" ${s.useHockey?"checked":""} data-change="setb" data-k="useHockey" style="width:24px;height:24px;flex:none">`)}`,true);
+h+=sec("jager","Jäger-paus",`${s.autoJager?`slumpas efter ${s.jMin}–${s.jMax} min`:"bara manuell"} · ${sndL}`,
+`${row("Slumpa fram under matcherna",`<input type="checkbox" id="s-aj" ${s.autoJager?"checked":""} data-change="setb" data-k="autoJager" style="width:24px;height:24px;flex:none">`)}
+${s.autoJager?row("Tidigast efter (min matchtid)",num("s-jmin","jMin",s.jMin,0))+row("Senast efter (min)",num("s-jmax","jMax",s.jMax,0)):""}
+${vSnd()}`,false);
+h+=sec("share","Dela resultatlistan","QR-kod, utskrift och länk",
+`<div class="qr">${qrSvg(publicUrl())}</div>
+<p style="margin:0;font-weight:700;overflow-wrap:anywhere;text-align:center">${esc(publicUrl())}</p>
+<p class="muted" style="margin:0;text-align:center">Deltagarna ser ställningen live men kan inte ändra något.</p>
+<div class="row" style="justify-content:center"><button class="btn primary" data-act="printSign">Skriv ut QR-skylt</button><button class="btn" data-act="copyUrl">Kopiera länken</button><a class="btn" href="${esc(publicUrl())}" target="_blank" rel="noopener">Öppna</a></div>`,false);
+h+=sec("login","Inloggning","Byt kod eller logga ut",
+`<form class="row" data-form="newPin" style="flex-wrap:nowrap"><input type="text" id="newPin" placeholder="Ny kod (minst 6 tecken)" autocomplete="off" style="flex:1"><button class="btn">Byt kod</button></form>
+<p class="muted" style="margin:0">Gäller för alla i tävlingsledningen. Andra inloggade enheter loggas ut när de sparar nästa gång.</p>
+<div class="row"><button class="btn ghost danger" data-act="logout">Logga ut på den här enheten</button></div>`,false);
+h+=sec("data","Nollställ och säkerhetskopia","Börja om, spara undan eller läs in data",
+`<h3 style="margin:0">Nollställ resultat</h3>
+<p class="muted" style="margin:0">Lag, spelare, grenar och inställningar finns kvar. Tryck två gånger för att bekräfta.</p>
 <div class="row"><button class="btn ghost danger" data-act="arm" data-do="resetHockey">Hockeyn</button><button class="btn ghost danger" data-act="arm" data-do="resetFk">Femkampen</button><button class="btn danger" data-act="arm" data-do="resetAll">Hela turneringen</button></div>
-<p class="muted" style="margin:0"><b>Hockeyn:</b> matcher, spelschema, mål, utvisningar, tillsägelser i matcher och Jäger-shots. <b>Femkampen:</b> grenpoäng, justeringar och tillsägelser i femkampen.</p></div>
-<h2>Säkerhetskopia</h2><div class="card stack"><p class="muted" style="margin:0">Allt sparas i den här webbläsaren. Kopiera texten nedan och spara den någonstans (t.ex. i ett sms till dig själv) så kan du klistra in den igen på en annan telefon.</p>
-<textarea id="backup" rows="4" spellcheck="false">${esc(JSON.stringify(S))}</textarea>
-<div class="row"><button class="btn" data-act="copy">Kopiera</button><button class="btn" data-act="import">Läs in från rutan</button><button class="btn ghost danger" data-act="arm" data-do="wipe">Rensa allt, även lagen</button></div></div>`;
+<p class="muted" style="margin:0"><b>Hockeyn:</b> matcher, spelschema, mål, utvisningar, tillsägelser i matcher och Jäger-shots. <b>Femkampen:</b> grenpoäng, justeringar och tillsägelser i femkampen.</p>
+<h3 style="margin:10px 0 0">Säkerhetskopia</h3>
+<p class="muted" style="margin:0">Kopiera texten och spara den (t.ex. i ett sms till dig själv). Klistra in den igen för att återställa.</p>
+<textarea id="backup" rows="3" spellcheck="false">${esc(JSON.stringify(S))}</textarea>
+<div class="row"><button class="btn" data-act="copy">Kopiera</button><button class="btn" data-act="import">Läs in från rutan</button></div>
+<h3 style="margin:10px 0 0">Börja helt från noll</h3>
+<div class="row"><button class="btn ghost danger" data-act="arm" data-do="wipe">Rensa allt, även lagen</button></div>`,false);
+return h+`</div>`;
 }
 let pick={};
 function closeLayer(){$("#layer").innerHTML="";pick={};if(ui.cer){ui.cer=null;stopSnd(.6)}}
@@ -951,11 +966,12 @@ if(k==="spDev"){SP.dev=el.value;spSave();return}
 if(k==="sndOff"){SND.off=Math.max(0,+el.value||0);lsSet(KEY+"-jsoff",String(SND.off));return}
 if(k==="swWho"){const l=SW.laps.find(x=>x.id===el.dataset.id);if(l){l.who=el.value;swSave();render()}return}
 if(k==="sets"){S.settings[el.dataset.k]=el.value;save();render();return}
+if((k==="set"||k==="setb"||k==="setStart")&&ui.tab==="mer"){save();render();return}
 if(k==="set"&&/^(periods)$/.test(el.dataset.k)){save();render();return}
 save();
 });
 document.addEventListener("input",e=>{if(e.target.id==="genList")ui.genText=e.target.value});
-document.addEventListener("toggle",e=>{if(e.target.id==="genBox")ui.genOpen=e.target.open},true);
+document.addEventListener("toggle",e=>{if(e.target.id==="genBox")ui.genOpen=e.target.open;const k=e.target.dataset&&e.target.dataset.sec;if(k){(ui.sec||(ui.sec={}))[k]=e.target.open;try{localStorage.setItem(KEY+"-sec",JSON.stringify(ui.sec))}catch(x){}}},true);
 document.addEventListener("keydown",e=>{if(e.key==="Escape"&&$("#layer").innerHTML&&!$("#jg"))closeLayer()});
 setInterval(()=>{
 if(!S)return;const m=curMatch();if(!m||!m.clock.running)return;
