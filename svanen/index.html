@@ -509,11 +509,11 @@ const d=ds.find(x=>x.id===SP.dev)||ds.find(x=>x.is_active)||ds[0];if(!d)throw e;
 await spApi("/me/player/play?device_id="+encodeURIComponent(d.id),"PUT",body)}
 SP.playing=true}
 function spPause(){if(SND.mode!=="spotify"||!SP.playing)return;SP.playing=false;const p=SP.prev;SP.prev=null;
-if(!p||!p.on){spApi("/me/player/pause"+spDevQ("?"),"PUT").catch(()=>{});return}
+if(!p||!p.on){spApi("/me/player/pause"+spDevQ("?"),"PUT").catch(()=>{});setTimeout(()=>toast(p?"Spotify pausad (musiken stod still innan)":"Spotify pausad (hittade ingen musik som spelade innan)"),1500);return}
 const q=p.dev?"?device_id="+encodeURIComponent(p.dev):"",back={uris:[p.uri],position_ms:p.pos};
 (async()=>{await spApi("/me/player/shuffle?state="+p.sh+(p.dev?"&device_id="+encodeURIComponent(p.dev):""),"PUT").catch(()=>{});
-if(p.ctx&&/^spotify:(playlist|album):/.test(p.ctx)){try{await spApi("/me/player/play"+q,"PUT",{context_uri:p.ctx,offset:{uri:p.uri},position_ms:p.pos});return}catch(e){}}
-await spApi("/me/player/play"+q,"PUT",back)})().catch(()=>spApi("/me/player/pause"+spDevQ("?"),"PUT").catch(()=>{}))}
+if(p.ctx&&/^spotify:(playlist|album):/.test(p.ctx)){try{await spApi("/me/player/play"+q,"PUT",{context_uri:p.ctx,offset:{uri:p.uri},position_ms:p.pos});setTimeout(()=>toast("Musiken fortsätter i spellistan"),1500);return}catch(e){}}
+await spApi("/me/player/play"+q,"PUT",back);setTimeout(()=>toast("Musiken fortsätter"),1500)})().catch(e=>{setTimeout(()=>toast("Kunde inte återuppta: "+spErr(e)),1500);spApi("/me/player/pause"+spDevQ("?"),"PUT").catch(()=>{})})}
 function spErr(e){return e.status===404?"Ingen Spotify-enhet hittades. Öppna Spotify på högtalaren eller telefonen och tryck play en gång.":e.status===403?"Spotify nekade ("+e.message+"). Kräver Premium, och i utvecklarappen måste ditt konto finnas under User Management.":e.status===401?"Koppla Spotify under Mer.":"Spotify: "+e.message+(e.status?" ("+e.status+")":"")}
 async function spDevices(){try{const j=await spApi("/me/player/devices");SP.devs=(j&&j.devices||[]).map(d=>({id:d.id,name:d.name,type:d.type}));spSave();toast(SP.devs.length?SP.devs.length+(SP.devs.length===1?" enhet hittad":" enheter hittade"):"Inga enheter. Öppna Spotify på högtalaren eller telefonen.")}catch(e){toast(spErr(e))}render()}
 function jSound(){if(!isAdmin)return;stopSnd(0);if(SND.mode==="off")return;
