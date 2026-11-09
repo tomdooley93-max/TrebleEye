@@ -18,6 +18,8 @@ self.addEventListener("fetch", e => {
   const url = new URL(req.url);
   // Svanen Hockey Games (/svanen/) is a separate app: never cache or intercept it
   if (url.origin === location.origin && url.pathname.includes("/svanen/")) return;
+  // Camera test page (/kameratest/) is a separate page: never cache it as index.html
+  if (url.origin === location.origin && url.pathname.includes("/kameratest/")) return;
   // App page: network first so updates show up, cache when offline
   if (req.mode === "navigate") {
     e.respondWith(fetch(req).then(r => { const copy = r.clone(); caches.open(CACHE).then(c => c.put("./index.html", copy)); return r; })
