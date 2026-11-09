@@ -890,9 +890,9 @@ jReveal();pick={jager:final};S.jagerLive={player:final.p.id,team:final.t.id,t:Da
 confetti(["#f26b21","#f4e3c1","#e8b04b",final.t.color]);jagerTimer=setTimeout(()=>confetti(["#f26b21","#f4e3c1","#0f3b28"]),450);
 try{navigator.vibrate&&navigator.vibrate([120,60,220])}catch(e){}};
 if(reduce){jg.classList.add("go");reveal();return}
-requestAnimationFrame(()=>{jg.classList.add("go");const h=rl.firstElementChild.offsetHeight;
+requestAnimationFrame(()=>{jg.classList.add("go");const h=rl.querySelector(".fin").offsetTop-rl.firstElementChild.offsetTop;
 jagerTimer=setTimeout(()=>{if(!$("#jg")||startJager.tok!==tok)return;jg.classList.add("spin");
-const a=rl.animate([{transform:"translateY(0)"},{transform:`translateY(${-(N-1)*h}px)`}],{duration:3000,easing:"cubic-bezier(.08,.55,.12,1)",fill:"forwards"});
+const a=rl.animate([{transform:"translateY(0)"},{transform:`translateY(${-h}px)`}],{duration:3000,easing:"cubic-bezier(.08,.55,.12,1)",fill:"forwards"});
 a.onfinish=reveal},700)});
 try{navigator.vibrate&&navigator.vibrate([80,60,80])}catch(e){}
 }
