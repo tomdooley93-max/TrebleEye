@@ -493,9 +493,14 @@ function spUri(link){const m=String(link||"").match(/(track|playlist|album)[/:](
 const spDevQ=pre=>SP.dev?pre+"device_id="+encodeURIComponent(SP.dev):"";
 async function spPlay(){const u=spUri(SP.link);if(!u)throw new Error("Klistra in en länk till en låt eller spellista");
 if(u.type!=="track")await spApi("/me/player/shuffle?state=true"+spDevQ("&"),"PUT").catch(()=>{});
-await spApi("/me/player/play"+spDevQ("?"),"PUT",u.type==="track"?{uris:[u.uri],position_ms:Math.round((+SND.off||0)*1000)}:{context_uri:u.uri});SP.playing=true}
+const body=u.type==="track"?{uris:[u.uri],position_ms:Math.round((+SND.off||0)*1000)}:{context_uri:u.uri};
+try{await spApi("/me/player/play"+spDevQ("?"),"PUT",body)}catch(e){if(e.status!==404)throw e;
+const j=await spApi("/me/player/devices"),ds=(j&&j.devices||[]).filter(d=>!d.is_restricted);SP.devs=ds.map(d=>({id:d.id,name:d.name,type:d.type}));spSave();
+const d=ds.find(x=>x.id===SP.dev)||ds.find(x=>x.is_active)||ds[0];if(!d)throw e;
+await spApi("/me/player/play?device_id="+encodeURIComponent(d.id),"PUT",body)}
+SP.playing=true}
 function spPause(){if(SND.mode!=="spotify"||!SP.playing)return;SP.playing=false;spApi("/me/player/pause"+spDevQ("?"),"PUT").catch(()=>{})}
-function spErr(e){return e.status===404?"Ingen Spotify-enhet hittades. Öppna Spotify på högtalaren eller telefonen och tryck play en gång.":e.status===403?"Spotify nekade uppspelning. Det kräver Premium.":e.status===401?"Koppla Spotify under Mer.":"Spotify: "+e.message}
+function spErr(e){return e.status===404?"Ingen Spotify-enhet hittades. Öppna Spotify på högtalaren eller telefonen och tryck play en gång.":e.status===403?"Spotify nekade ("+e.message+"). Kräver Premium, och i utvecklarappen måste ditt konto finnas under User Management.":e.status===401?"Koppla Spotify under Mer.":"Spotify: "+e.message+(e.status?" ("+e.status+")":"")}
 async function spDevices(){try{const j=await spApi("/me/player/devices");SP.devs=(j&&j.devices||[]).map(d=>({id:d.id,name:d.name,type:d.type}));spSave();toast(SP.devs.length?SP.devs.length+(SP.devs.length===1?" enhet hittad":" enheter hittade"):"Inga enheter. Öppna Spotify på högtalaren eller telefonen.")}catch(e){toast(spErr(e))}render()}
 function jSound(){if(!isAdmin)return;stopSnd(0);if(SND.mode==="off")return;
 if(SND.mode==="spotify"){spPlay().catch(e=>{toast(spErr(e)+" Spelar trumvirveln i stället.");const c=ac();if(c)drumroll(c,3.3)});return}
