@@ -215,7 +215,7 @@ const sync={pending:lsGet(KEY+"-dirty")==="1",timer:0,seen:null,status:"idle"};
 function saveLocal(){lsSet(KEY,JSON.stringify(S))}
 function save(){saveLocal();if(isAdmin&&PIN&&!S.demo)queuePush()}
 function setSync(st){sync.status=st;const el=$("#sync");if(el)el.outerHTML=syncChip()}
-function syncChip(){const m={saving:["Sparar…","var(--amber)"],ok:["Live för alla","var(--mint)"],offline:["Ingen anslutning, sparas här","var(--red)"],idle:["Ansluter…","var(--dim)"],demo:["Exempel, syns inte","var(--dim)"]}[S&&S.demo?"demo":sync.status];return`<span class="chip" id="sync"><span class="dot" style="background:${m[1]}"></span>${m[0]}</span>`}
+function syncChip(){const m={saving:["Sparar…","var(--amber)"],ok:["Sparat, syns live","#3ee0a8"],offline:["Offline, sparas här","var(--red)"],idle:["Ansluter…","var(--dim)"],demo:["Exempel, syns inte","var(--dim)"]}[S&&S.demo?"demo":sync.status];return`<span class="chip" id="sync" role="button" tabindex="0" data-act="syncInfo" style="cursor:pointer"><span class="dot" style="background:${m[1]}"></span>${m[0]}</span>`}
 function queuePush(){sync.pending=true;lsSet(KEY+"-dirty","1");setSync("saving");clearTimeout(sync.timer);sync.timer=setTimeout(push,600)}
 async function push(){
 const snap=JSON.stringify(S);
@@ -721,9 +721,12 @@ ${f.tie==="draw"?`<label class="row" style="justify-content:space-between">Oavgj
 <label class="row" style="justify-content:space-between">Jäger-paus tidigast efter (min matchtid)<input type="number" id="s-jmin" value="${s.jMin}" data-change="set" data-k="jMin" style="width:5em"></label>
 <label class="row" style="justify-content:space-between">och senast efter (min)<input type="number" id="s-jmax" value="${s.jMax}" data-change="set" data-k="jMax" style="width:5em"></label>
 </div>
+<h2>Nollställ resultat</h2><div class="card stack"><p class="muted" style="margin:0">Lag, spelare, grenar och inställningar finns kvar. Tryck två gånger för att bekräfta. Ta gärna en säkerhetskopia (nedan) först.</p>
+<div class="row"><button class="btn ghost danger" data-act="arm" data-do="resetHockey">Hockeyn</button><button class="btn ghost danger" data-act="arm" data-do="resetFk">Femkampen</button><button class="btn danger" data-act="arm" data-do="resetAll">Hela turneringen</button></div>
+<p class="muted" style="margin:0"><b>Hockeyn:</b> matcher, spelschema, mål, utvisningar, tillsägelser i matcher och Jäger-shots. <b>Femkampen:</b> grenpoäng, justeringar och tillsägelser i femkampen.</p></div>
 <h2>Säkerhetskopia</h2><div class="card stack"><p class="muted" style="margin:0">Allt sparas i den här webbläsaren. Kopiera texten nedan och spara den någonstans (t.ex. i ett sms till dig själv) så kan du klistra in den igen på en annan telefon.</p>
 <textarea id="backup" rows="4" spellcheck="false">${esc(JSON.stringify(S))}</textarea>
-<div class="row"><button class="btn" data-act="copy">Kopiera</button><button class="btn" data-act="import">Läs in från rutan</button><button class="btn ghost danger" data-act="arm" data-do="wipe">Rensa allt</button></div></div>`;
+<div class="row"><button class="btn" data-act="copy">Kopiera</button><button class="btn" data-act="import">Läs in från rutan</button><button class="btn ghost danger" data-act="arm" data-do="wipe">Rensa allt, även lagen</button></div></div>`;
 }
 let pick={};
 function closeLayer(){$("#layer").innerHTML="";pick={};if(ui.cer){ui.cer=null;stopSnd(.6)}}
@@ -816,6 +819,9 @@ case"wipe":{const keep=S.demo?null:S.settings;S={...demo(),demo:false,teams:[],m
 case"delTeam":if(S.matches.some(x=>x.home===id||x.away===id)||(S.sched&&S.sched.fixtures.some(f=>f.home===id||f.away===id))){toast("Laget finns i matcher eller spelschemat. Ta bort dem först.");return}S.teams=S.teams.filter(t=>t.id!==id);break;
 case"genApply":if(ui.gen)genApply();break;
 case"delSched":delete S.sched;break;
+case"resetHockey":S.matches=[];delete S.sched;delete S.jagerLive;S.jx=[];ui.openMatch=null;toast("Hockeyn är nollställd");break;
+case"resetFk":S.fk.scores={};S.fk.adj=[];S.warns=[];toast("Femkampen är nollställd");break;
+case"resetAll":S.matches=[];delete S.sched;delete S.jagerLive;S.jx=[];S.fk.scores={};S.fk.adj=[];S.warns=[];ui.openMatch=null;toast("Turneringen är nollställd. Lagen finns kvar.");break;
 case"swClear":SW.laps=[];swSave();break;
 case"delPlayer":for(const t of S.teams)t.players=t.players.filter(p=>p.id!==id);break;
 case"delEv":for(const x of S.matches)x.events=x.events.filter(e=>e.id!==id);S.warns=S.warns.filter(e=>e.id!==id);break;
@@ -872,6 +878,7 @@ case"decide":{const cm=curMatch();if(!cm)break;cm.decided={team:el.dataset.t,how
 case"genRun":genRun();break;
 case"genFill":ui.genText=S.teams.flatMap(t=>t.players.map(p=>p.name)).join("\n");render();break;
 case"logout":logout("Utloggad");break;
+case"syncInfo":toast(S.demo?"Exempeldata. Deltagarna ser inget förrän du rensar och lägger in era lag.":{saving:"Sparar till servern…",ok:"Allt är sparat. Deltagarna ser det på resultatlistan inom några sekunder.",offline:"Ingen anslutning. Ändringarna sparas i telefonen och skickas när nätet är tillbaka.",idle:"Ansluter till servern…"}[sync.status]||"");break;
 case"copyUrl":navigator.clipboard?.writeText(publicUrl()).then(()=>toast("Länken är kopierad"),()=>toast(publicUrl()));break;
 case"jagerNow":startJager();break;
 case"cer":{const st=cerSteps();if(!st.length){toast("Inga resultat att dela ut priser för än");break}ui.cer={steps:st,i:0,shown:false};drawCer();break}
